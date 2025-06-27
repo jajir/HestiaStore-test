@@ -5,14 +5,14 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 import org.hestiastore.index.benchmark.FileUtils;
+import org.hestiastore.index.benchmark.IoUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,12 +23,11 @@ public class SimpleIT {
 
     @Test
     void test_simple2() throws Exception {
-        final Path jarFile = Paths.get("target/load-test2.jar");
         final ProcessBuilder builder = new ProcessBuilder(//
                 "java", //
                 "-Xmx10000m", //
                 "-cp", //
-                jarFile.toFile().getAbsolutePath(), //
+                loadClassParh(), //
                 "org.hestiastore.index.loadtest.Main", //
                 "--test1", //
                 "")//
@@ -38,20 +37,15 @@ public class SimpleIT {
 
         log(builder);
         final Process process = builder.start();
-        // Read and print process output manually
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        }
+
+        IoUtils.printInputStream(process.getInputStream());
 
         logger.info("Waiting for process finishing preparing data");
         await().atMost(30, SECONDS).pollInterval(1, SECONDS)
                 .until(TestStatus::isReadyToTest);
         assertTrue(process.isAlive(), "Process should be running");
         logger.info("Now it's ready to terminate");
+        IoUtils.printInputStream(process.getInputStream());
 
         Thread.sleep(1000);
         process.destroy(); // graceful SIGTERM
@@ -87,6 +81,17 @@ public class SimpleIT {
             buff.append(" ");
         }
         logger.info(buff.toString());
+    }
+
+    private static final String GENERATED_CLASS_PATH_FILE = "target/test.classpath";
+
+    private String loadClassParh() {
+        try {
+            return Files.readString(Paths.get(GENERATED_CLASS_PATH_FILE))
+                    .trim();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 }

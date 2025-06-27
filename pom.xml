@@ -11,9 +11,9 @@
 
 
 	<modules>
+        <module>utils</module>
         <module>jmh-benchmarks</module>
         <module>integration-test</module>
-        <module>utils</module>
     </modules>
 
 	<properties>
