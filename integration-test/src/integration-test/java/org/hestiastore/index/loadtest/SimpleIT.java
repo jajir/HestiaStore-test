@@ -5,11 +5,14 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
+import org.hestiastore.index.benchmark.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +24,6 @@ public class SimpleIT {
     @Test
     void test_simple2() throws Exception {
         final Path jarFile = Paths.get("target/load-test2.jar");
-        logger.info(jarFile.toFile().getAbsolutePath());
         final ProcessBuilder builder = new ProcessBuilder(//
                 "java", //
                 "-Xmx10000m", //
@@ -30,13 +32,25 @@ public class SimpleIT {
                 "org.hestiastore.index.loadtest.Main", //
                 "--test1", //
                 "")//
-                .inheritIO();
+        ;
+        // builder.inheritIO();
+        builder.redirectErrorStream(true);
+
+        log(builder);
         final Process process = builder.start();
+        // Read and print process output manually
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
 
         logger.info("Waiting for process finishing preparing data");
         await().atMost(30, SECONDS).pollInterval(1, SECONDS)
                 .until(TestStatus::isReadyToTest);
-        assertTrue(process.isAlive(), "Process should be terminated");
+        assertTrue(process.isAlive(), "Process should be running");
         logger.info("Now it's ready to terminate");
 
         Thread.sleep(1000);
@@ -45,16 +59,18 @@ public class SimpleIT {
         await().atMost(30, SECONDS).pollInterval(1, SECONDS)
                 .until(() -> !process.isAlive());
         assertFalse(process.isAlive(), "Process should be terminated");
+        System.out.println("" + process.exitValue());
     }
 
     @Test
     void test_simple3() throws Exception {
+        logger.info("I'm testing");
     }
 
     @BeforeEach
     void setUp() {
         TestStatus.reset();
-        deleteDirectoryRecursively(new File(ConsistencyCheck.DIRECTORY));
+        FileUtils.deleteFileRecursively(new File(ConsistencyCheck.DIRECTORY));
 
     }
 
@@ -63,23 +79,14 @@ public class SimpleIT {
         TestStatus.reset();
     }
 
-    public static boolean deleteDirectoryRecursively(File directory) {
-        if (directory == null || !directory.exists()) {
-            return true; // Nothing to delete
+    private void log(final ProcessBuilder builder) {
+        final StringBuilder buff = new StringBuilder();
+        buff.append("Call it manually in case problems: ");
+        for (final String part : builder.command()) {
+            buff.append(part);
+            buff.append(" ");
         }
-
-        final File[] files = directory.listFiles();
-        if (files != null) { // Not a file, and not null
-            for (final File file : files) {
-                boolean success = file.isDirectory()
-                        ? deleteDirectoryRecursively(file)
-                        : file.delete();
-                if (!success) {
-                    return false;
-                }
-            }
-        }
-        return directory.delete(); // Delete the empty directory itself
+        logger.info(buff.toString());
     }
 
 }

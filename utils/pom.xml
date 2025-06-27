@@ -8,15 +8,16 @@
         <artifactId>parent</artifactId>
         <version>0.0.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>integration-test</artifactId>
+	<artifactId>utils</artifactId>
 	<packaging>jar</packaging>
-	<name>HestiaStore Integartion and other tests</name>
-    <description>Integration tests for HestiaStore.</description>
+	<name>General purpose test utilities</name>
+    <description>JMH benchmarks for Hestia store.</description>
     <url>https://github.com/jajir/HestiaStore</url>
 
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jmh.version>1.37</jmh.version>
    	</properties>
 	  <!-- mvn jdeps:jdkinternals -->
 	<dependencies>
@@ -24,11 +25,17 @@
 			<groupId>org.hestiastore.index</groupId>
 			<artifactId>core</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.hestiastore.index.test</groupId>
-			<artifactId>utils</artifactId>
-            <version>0.0.0-SNAPSHOT</version>
-		</dependency>
+        <dependency>
+            <groupId>org.mapdb</groupId>
+            <artifactId>mapdb</artifactId>
+            <version>3.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.220</version>
+        </dependency>
+
 		<dependency>
 			<groupId>commons-cli</groupId>
 			<artifactId>commons-cli</artifactId>
@@ -39,41 +46,28 @@
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-core</artifactId>
+			<version>${jmh.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjdk.jmh</groupId>
+			<artifactId>jmh-generator-annprocess</artifactId>
+			<version>${jmh.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	
+		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-params</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-launcher</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.awaitility</groupId>
-			<artifactId>awaitility</artifactId>
-			<version>4.3.0</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -83,15 +77,31 @@
 				<configuration>
 					<annotationProcessorPaths>
 						<path>
-							<groupId>org.apache.logging.log4j</groupId>
-							<artifactId>log4j-plugin-processor</artifactId>
-							<version>${log4j.version}</version>
+							<groupId>org.openjdk.jmh</groupId>
+							<artifactId>jmh-generator-annprocess</artifactId>
+							<version>${jmh.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
+   <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <version>3.1.2</version>
+      <executions>
+        <execution>
+          <id>copy-dependencies</id>
+          <phase>package</phase>
+          <goals><goal>copy-dependencies</goal></goals>
+          <configuration>
+            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+            <includeScope>runtime</includeScope>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+    			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -103,6 +113,9 @@
 				<artifactId>maven-resources-plugin</artifactId>
 			</plugin>
 			<plugin>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+			</plugin>
+			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
@@ -111,55 +124,47 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.5.0</version>
-				<dependencies>
-					<!-- Add this so Shade can find Log4j's transformer class -->
-					<dependency>
-						<groupId>org.apache.logging.log4j</groupId>
-						<artifactId>log4j-plugin-processor</artifactId>
-						<version>${log4j.version}</version>
-					</dependency>
-				</dependencies>
-  				<executions>
+				<version>3.4.0</version>
+				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<finalName>load-test2</finalName>
+							<finalName>jmh-benchmarks</finalName>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-  	                            <!-- Add the Main-Class attribute to the manifest -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.hestiastore.index.loadtest.Main</mainClass>
-								</transformer>
-							</transformers>
+				              <!-- 2) Merge META-INF/services files so lookups, etc. still work -->
+				              <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+				              <!-- 3) Preserve multi-release structure so JDK-specific classes still load -->
+				              <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+				                <manifestEntries>
+				                  <Multi-Release>true</Multi-Release>
+				                </manifestEntries>				                
+				              </transformer>
+                                <!-- Add the Main-Class attribute to the manifest -->
+	                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+	                                <mainClass>com.coroptis.index.benchmark.MainBenchmarkClass</mainClass>
+	                            </transformer>
+                        </transformers>
 						</configuration>
 					</execution>
 				</executions>
 	        </plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-			</plugin>
 		</plugins>
 	</build>
 	<reporting>
 		<plugins>
 			<plugin>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.4.5</version>
 				<configuration>
 					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
 				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-surefire-report-plugin</artifactId>
-				<configuration>
-					<alwaysGenerateFailsafeReport>true</alwaysGenerateFailsafeReport>
-					<!--
-					-->
-				</configuration>
+				<version>3.1.2</version>
 			</plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
@@ -175,6 +180,13 @@
 					<skipEmptyReport>false</skipEmptyReport>
 				</configuration>
 			</plugin>
+			<!-- 
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jdepend-maven-plugin</artifactId>
+				<version>2.0</version>
+			</plugin>
+			-->
 			<plugin>
 				<artifactId>maven-jxr-plugin</artifactId>
 				<version>2.5</version>

@@ -33,7 +33,8 @@ import org.slf4j.LoggerFactory;
 @Threads(1)
 public class IndexWritingBenchmark {
 
-    private final Logger logger = LoggerFactory.getLogger(IndexWritingBenchmark.class);
+    private final Logger logger = LoggerFactory
+            .getLogger(IndexWritingBenchmark.class);
     private final static long RANDOM_SEED = 324432L;
     private final static String PROPERTY_DIRECTORY = "dir";
     private final static String VALUE = "opice skace po stromech";
@@ -47,8 +48,8 @@ public class IndexWritingBenchmark {
 
     /**
      * Measure number of operation per some time period. Annotations,
-     * like @OperationsPerInvocation may tell that a single @Benchmark invocation
-     * means N operations.
+     * like @OperationsPerInvocation may tell that a single @Benchmark
+     * invocation means N operations.
      * 
      * One operation is one @Benchmark invocation.
      * 
@@ -78,7 +79,8 @@ public class IndexWritingBenchmark {
         FileUtils.deleteFileRecursively(dirFile);
         directory = new FsDirectory(dirFile);
 
-        final IndexConfiguration<String, String> conf = IndexConfiguration.<String, String>builder()//
+        final IndexConfiguration<String, String> conf = IndexConfiguration
+                .<String, String>builder()//
                 .withName("test-index")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
@@ -89,7 +91,8 @@ public class IndexWritingBenchmark {
 
     @TearDown
     public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: " + cx);
+        logger.info(
+                "Closing index and directory, number of written keys: " + cx);
         index.close();
     }
 
