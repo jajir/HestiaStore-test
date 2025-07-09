@@ -4,18 +4,19 @@ import java.io.File;
 import java.util.Random;
 
 import org.hestiastore.index.Pair;
-import org.hestiastore.index.benchmark.FileUtils;
 import org.hestiastore.index.benchmark.load.HashDataProvider;
 import org.hestiastore.index.benchmark.load.IndexWritingBenchmark;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestHestiaStore {
-    private final Logger logger = LoggerFactory.getLogger(IndexWritingBenchmark.class);
+    private final Logger logger = LoggerFactory
+            .getLogger(IndexWritingBenchmark.class);
     private final static long RANDOM_SEED = 324432L;
     private final static String PROPERTY_DIRECTORY = "dir";
     private final static String VALUE = "opice skace po stromech";
@@ -44,7 +45,8 @@ public class TestHestiaStore {
         final long ElapsedMili = currentMs - startMs;
         final long elapsedMs = ElapsedMili / 1000;
         final long elapsedMm = ElapsedMili % 1000;
-        System.out.println("Written, " + cx + ", \"" + elapsedMs + "." + elapsedMm + "\", ");
+        System.out.println("Written, " + cx + ", \"" + elapsedMs + "."
+                + elapsedMm + "\", ");
     }
 
     public String test_writing() {
@@ -66,7 +68,8 @@ public class TestHestiaStore {
         FileUtils.deleteFileRecursively(dirFile);
         directory = new FsDirectory(dirFile);
 
-        final IndexConfiguration<String, String> conf = IndexConfiguration.<String, String>builder()//
+        final IndexConfiguration<String, String> conf = IndexConfiguration
+                .<String, String>builder()//
                 .withName("test-index")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
@@ -78,7 +81,8 @@ public class TestHestiaStore {
     }
 
     public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: " + cx);
+        logger.info(
+                "Closing index and directory, number of written keys: " + cx);
         index.close();
     }
 }

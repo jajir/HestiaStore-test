@@ -1,10 +1,10 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
-import org.hestiastore.index.benchmark.FileUtils;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.utils.FileUtils;
 
 public class ConsistencyCheck {
     private final Index<String, Long> index;

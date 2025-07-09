@@ -8,15 +8,16 @@ import java.util.Random;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.type.StringDataType;
-import org.hestiastore.index.benchmark.FileUtils;
 import org.hestiastore.index.benchmark.load.HashDataProvider;
 import org.hestiastore.index.benchmark.load.IndexWritingBenchmark;
+import org.hestiastore.index.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestH2 {
 
-    private final Logger logger = LoggerFactory.getLogger(IndexWritingBenchmark.class);
+    private final Logger logger = LoggerFactory
+            .getLogger(IndexWritingBenchmark.class);
     private final static long RANDOM_SEED = 324432L;
     private final static String PROPERTY_DIRECTORY = "dir";
     private final static String VALUE = "opice skace po stromech";
@@ -44,7 +45,8 @@ public class TestH2 {
         final long ElapsedMili = currentMs - startMs;
         final long elapsedMs = ElapsedMili / 1000;
         final long elapsedMm = ElapsedMili % 1000;
-        System.out.println("Written, " + cx + ", \"" + elapsedMs + "." + elapsedMm + "\", ");
+        System.out.println("Written, " + cx + ", \"" + elapsedMs + "."
+                + elapsedMm + "\", ");
     }
 
     public String test_writing() {
@@ -65,9 +67,7 @@ public class TestH2 {
         FileUtils.deleteFileRecursively(dirFile);
         dirFile.mkdirs();
         store = new MVStore.Builder().fileName(directoryFileName + "/test.dat")
-                .cacheSize(4096)
-                .autoCommitDisabled()
-                .open();
+                .cacheSize(4096).autoCommitDisabled().open();
 
         MVMap.Builder<String, String> builder = new MVMap.Builder<String, String>()//
                 .keyType(StringDataType.INSTANCE)//
@@ -81,7 +81,8 @@ public class TestH2 {
     }
 
     public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: " + cx);
+        logger.info(
+                "Closing index and directory, number of written keys: " + cx);
         store.close();
     }
 

@@ -1,4 +1,4 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
 import java.io.File;
 
@@ -6,11 +6,15 @@ import org.hestiastore.index.datatype.TypeDescriptor;
 import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.utils.FileUtils;
 
 public class ConsistencyCheckConf {
 
     public static final String DIRECTORY = "target/consistency-check";
+    public static final String LOCK_FILE_NAME = ".lock";
     public static final File FILE_DIRECTORY = new File(DIRECTORY);
+    private static final File LOCK_FILE = new File(
+            ConsistencyCheckConf.FILE_DIRECTORY, LOCK_FILE_NAME);
     private final static TypeDescriptor<String> TYPE_DESCRIPTOR_STRING = new TypeDescriptorString();
     private final static TypeDescriptor<Long> TYPE_DESCRIPTOR_LONG = new TypeDescriptorLong();
 
@@ -24,8 +28,8 @@ public class ConsistencyCheckConf {
                 .withKeyTypeDescriptor(TYPE_DESCRIPTOR_STRING) //
                 .withValueTypeDescriptor(TYPE_DESCRIPTOR_LONG) //
                 .withMaxNumberOfKeysInSegment(1_000_000) //
-                .withMaxNumberOfKeysInSegmentCache(200_000L) //
-                .withMaxNumberOfKeysInSegmentCacheDuringFlushing(500_000L) //
+                .withMaxNumberOfKeysInSegmentCache(2_000L) //
+                .withMaxNumberOfKeysInSegmentCacheDuringFlushing(5_000L) //
                 .withMaxNumberOfKeysInSegmentIndexPage(1_000) //
                 .withMaxNumberOfKeysInCache(10_000_000) //
                 .withBloomFilterIndexSizeInBytes(0) //
@@ -36,6 +40,15 @@ public class ConsistencyCheckConf {
 
     public IndexConfiguration<String, Long> getIndexConfiguration() {
         return indexConfiguration;
+    }
+
+    public static void removeLockFile() {
+        if (LOCK_FILE.exists()) {
+            FileUtils.deleteFileRecursively(LOCK_FILE);
+        } else {
+            throw new IllegalStateException(
+                    "Lock file does not exist: " + LOCK_FILE.getAbsolutePath());
+        }
     }
 
 }

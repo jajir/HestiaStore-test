@@ -1,9 +1,8 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
 import java.util.Objects;
 import java.util.Random;
 
-import org.hestiastore.index.benchmark.DataProvider;
 import org.hestiastore.index.sst.Index;
 
 public class WriteData {

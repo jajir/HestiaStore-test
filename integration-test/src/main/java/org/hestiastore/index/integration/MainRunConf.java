@@ -1,4 +1,4 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,8 +7,9 @@ import java.util.List;
 
 /**
  * This class is used to create a {@link ProcessBuilder} for running the
- * {@link org.hestiastore.index.loadtest.Main} class with specified arguments.
- * It allows setting the memory size and test name as command line arguments.
+ * {@link org.hestiastore.index.integration.Main} class with specified
+ * arguments. It allows setting the memory size and test name as command line
+ * arguments.
  * 
  * Class justs simplify calling of Main class.
  */
@@ -32,6 +33,13 @@ public class MainRunConf {
                 "org.hestiastore.index.loadtest.Main", //
                 "--" + testName//
         );
+    }
+
+    public MainRunConf addParameter(final String paramName,
+            final String paramValue) {
+        args.add(paramName);
+        args.add(paramValue);
+        return this;
     }
 
     public String toString() {

@@ -1,4 +1,4 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
 public class Main {
 

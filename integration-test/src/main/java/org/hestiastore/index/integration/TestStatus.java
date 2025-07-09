@@ -1,4 +1,4 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
 import java.io.IOException;
 import java.nio.file.Files;

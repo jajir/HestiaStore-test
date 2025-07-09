@@ -1,4 +1,4 @@
-package org.hestiastore.index.benchmark;
+package org.hestiastore.index.utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

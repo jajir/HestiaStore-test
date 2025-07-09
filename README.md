@@ -8,7 +8,9 @@ mvn clean package
 
 ## integration-test
 
-There are some basic test stiing to forcibli interrupt process of creeating index to verify that index stays consistent.
+There are some basic test stiing to forcibly interrupt process of creeating index to verify that index stays consistent.
+
+To run tests, run `GracefulDegradationIT` from IDE.
 
 ## jmh-benchmarks
 

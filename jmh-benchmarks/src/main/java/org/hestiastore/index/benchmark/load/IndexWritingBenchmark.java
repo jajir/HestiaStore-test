@@ -5,11 +5,11 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.hestiastore.index.Pair;
-import org.hestiastore.index.benchmark.FileUtils;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.utils.FileUtils;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;

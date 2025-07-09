@@ -3,9 +3,9 @@ package org.hestiastore.index.benchmark.plainload;
 import java.io.File;
 import java.util.Random;
 
-import org.hestiastore.index.benchmark.FileUtils;
 import org.hestiastore.index.benchmark.load.HashDataProvider;
 import org.hestiastore.index.benchmark.load.IndexWritingBenchmark;
+import org.hestiastore.index.utils.FileUtils;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
@@ -13,7 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TestMapDB {
-    private final Logger logger = LoggerFactory.getLogger(IndexWritingBenchmark.class);
+    private final Logger logger = LoggerFactory
+            .getLogger(IndexWritingBenchmark.class);
     private final static long RANDOM_SEED = 324432L;
     private final static String PROPERTY_DIRECTORY = "dir";
     private final static String VALUE = "opice skace po stromech";
@@ -41,7 +42,8 @@ public class TestMapDB {
         final long ElapsedMili = currentMs - startMs;
         final long elapsedMs = ElapsedMili / 1000;
         final long elapsedMm = ElapsedMili % 1000;
-        System.out.println("Written, " + cx + ", \"" + elapsedMs + "." + elapsedMm + "\", ");
+        System.out.println("Written, " + cx + ", \"" + elapsedMs + "."
+                + elapsedMm + "\", ");
     }
 
     public String test_writing() {
@@ -64,24 +66,24 @@ public class TestMapDB {
         // 1) Open (or create) a file-backed database.
         // transactionEnable() gives you full ACID with commit()/rollback()
         // fileChannelEnable() uses java.nio for slightly better performance
-        final DB db = DBMaker
-                .fileDB("data.db") // file on disk
+        final DB db = DBMaker.fileDB("data.db") // file on disk
                 .fileChannelEnable() // use FileChannel
                 // .transactionEnable() // enable transactions
                 .checksumHeaderBypass() // enable checksums
                 .make();
 
-        // 2) Create or open a HashMap named "users" with String→User serialization
-        storage = db
-                .hashMap("users", org.mapdb.Serializer.STRING, org.mapdb.Serializer.STRING)
-                .createOrOpen();
+        // 2) Create or open a HashMap named "users" with String→User
+        // serialization
+        storage = db.hashMap("users", org.mapdb.Serializer.STRING,
+                org.mapdb.Serializer.STRING).createOrOpen();
 
         startMs = System.currentTimeMillis();
         print(startMs);
     }
 
     public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: " + cx);
+        logger.info(
+                "Closing index and directory, number of written keys: " + cx);
         storage.close();
     }
 }

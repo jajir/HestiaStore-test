@@ -1,4 +1,4 @@
-package org.hestiastore.index.loadtest;
+package org.hestiastore.index.integration;
 
 import java.io.File;
 import java.util.Objects;

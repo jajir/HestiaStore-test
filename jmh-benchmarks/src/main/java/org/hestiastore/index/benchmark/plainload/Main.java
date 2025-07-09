@@ -13,6 +13,14 @@ public class Main {
 
     private final static long TEST_ITERATIOSN = 1_000_000L;
 
+    /**
+     * Main method to run the benchmark tests.
+     * 
+     * TODO explain why it don't use JMH
+     *
+     * @param args command line arguments
+     * @throws Exception if an error occurs during setup or test execution
+     */
     public static void main(final String[] args) throws Exception {
 
         String engine = System.getProperty(PROPERTY_ENGINE);
