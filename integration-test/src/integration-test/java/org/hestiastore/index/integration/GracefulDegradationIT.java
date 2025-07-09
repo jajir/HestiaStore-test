@@ -11,9 +11,6 @@ import java.util.logging.Logger;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.integration.ConsistencyCheckConf;
-import org.hestiastore.index.integration.MainRunConf;
-import org.hestiastore.index.integration.TestStatus;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
 import org.hestiastore.index.utils.FileUtils;

@@ -25,44 +25,6 @@ public abstract class AbstractIndexCli {
     protected final static TypeDescriptor<String> TYPE_DESCRIPTOR_STRING = new TypeDescriptorString();
     protected final static TypeDescriptor<Long> TYPE_DESCRIPTOR_LONG = new TypeDescriptorLong();
 
-    protected final static Option OPTION_HELP = Option.builder()//
-            .longOpt("help")//
-            .hasArg(false)//
-            .desc("display help")//
-            .build();
-
-    protected final static Option OPTION_TEST_1 = Option.builder()//
-            .longOpt("test1")//
-            .hasArg(false)//
-            .desc("test1 - consistency test")//
-            .build();
-
-    // Write and related parameters
-    protected final static Option OPTION_WRITE = Option.builder()//
-            .longOpt("write")//
-            .hasArg(false)//
-            .desc("write new random data into index.")//
-            .build();
-
-    protected final static Option OPTION_COUNT = Option.builder("c")//
-            .longOpt("count")//
-            .hasArg(true)//
-            .required(false)//
-            .desc("How many key will be written").build();
-
-    // Search and related parameters
-    protected final static Option OPTION_SEARCH = Option.builder()//
-            .longOpt("search")//
-            .hasArg(false)//
-            .desc("search random data from index.")//
-            .build();
-
-    protected final static Option OPTION_MAX_KEY = Option.builder()//
-            .longOpt("max-key")//
-            .hasArg(true)//
-            .required(false)//
-            .desc("Max key value to search").build();
-
     // commmon index parameters
 
     protected final static Option OPTION_DIRECTORY = Option.builder()//
@@ -118,13 +80,6 @@ public abstract class AbstractIndexCli {
 
     protected Options makeOptions() {
         final Options options = new Options();
-        options.addOption(OPTION_HELP);
-        options.addOption(OPTION_TEST_1);
-        options.addOption(OPTION_DIRECTORY);
-        options.addOption(OPTION_COUNT);
-        options.addOption(OPTION_WRITE);
-        options.addOption(OPTION_SEARCH);
-        options.addOption(OPTION_MAX_KEY);
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT);
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE);
         options.addOption(
@@ -133,7 +88,11 @@ public abstract class AbstractIndexCli {
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE);
         options.addOption(OPTION_BLOOM_FILTER_INDEX_SIZE_IN_BYTES);
         options.addOption(OPTION_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS);
-        return options;
+        return addOptions(options);
+    }
+
+    public Options addOptions(final Options option) {
+        return option;
     }
 
     public abstract void processCommandLile(final CommandLine cmd,
@@ -187,16 +146,8 @@ public abstract class AbstractIndexCli {
         return Index.<String, Long>create(dir, conf);
     }
 
-    protected long extractCountOption(final CommandLine cmd) {
-        if (cmd.hasOption(OPTION_COUNT)) {
-            return parseLong(cmd.getOptionValue(OPTION_COUNT));
-        } else {
-            throw new IllegalArgumentException(
-                    "When you select write task then you must specify count of keys");
-        }
-    }
-
-    private long extractMaxNumberOfKeysInSegmentOption(final CommandLine cmd) {
+    protected long extractMaxNumberOfKeysInSegmentOption(
+            final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT)) {
             return parseLong(
                     cmd.getOptionValue(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT));
@@ -206,7 +157,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private long extractMaxNumberOfKeysInSegmentCacheOption(
+    protected long extractMaxNumberOfKeysInSegmentCacheOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE)) {
             return parseLong(cmd.getOptionValue(
@@ -217,7 +168,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private long extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
+    protected long extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
             final CommandLine cmd) {
         if (cmd.hasOption(
                 OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING)) {
@@ -229,7 +180,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private long extractMaxNumberOfKeysInSegmentIndexPageOption(
+    protected long extractMaxNumberOfKeysInSegmentIndexPageOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE)) {
             return parseLong(cmd.getOptionValue(
@@ -240,7 +191,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private long extractMaxNumberOfKeysInCacheOption(final CommandLine cmd) {
+    protected long extractMaxNumberOfKeysInCacheOption(final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE)) {
             return parseLong(
                     cmd.getOptionValue(OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE));
@@ -250,7 +201,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private long extractBloomFilterIndexSizeInBytesOption(
+    protected long extractBloomFilterIndexSizeInBytesOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_BLOOM_FILTER_INDEX_SIZE_IN_BYTES)) {
             return parseLong(cmd
@@ -261,7 +212,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private long extractBloomFilterNumberOfHashFunctionsOption(
+    protected long extractBloomFilterNumberOfHashFunctionsOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS)) {
             return parseLong(cmd.getOptionValue(
@@ -272,7 +223,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    private String extractDirectoryOption(final CommandLine cmd) {
+    protected String extractDirectoryOption(final CommandLine cmd) {
         if (cmd.hasOption(OPTION_DIRECTORY)) {
             return cmd.getOptionValue(OPTION_DIRECTORY);
         } else {
@@ -281,16 +232,7 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractMaxKeyOption(final CommandLine cmd) {
-        if (cmd.hasOption(OPTION_MAX_KEY)) {
-            return parseLong(cmd.getOptionValue(OPTION_MAX_KEY));
-        } else {
-            throw new IllegalArgumentException(
-                    "When you select this task then you must specify max key value");
-        }
-    }
-
-    private long parseLong(final String str) {
+    protected long parseLong(final String str) {
         Objects.requireNonNull(str);
         final String tmp = str.replace("_", "").replace("L", "").replace("l",
                 "");
