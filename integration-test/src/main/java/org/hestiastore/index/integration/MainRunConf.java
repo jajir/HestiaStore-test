@@ -3,6 +3,7 @@ package org.hestiastore.index.integration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,13 +27,12 @@ public class MainRunConf {
     private List<String> args;
 
     MainRunConf(String testName, String memSize) {
-        args = List.of("java", //
-                "-Xmx" + memSize, //
-                "-cp", //
-                loadClassParh(), //
-                "org.hestiastore.index.loadtest.Main", //
-                "--" + testName//
-        );
+        args = new ArrayList<>();
+        args.add("java");
+        args.add("-Xmx" + memSize);
+        addParameter("-cp", loadClassParh());
+        args.add("org.hestiastore.index.integration.Main");
+        args.add("--" + testName);
     }
 
     public MainRunConf addParameter(final String paramName,

@@ -1,2 +1,3 @@
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/benchmark/IoUtils.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/benchmark/FileUtils.java
+/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/IoUtils.java
+/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/AbstractIndexCli.java
+/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/FileUtils.java

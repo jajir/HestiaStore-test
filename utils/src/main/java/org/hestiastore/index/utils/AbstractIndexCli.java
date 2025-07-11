@@ -27,59 +27,99 @@ public abstract class AbstractIndexCli {
 
     // commmon index parameters
 
+    private final static String STR_DIRECTORY = "directory";
+    public final static String PARAM_DIRECTORY = "--" + STR_DIRECTORY;
     protected final static Option OPTION_DIRECTORY = Option.builder()//
-            .longOpt("directory")//
+            .longOpt(STR_DIRECTORY)//
             .hasArg(true)//
             .required(false)//
             .desc("directory where index lies, when user selects count or search task then this parameter is mandatory")//
             .build();
 
+    private final static String STR_INDEX_NAME = "index-name";
+    public final static String PARAM_INDEX_NAME = "--" + STR_INDEX_NAME;
+    protected final static Option OPTION_INDEX_NAME = Option.builder()//
+            .longOpt(STR_INDEX_NAME)//
+            .hasArg(true)//
+            .required(false)//
+            .desc("directory where index lies, when user selects count or search task then this parameter is mandatory")//
+            .build();
+
+    private final static String STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT = "max-number-of-keys-in-segment";
+    public final static String PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT = "--"
+            + STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT;
     protected final static Option OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT = Option
             .builder()//
-            .longOpt("max-number-of-keys-in-segment")//
+            .longOpt(STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT)//
             .hasArg(true)//
             .required(false)//
             .desc("Max number of keys in segment").build();
+
+    private final static String STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE = "max-number-of-keys-in-segment-cache";
+    public final static String PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE = "--"
+            + STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE;
     protected final static Option OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE = Option
             .builder()//
-            .longOpt("max-number-of-keys-in-segment-cache")//
+            .longOpt(STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE)//
             .hasArg(true)//
             .required(false)//
             .desc("Max number of keys in segment cache").build();
+
+    private final static String STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING = "max-number-of-keys-in-segment-cache-during-flushing";
+    public final static String PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING = "--"
+            + STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING;
     protected final static Option OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING = Option
             .builder()//
-            .longOpt("max-number-of-keys-in-segment-cache-during-flushing")//
+            .longOpt(STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING)//
             .hasArg(true)//
             .required(false)//
             .desc("Max number of keys in segment cache during flushing")
             .build();
+
+    private final static String STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE = "max-number-of-keys-in-segment-index-page";
+    public final static String PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE = "--"
+            + STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE;
     protected final static Option OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE = Option
             .builder()//
-            .longOpt("max-number-of-keys-in-segment-index-page")//
+            .longOpt(STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE)//
             .hasArg(true)//
             .required(false)//
             .desc("Max number of keys in segment index page").build();
+
+    private final static String STR_MAX_NUMBER_OF_KEYS_IN_CACHE = "max-number-of-keys-in-cache";
+    public final static String PARAM_MAX_NUMBER_OF_KEYS_IN_CACHE = "--"
+            + STR_MAX_NUMBER_OF_KEYS_IN_CACHE;
     protected final static Option OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE = Option
             .builder()//
-            .longOpt("max-number-of-keys-in-cache")//
+            .longOpt(STR_MAX_NUMBER_OF_KEYS_IN_CACHE)//
             .hasArg(true)//
             .required(false)//
             .desc("Max number of keys in cache").build();
+
+    private final static String STR_BLOOM_FILTER_INDEX_SIZE_IN_BYTES = "bloom-filter-index-size-in-bytes";
+    public final static String PARAM_BLOOM_FILTER_INDEX_SIZE_IN_BYTES = "--"
+            + STR_BLOOM_FILTER_INDEX_SIZE_IN_BYTES;
     protected final static Option OPTION_BLOOM_FILTER_INDEX_SIZE_IN_BYTES = Option
             .builder()//
-            .longOpt("bloom-filter-index-size-in-bytes")//
+            .longOpt(STR_BLOOM_FILTER_INDEX_SIZE_IN_BYTES)//
             .hasArg(true)//
             .required(false)//
             .desc("Bloom filter index size in bytes").build();
+
+    private final static String STR_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS = "bloom-filter-number-of-hash-functions";
+    public final static String PARAM_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS = "--"
+            + STR_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS;
     protected final static Option OPTION_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS = Option
             .builder()//
-            .longOpt("bloom-filter-number-of-hash-functions")//
+            .longOpt(STR_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS)//
             .hasArg(true)//
             .required(false)//
             .desc("Bloom filter number of hash functions").build();
 
     protected Options makeOptions() {
         final Options options = new Options();
+        options.addOption(OPTION_DIRECTORY);
+        options.addOption(OPTION_INDEX_NAME);
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT);
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE);
         options.addOption(
@@ -105,8 +145,8 @@ public abstract class AbstractIndexCli {
         processCommandLile(cmd, options);
     }
 
-    protected Index<String, Long> createIndex(final CommandLine cmd) {
-        final String directory = extractDirectoryOption(cmd);
+    protected IndexConfiguration<String, Long> createIndexConfiguration(
+            final CommandLine cmd) {
         final long maxNumberOfKeysInSegment = extractMaxNumberOfKeysInSegmentOption(
                 cmd);
         final long maxNumberOfKeysInSegmentCache = extractMaxNumberOfKeysInSegmentCacheOption(
@@ -121,12 +161,13 @@ public abstract class AbstractIndexCli {
                 cmd);
         final long bloomFilterNumberOfHashFunctions = extractBloomFilterNumberOfHashFunctionsOption(
                 cmd);
-        final Directory dir = new FsDirectory(new File(directory));
+        final String indexName = extractIndexName(cmd);
 
         final IndexConfiguration<String, Long> conf = IndexConfiguration
                 .<String, Long>builder()//
                 .withKeyClass(String.class)//
                 .withValueClass(Long.class)//
+                .withName(indexName) //
                 .withKeyTypeDescriptor(TYPE_DESCRIPTOR_STRING) //
                 .withValueTypeDescriptor(TYPE_DESCRIPTOR_LONG) //
                 .withMaxNumberOfKeysInSegment((int) maxNumberOfKeysInSegment) //
@@ -143,7 +184,15 @@ public abstract class AbstractIndexCli {
                         (int) bloomFilterNumberOfHashFunctions) //
                 .withLogEnabled(false) //
                 .build();
-        return Index.<String, Long>create(dir, conf);
+        return conf;
+    }
+
+    protected Index<String, Long> createIndex(final CommandLine cmd) {
+        final String directory = extractDirectoryOption(cmd);
+        final Directory dir = new FsDirectory(new File(directory));
+        final IndexConfiguration<String, Long> conf = createIndexConfiguration(
+                cmd);
+        return Index.create(dir, conf);
     }
 
     protected long extractMaxNumberOfKeysInSegmentOption(
@@ -220,6 +269,15 @@ public abstract class AbstractIndexCli {
         } else {
             throw new IllegalArgumentException(
                     "When you select this task then you must specify bloom filter number of hash functions");
+        }
+    }
+
+    protected String extractIndexName(final CommandLine cmd) {
+        if (cmd.hasOption(OPTION_INDEX_NAME)) {
+            return cmd.getOptionValue(OPTION_INDEX_NAME);
+        } else {
+            throw new IllegalArgumentException(
+                    "When you select this task then you must specify index name");
         }
     }
 

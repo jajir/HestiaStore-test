@@ -6,33 +6,54 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.utils.AbstractIndexCli;
 import org.hestiastore.index.utils.FileUtils;
 import org.hestiastore.index.utils.IoUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class OutOfMemmoryIT {
+public class OutOfMemoryIT {
     public static final int SIGTERM_EXIT_CODE = 1;
+    public static final String DIRECTORY = "target/consistency-check";
 
-    private final Logger logger = Logger
-            .getLogger(GracefulDegradationIT.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
     void test_one_round() throws Exception {
-        MainRunConf conf = new MainRunConf("test1", "400m")//
-                .addParameter("--max-number-of-keys-in-segment-cache",
-                        "1_000_000") //
+        final MainRunConf conf = new MainRunConf(
+                Main.OPTION_OUT_OF_MEMORY_TEST_NAME, "400m")//
+                .addParameter(AbstractIndexCli.PARAM_DIRECTORY, DIRECTORY) //
+                .addParameter(AbstractIndexCli.PARAM_INDEX_NAME, "test-index") //
                 .addParameter(
-                        "--max-number-of-keys-in-segment-cache-during-flushing",
-                        "1_000_000") //
+                        AbstractIndexCli.PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT,
+                        "500_000") //
+                .addParameter(
+                        AbstractIndexCli.PARAM_MAX_NUMBER_OF_KEYS_IN_CACHE,
+                        "500_000") //
+                .addParameter(
+                        AbstractIndexCli.PARAM_BLOOM_FILTER_INDEX_SIZE_IN_BYTES,
+                        "500_000") //
+                .addParameter(
+                        AbstractIndexCli.PARAM_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS,
+                        "3") //
+                .addParameter(
+                        AbstractIndexCli.PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE,
+                        "1_000") //
+                .addParameter(
+                        AbstractIndexCli.PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE,
+                        "100_000") //
+                .addParameter(
+                        AbstractIndexCli.PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING,
+                        "200_000") //
         ;
         final Process process = conf.createProcessBuilder().start();
 
@@ -41,7 +62,7 @@ public class OutOfMemmoryIT {
         logger.info("Waiting for process finist at OutOfMemoryError");
 
         await().atMost(30, SECONDS).pollInterval(1, SECONDS)
-                .until(() -> !process.isAlive());
+                .until(TestStatus::isReadyToTest);
 
         assertFalse(process.isAlive(), "Process should be terminated");
         assertEquals(SIGTERM_EXIT_CODE, process.exitValue(),

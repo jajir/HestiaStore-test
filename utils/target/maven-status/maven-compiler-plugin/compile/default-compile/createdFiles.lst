@@ -1,2 +1,3 @@
-org/hestiastore/index/benchmark/FileUtils.class
-org/hestiastore/index/benchmark/IoUtils.class
+org/hestiastore/index/utils/FileUtils.class
+org/hestiastore/index/utils/IoUtils.class
+org/hestiastore/index/utils/AbstractIndexCli.class
