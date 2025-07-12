@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TestOutOfMemory {
 
-    private static final long WRITE_PREPARE_KEYS = 1_000_000L;
+    private static final long WRITE_PREPARE_KEYS = 5_000L;
     private static final long WRITE_KEYS = 9_000_000L;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

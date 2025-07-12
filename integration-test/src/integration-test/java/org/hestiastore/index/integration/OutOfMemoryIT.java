@@ -4,6 +4,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 
@@ -24,15 +25,16 @@ import org.slf4j.LoggerFactory;
 public class OutOfMemoryIT {
     public static final int SIGTERM_EXIT_CODE = 1;
     public static final String DIRECTORY = "target/consistency-check";
+    public static final String INDEX_NAME = "test-index";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
     void test_one_round() throws Exception {
         final MainRunConf conf = new MainRunConf(
-                Main.OPTION_OUT_OF_MEMORY_TEST_NAME, "400m")//
+                Main.OPTION_OUT_OF_MEMORY_TEST_NAME, "100m")//
                 .addParameter(AbstractIndexCli.PARAM_DIRECTORY, DIRECTORY) //
-                .addParameter(AbstractIndexCli.PARAM_INDEX_NAME, "test-index") //
+                .addParameter(AbstractIndexCli.PARAM_INDEX_NAME, INDEX_NAME) //
                 .addParameter(
                         AbstractIndexCli.PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT,
                         "500_000") //
@@ -61,8 +63,8 @@ public class OutOfMemoryIT {
 
         logger.info("Waiting for process finist at OutOfMemoryError");
 
-        await().atMost(30, SECONDS).pollInterval(1, SECONDS)
-                .until(TestStatus::isReadyToTest);
+        await().atMost(120, SECONDS).pollInterval(1, SECONDS)
+                .until(() -> !process.isAlive());
 
         assertFalse(process.isAlive(), "Process should be terminated");
         assertEquals(SIGTERM_EXIT_CODE, process.exitValue(),
@@ -73,12 +75,22 @@ public class OutOfMemoryIT {
         ConsistencyCheckConf.removeLockFile();
         final Directory dir = new FsDirectory(
                 ConsistencyCheckConf.FILE_DIRECTORY);
-        IndexConfiguration<String, Long> indexConfiguration = new ConsistencyCheckConf()//
-                .getIndexConfiguration();
-        Index<String, Long> index = Index.open(dir, indexConfiguration);
+        final IndexConfiguration<String, Long> indexConfiguration = IndexConfiguration
+                .<String, Long>builder()//
+                .withKeyClass(String.class)//
+                .withValueClass(Long.class)//
+                .withName(INDEX_NAME) //
+                .build();
+        final Index<String, Long> index = Index.open(dir, indexConfiguration);
+        /**
+         * When no data are stored in the index it indicates that additional
+         * writing to the index could corrupt already stored index data.
+         */
         index.checkAndRepairConsistency();
         final long cx = index.getStream().count();
         logger.info("Index size: " + cx);
+        assertTrue(cx > 0,
+                "Index should contain some data, but it is empty: " + cx);
     }
 
     @Test
