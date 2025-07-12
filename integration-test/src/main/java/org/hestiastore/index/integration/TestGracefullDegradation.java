@@ -12,27 +12,17 @@ import org.hestiastore.index.utils.TestStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Class initialize index starts some operations and wait for
- * OutOfMemoryException.
- * 
- * 
- */
-public class TestOutOfMemory {
-
+public class TestGracefullDegradation {
     private static final long WRITE_PREPARE_KEYS = 5_000L;
     private static final long WRITE_KEYS = 9_000_000L;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final IndexConfiguration<String, Long> conf;
-    private final String directoryName;
     private final Index<String, Long> index;
 
-    TestOutOfMemory(final IndexConfiguration<String, Long> conf,
+    TestGracefullDegradation(final IndexConfiguration<String, Long> conf,
             final String directoryName) {
-        this.conf = Objects.requireNonNull(conf);
-        this.directoryName = Objects.requireNonNull(directoryName);
+        Objects.requireNonNull(conf);
+        Objects.requireNonNull(directoryName);
 
         final File directoryFile = new File(directoryName);
         FileUtils.deleteFileRecursively(directoryFile);
@@ -41,21 +31,18 @@ public class TestOutOfMemory {
     }
 
     void startTest() {
-        logger.info("Starting test for OutOfMemoryError. "
-                + "In some time OutOfMemmoryException should come. "
-                + "It's in directory '{}'", directoryName);
-
         TestStatus.reset();
+        // Test logic to check consistency
+        // This is a placeholder for the actual test logic
+        System.out.println("Consistency check - preparing data");
         writeKeys(0, WRITE_PREPARE_KEYS);
+        System.out.println("Consistency check - ready to test");
         index.flush();
         TestStatus.setReadyToTest(true);
-
         writeKeys(WRITE_PREPARE_KEYS, WRITE_KEYS);
-        index.flush();
         index.close();
-
         throw new IllegalStateException(
-                "OutOfMemoryError should be thrown, but it was not.");
+                "Graceful degradation should be tested, but it was not.");
     }
 
     private void writeKeys(final long start, final long count) {

@@ -5,6 +5,7 @@ import java.util.Random;
 
 import org.hestiastore.index.sst.Index;
 
+@Deprecated
 public class WriteData {
 
     private final static String KEY_SUFFIX = "-bereke-prase-veverka-jede-ryhle";

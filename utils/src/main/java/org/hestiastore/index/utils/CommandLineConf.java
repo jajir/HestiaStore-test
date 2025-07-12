@@ -1,10 +1,11 @@
-package org.hestiastore.index.integration;
+package org.hestiastore.index.utils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This class is used to create a {@link ProcessBuilder} for running the
@@ -14,7 +15,7 @@ import java.util.List;
  * 
  * Class justs simplify calling of Main class.
  */
-public class MainRunConf {
+public class CommandLineConf {
 
     private static final String GENERATED_CLASS_PATH_FILE = "target/test.classpath";
 
@@ -22,20 +23,24 @@ public class MainRunConf {
      * This is file representing this package. Test that run in separet thread
      * still need call this package. So it have to at class path
      */
-    private static final String THIS_PACKAGE_FILE_LOCATION = "target/integration-test-0.0.0-SNAPSHOT.jar";
+    private final String thisPackageFileLocation;
 
     private List<String> args;
 
-    MainRunConf(String testName, String memSize) {
+    public CommandLineConf(final String thisPackageFileLocation,
+            final String mainClassName, final String testName,
+            final String memSize) {
+        this.thisPackageFileLocation = Objects
+                .requireNonNull(thisPackageFileLocation);
         args = new ArrayList<>();
         args.add("java");
         args.add("-Xmx" + memSize);
         addParameter("-cp", loadClassParh());
-        args.add("org.hestiastore.index.integration.Main");
+        args.add(mainClassName);
         args.add("--" + testName);
     }
 
-    public MainRunConf addParameter(final String paramName,
+    public CommandLineConf addParameter(final String paramName,
             final String paramValue) {
         args.add(paramName);
         args.add(paramValue);
@@ -62,7 +67,7 @@ public class MainRunConf {
     }
 
     private String getClassPathToThisPackage() {
-        final Path jarFile = Paths.get(THIS_PACKAGE_FILE_LOCATION);
+        final Path jarFile = Paths.get(thisPackageFileLocation);
         return jarFile.toFile().getAbsolutePath();
     }
 

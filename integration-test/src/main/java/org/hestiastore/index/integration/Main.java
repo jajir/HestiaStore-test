@@ -17,11 +17,18 @@ public class Main extends AbstractIndexCli {
             .build();
 
     public static final String OPTION_OUT_OF_MEMORY_TEST_NAME = "outOfMemoryTest";
-
     private final static Option OPTION_OUT_OF_MEMORY_TEST = Option.builder()//
             .longOpt(OPTION_OUT_OF_MEMORY_TEST_NAME)//
             .hasArg(false)//
             .desc("Verify index data consistency during OutOfMemmoryException")//
+            .build();
+
+    public static final String OPTION_GRACEFULL_DEGRADATION_TEST_NAME = "outOfMemoryTest";
+    private final static Option OPTION_GRACEFULL_DEGRADATION_TEST = Option
+            .builder()//
+            .longOpt(OPTION_GRACEFULL_DEGRADATION_TEST_NAME)//
+            .hasArg(false)//
+            .desc("Verify index data consistency are kept during CTRL+C of process")//
             .build();
 
     public static void main(final String[] args) throws Exception {
@@ -35,6 +42,7 @@ public class Main extends AbstractIndexCli {
     @Override
     public Options addOptions(final Options options) {
         options.addOption(OPTION_OUT_OF_MEMORY_TEST);
+        options.addOption(OPTION_GRACEFULL_DEGRADATION_TEST);
         options.addOption(OPTION_HELP);
         return options;
     }
@@ -53,6 +61,11 @@ public class Main extends AbstractIndexCli {
             final IndexConfiguration<String, Long> conf = createIndexConfiguration(
                     cmd);
             outOfMemoryTest(conf, directory);
+        } else if (cmd.hasOption(OPTION_GRACEFULL_DEGRADATION_TEST)) {
+            final String directory = extractDirectoryOption(cmd);
+            final IndexConfiguration<String, Long> conf = createIndexConfiguration(
+                    cmd);
+            gracefullDegradatonTest(conf, directory);
         } else {
             throw new IllegalArgumentException(
                     "Unknown command. There should be --help "
@@ -64,7 +77,14 @@ public class Main extends AbstractIndexCli {
             final String directoryName) {
         final TestOutOfMemory test = new TestOutOfMemory(index, directoryName);
         test.startTest();
+    }
 
+    private void gracefullDegradatonTest(
+            final IndexConfiguration<String, Long> index,
+            final String directoryName) {
+        final TestGracefullDegradation test = new TestGracefullDegradation(
+                index, directoryName);
+        test.startTest();
     }
 
 }

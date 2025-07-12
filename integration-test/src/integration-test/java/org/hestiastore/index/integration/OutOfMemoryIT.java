@@ -13,8 +13,11 @@ import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
 import org.hestiastore.index.utils.AbstractIndexCli;
+import org.hestiastore.index.utils.CommandLineConf;
 import org.hestiastore.index.utils.FileUtils;
+import org.hestiastore.index.utils.IndexUtils;
 import org.hestiastore.index.utils.IoUtils;
+import org.hestiastore.index.utils.TestStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -24,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 public class OutOfMemoryIT {
     public static final int SIGTERM_EXIT_CODE = 1;
+    public static final String MAIN_CLASS_NAME = "org.hestiastore.index.integration.Main";
+    private final String THIS_PACKAGE_FILE_LOCATION = "target/integration-test-0.0.0-SNAPSHOT.jar";
     public static final String DIRECTORY = "target/consistency-check";
     public static final String INDEX_NAME = "test-index";
 
@@ -31,7 +36,8 @@ public class OutOfMemoryIT {
 
     @Test
     void test_one_round() throws Exception {
-        final MainRunConf conf = new MainRunConf(
+        final CommandLineConf conf = new CommandLineConf(
+                THIS_PACKAGE_FILE_LOCATION, MAIN_CLASS_NAME,
                 Main.OPTION_OUT_OF_MEMORY_TEST_NAME, "100m")//
                 .addParameter(AbstractIndexCli.PARAM_DIRECTORY, DIRECTORY) //
                 .addParameter(AbstractIndexCli.PARAM_INDEX_NAME, INDEX_NAME) //
@@ -72,9 +78,8 @@ public class OutOfMemoryIT {
         process.destroyForcibly(); // in case it is still running
 
         // Validate index consistency
-        ConsistencyCheckConf.removeLockFile();
-        final Directory dir = new FsDirectory(
-                ConsistencyCheckConf.FILE_DIRECTORY);
+        IndexUtils.optionalyRemoveLockFile(DIRECTORY);
+        final Directory dir = new FsDirectory(new File(DIRECTORY));
         final IndexConfiguration<String, Long> indexConfiguration = IndexConfiguration
                 .<String, Long>builder()//
                 .withKeyClass(String.class)//
@@ -91,6 +96,7 @@ public class OutOfMemoryIT {
         logger.info("Index size: " + cx);
         assertTrue(cx > 0,
                 "Index should contain some data, but it is empty: " + cx);
+        index.close();
     }
 
     @Test
@@ -105,9 +111,7 @@ public class OutOfMemoryIT {
     @BeforeEach
     void setUp() {
         TestStatus.reset();
-        FileUtils.deleteFileRecursively(
-                new File(ConsistencyCheckConf.DIRECTORY));
-
+        FileUtils.deleteFileRecursively(new File(DIRECTORY));
     }
 
     @AfterEach

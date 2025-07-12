@@ -1,4 +1,4 @@
-package org.hestiastore.index.integration;
+package org.hestiastore.index.utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +22,7 @@ public class TestStatus {
         }
     }
 
-    static void setReadyToTest(boolean isReady) {
+    public static void setReadyToTest(boolean isReady) {
         try {
             if (isReady) {
                 Files.createFile(IS_READY_FILE);
