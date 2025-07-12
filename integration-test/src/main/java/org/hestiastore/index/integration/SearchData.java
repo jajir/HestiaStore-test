@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import org.hestiastore.index.sst.Index;
+import org.hestiastore.index.utils.DataProvider;
 
 @Deprecated
 public class SearchData {

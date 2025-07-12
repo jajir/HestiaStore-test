@@ -1,4 +1,4 @@
-package org.hestiastore.index.integration;
+package org.hestiastore.index.utils;
 
 import java.util.Random;
 
