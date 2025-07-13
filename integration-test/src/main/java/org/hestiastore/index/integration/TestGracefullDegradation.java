@@ -34,9 +34,9 @@ public class TestGracefullDegradation {
         TestStatus.reset();
         // Test logic to check consistency
         // This is a placeholder for the actual test logic
-        System.out.println("Consistency check - preparing data");
+        logger.info("Consistency check - preparing data");
         writeKeys(0, WRITE_PREPARE_KEYS);
-        System.out.println("Consistency check - ready to test");
+        logger.info("Consistency check - ready to test");
         index.flush();
         TestStatus.setReadyToTest(true);
         writeKeys(WRITE_PREPARE_KEYS, WRITE_KEYS);

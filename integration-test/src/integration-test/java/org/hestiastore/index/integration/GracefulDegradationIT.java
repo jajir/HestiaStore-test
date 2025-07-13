@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
@@ -22,6 +21,8 @@ import org.hestiastore.index.utils.TestStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GracefulDegradationIT {
 
@@ -31,8 +32,7 @@ public class GracefulDegradationIT {
     public static final String DIRECTORY = "target/consistency-check";
     public static final String INDEX_NAME = "test-index";
 
-    private final Logger logger = Logger
-            .getLogger(GracefulDegradationIT.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
     void test_one_round() throws Exception {
