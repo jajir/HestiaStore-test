@@ -40,6 +40,11 @@ public class CommandLineConf {
         args.add("--" + testName);
     }
 
+    public CommandLineConf addJavaParameter(final String paramName) {
+        args.add(1, paramName);
+        return this;
+    }
+
     public CommandLineConf addParameter(final String paramName,
             final String paramValue) {
         args.add(paramName);

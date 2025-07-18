@@ -1,6 +1,8 @@
 package org.hestiastore.index.integration;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.Objects;
 
 import org.hestiastore.index.directory.Directory;

@@ -39,6 +39,7 @@ public class OutOfMemoryIT {
         final CommandLineConf conf = new CommandLineConf(
                 THIS_PACKAGE_FILE_LOCATION, MAIN_CLASS_NAME,
                 Main.OPTION_OUT_OF_MEMORY_TEST_NAME, "100m")//
+                // .addJavaParameter("-XX:+HeapDumpOnOutOfMemoryError")//
                 .addParameter(AbstractIndexCli.PARAM_DIRECTORY, DIRECTORY) //
                 .addParameter(AbstractIndexCli.PARAM_INDEX_NAME, INDEX_NAME) //
                 .addParameter(
@@ -64,18 +65,18 @@ public class OutOfMemoryIT {
                         "200_000") //
         ;
         final Process process = conf.createProcessBuilder().start();
-
         IoUtils.printInputStream(process.getInputStream());
+        logger.info("Waiting until process safely writes first data");
+        await().atMost(60, SECONDS).pollInterval(1, SECONDS)
+                .until(TestStatus::isReadyToTest);
 
         logger.info("Waiting for process finist at OutOfMemoryError");
-
-        await().atMost(120, SECONDS).pollInterval(1, SECONDS)
+        await().atMost(30, SECONDS).pollInterval(1, SECONDS)
                 .until(() -> !process.isAlive());
-
         assertFalse(process.isAlive(), "Process should be terminated");
+
         assertEquals(SIGTERM_EXIT_CODE, process.exitValue(),
                 "Process should exit with SIGTERM code");
-        process.destroyForcibly(); // in case it is still running
 
         // Validate index consistency
         IndexUtils.optionalyRemoveLockFile(DIRECTORY);
