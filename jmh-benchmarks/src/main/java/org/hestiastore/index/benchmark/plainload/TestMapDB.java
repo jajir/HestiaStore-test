@@ -1,71 +1,41 @@
 package org.hestiastore.index.benchmark.plainload;
 
-import java.io.File;
-import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.benchmark.load.HashDataProvider;
-import org.hestiastore.index.benchmark.load.IndexWritingBenchmark;
-import org.hestiastore.index.utils.FileUtils;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Warmup;
 
-public class TestMapDB {
-    private final Logger logger = LoggerFactory
-            .getLogger(IndexWritingBenchmark.class);
-    private final static long RANDOM_SEED = 324432L;
-    private final static String PROPERTY_DIRECTORY = "dir";
-    private final static String VALUE = "opice skace po stromech";
-    private final static HashDataProvider HASH_DATA_PROVIDER = new HashDataProvider();
-    private final static Random RANDOM = new Random(RANDOM_SEED);
-    private String directoryFileName;
+@State(Scope.Benchmark)
+@BenchmarkMode(Mode.Throughput)
+@OutputTimeUnit(TimeUnit.SECONDS)
+public class TestMapDB extends AbstractPlainLoadTest {
     private HTreeMap<String, String> storage;
 
-    private long cx = 0;
-
-    private final static int TEST_COUNT = 100_000;
-    long startMs;
-
-    public void test(final long howMuch) {
-        for (cx = 1; cx < howMuch; cx++) {
-            if ((cx % TEST_COUNT) == 0) {
-                print(startMs);
-            }
-            test_writing();
-        }
-    }
-
-    private void print(long startMs) {
-        long currentMs = System.currentTimeMillis();
-        final long ElapsedMili = currentMs - startMs;
-        final long elapsedMs = ElapsedMili / 1000;
-        final long elapsedMm = ElapsedMili % 1000;
-        System.out.println("Written, " + cx + ", \"" + elapsedMs + "."
-                + elapsedMm + "\", ");
-    }
-
-    public String test_writing() {
-        final long rnd = RANDOM.nextLong(cx);
+    @Benchmark
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    public String write() {
+        final long rnd = RANDOM.nextLong();
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
         storage.put(hash, VALUE);
         return hash;
     }
 
+    @Setup(Level.Trial)
     public void setup() {
-        directoryFileName = System.getProperty(PROPERTY_DIRECTORY);
-        logger.debug("Property 'dir' is '" + directoryFileName + "'");
-        if (directoryFileName == null || directoryFileName.isEmpty()) {
-            throw new IllegalStateException("Property 'dir' is not set");
-        }
-
-        final File dirFile = new File(directoryFileName);
-        FileUtils.deleteFileRecursively(dirFile);
+        prepareDirectory();
 
         // 1) Open (or create) a file-backed database.
-        // transactionEnable() gives you full ACID with commit()/rollback()
-        // fileChannelEnable() uses java.nio for slightly better performance
         final DB db = DBMaker.fileDB("data.db") // file on disk
                 .fileChannelEnable() // use FileChannel
                 // .transactionEnable() // enable transactions
@@ -76,14 +46,11 @@ public class TestMapDB {
         // serialization
         storage = db.hashMap("users", org.mapdb.Serializer.STRING,
                 org.mapdb.Serializer.STRING).createOrOpen();
-
-        startMs = System.currentTimeMillis();
-        print(startMs);
     }
 
+    @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info(
-                "Closing index and directory, number of written keys: " + cx);
+        logger.info("Closing index and directory, number of written keys: ");
         storage.close();
     }
 }

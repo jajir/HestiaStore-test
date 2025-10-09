@@ -3,6 +3,7 @@ package org.hestiastore.index.benchmark.diskio;
 import java.io.File;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.hestiastore.index.PairWriter;
 import org.hestiastore.index.datatype.TypeDescriptor;
@@ -66,17 +67,16 @@ public class SequentialFileWritingBenchmark {
 
     @Benchmark
     public String test_writing() {
-        long result = 0;
+        AtomicLong result = new AtomicLong(0);
         // prepare data
-        try (PairWriter<String, Long> pairWriter = testFile
-                .openWriter(Access.OVERWRITE)) {
+        testFile.openWriterTx().execute(writer -> {
             for (int i = 0; i < NUMBER_OF_TESTING_PAIRS; i++) {
-                pairWriter.put(dataProvider.generateRandomString(),
+                writer.write(dataProvider.generateRandomString(),
                         RANDOM.nextLong());
-                result++;
+                result.incrementAndGet();
             }
-        }
-        return String.valueOf(result);
+        });
+        return String.valueOf(result.get());
     }
 
     private UnsortedDataFile<String, Long> getDataFile(int bufferSize) {

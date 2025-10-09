@@ -80,9 +80,10 @@ public class SegmentSearchBenchmark {
         if (segment.getNumberOfKeys() != NUMBER_OF_TESTING_PAIRS) {
             System.out.println("main setup - rebuilding, it's "
                     + segment.getNumberOfKeys());
-            try (PairWriter<String, Long> pairWriter = segment.openWriter()) {
+            try (PairWriter<String, Long> pairWriter = segment
+                    .openDeltaCacheWriter()) {
                 for (int i = 0; i < NUMBER_OF_TESTING_PAIRS; i++) {
-                    pairWriter.put(dataProvider.generateSequenceString(i),
+                    pairWriter.write(dataProvider.generateSequenceString(i),
                             RANDOM.nextLong());
                 }
             }
@@ -127,7 +128,7 @@ public class SegmentSearchBenchmark {
                 .withValueTypeDescriptor(TYPE_DESCRIPTOR_LONG)//
                 .withMaxNumberOfKeysInSegmentCache(3)//
                 .withMaxNumberOfKeysInSegmentCacheDuringFlushing(100)//
-                .withMaxNumberOfKeysInIndexPage(100)//
+                .withMaxNumberOfKeysInSegmentChunk(100)//
                 .withBloomFilterIndexSizeInBytes(0);// disable bloom filter
     }
 

@@ -153,7 +153,7 @@ public abstract class AbstractIndexCli {
                 cmd);
         final long maxNumberOfKeysInSegmentCacheDuringFlushing = extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
                 cmd);
-        final long maxNumberOfKeysInSegmentIndexPage = extractMaxNumberOfKeysInSegmentIndexPageOption(
+        final long maxNumberOfKeysInSegmentChunk = extractMaxNumberOfKeysInSegmentIndexPageOption(
                 cmd);
         final long maxNumberOfKeysInCache = extractMaxNumberOfKeysInCacheOption(
                 cmd);
@@ -175,8 +175,8 @@ public abstract class AbstractIndexCli {
                         maxNumberOfKeysInSegmentCache) //
                 .withMaxNumberOfKeysInSegmentCacheDuringFlushing(
                         maxNumberOfKeysInSegmentCacheDuringFlushing) //
-                .withMaxNumberOfKeysInSegmentIndexPage(
-                        (int) maxNumberOfKeysInSegmentIndexPage) //
+                .withMaxNumberOfKeysInSegmentChunk(
+                        (int) maxNumberOfKeysInSegmentChunk) //
                 .withMaxNumberOfKeysInCache((int) maxNumberOfKeysInCache) //
                 .withBloomFilterIndexSizeInBytes(
                         (int) bloomFilterIndexSizeInBytes) //

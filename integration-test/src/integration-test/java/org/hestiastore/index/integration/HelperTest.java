@@ -20,7 +20,7 @@ class HelperTest {
                 .withMaxNumberOfKeysInSegment((int) 500_000) //
                 .withMaxNumberOfKeysInSegmentCache(100_000L) //
                 .withMaxNumberOfKeysInSegmentCacheDuringFlushing(200_000L) //
-                .withMaxNumberOfKeysInSegmentIndexPage((int) 1_000) //
+                .withMaxNumberOfKeysInSegmentChunk((int) 1_000) //
                 .withMaxNumberOfKeysInCache((int) 500_000) //
                 .withBloomFilterIndexSizeInBytes((int) 500_000) //
                 .withBloomFilterNumberOfHashFunctions((int) 3) //

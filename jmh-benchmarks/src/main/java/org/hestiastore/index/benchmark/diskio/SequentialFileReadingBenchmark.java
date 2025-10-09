@@ -67,13 +67,12 @@ public class SequentialFileReadingBenchmark {
         testFile = getDataFile(diskIoBufferSize);
 
         // prepare data
-        try (PairWriter<String, Long> pairWriter = testFile
-                .openWriter(Access.OVERWRITE)) {
+        testFile.openWriterTx().execute(writer -> {
             for (int i = 0; i < NUMBER_OF_TESTING_PAIRS; i++) {
-                pairWriter.put(dataProvider.generateRandomString(),
+                writer.write(dataProvider.generateRandomString(),
                         RANDOM.nextLong());
             }
-        }
+        });
     }
 
     @Benchmark

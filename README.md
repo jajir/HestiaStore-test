@@ -16,10 +16,11 @@ To run tests, run `GracefulDegradationIT` from IDE.
 
 There are comparison of lowlevel functionality like disk IO operatios.
 
-before each test execution build jar with executables:
+before each test execution build jar with executables in correct project directory:
 
 ```bash
-mvn clean package
+cd jmh-benchmarks
+mvn clean package -DskipTests=true
 ```
 
 How to perform test:

@@ -1,5 +1,10 @@
 package org.hestiastore.index.benchmark.plainload;
 
+import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,45 +13,46 @@ public class Main {
     private final static Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private final static String PROPERTY_ENGINE = "engine";
     private final static String ENGINE_HESTIASTORE = "HestiaStore";
+    private final static String ENGINE_HESTIASTORE_COMPRESS = "HestiaStoreCompress";
     private final static String PROPERTY_MAPDB = "MapDB";
     private final static String PROPERTY_H2 = "H2";
 
-    private final static long TEST_ITERATIOSN = 1_000_000L;
-
     /**
-     * Main method to run the benchmark tests.
-     * 
-     * TODO explain why it don't use JMH
-     *
-     * @param args command line arguments
-     * @throws Exception if an error occurs during setup or test execution
+     * Main entry that runs the selected JMH benchmark class.
      */
     public static void main(final String[] args) throws Exception {
 
-        String engine = System.getProperty(PROPERTY_ENGINE);
+        final String engine = System.getProperty(PROPERTY_ENGINE);
         LOGGER.debug("Property 'engine' is '" + engine + "'");
         if (engine == null || engine.isEmpty()) {
             throw new IllegalStateException("Property 'engine' is not set");
         }
 
+        final String includePattern;
         if (ENGINE_HESTIASTORE.equals(engine)) {
-            final TestHestiaStore test = new TestHestiaStore();
-            test.setup();
-            test.test(TEST_ITERATIOSN);
-            test.tearDown();
+            includePattern = TestHestiaStore.class.getSimpleName();
+        } else if (ENGINE_HESTIASTORE_COMPRESS.equals(engine)) {
+            includePattern = TestHestiaStoreCompress.class.getSimpleName();
         } else if (PROPERTY_MAPDB.equals(engine)) {
-            final TestMapDB test = new TestMapDB();
-            test.setup();
-            test.test(TEST_ITERATIOSN);
-            test.tearDown();
+            includePattern = TestMapDB.class.getSimpleName();
         } else if (PROPERTY_H2.equals(engine)) {
-            final TestH2 test = new TestH2();
-            test.setup();
-            test.test(TEST_ITERATIOSN);
-            test.tearDown();
+            includePattern = TestH2.class.getSimpleName();
         } else {
             throw new IllegalStateException("Unknown engine '" + engine + "'");
         }
 
+        final Options opt = new OptionsBuilder()
+                .include(".*" + includePattern + "")//
+                .forks(1)//
+                .resultFormat(ResultFormatType.JSON)//
+                .result("./target/results-" + engine + ".json")//
+                .build()//
+        ;
+
+        for (RunResult r : new Runner(opt).run()) {
+            LOGGER.info("Benchmark: {} -> {} ops/s",
+                    r.getParams().getBenchmark(),
+                    r.getPrimaryResult().getScore());
+        }
     }
 }

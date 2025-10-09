@@ -1,88 +1,70 @@
 package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
-import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.hestiastore.index.Pair;
-import org.hestiastore.index.benchmark.load.HashDataProvider;
-import org.hestiastore.index.benchmark.load.IndexWritingBenchmark;
+import org.hestiastore.index.chunkstore.ChunkFilterCrc32Validation;
+import org.hestiastore.index.chunkstore.ChunkFilterCrc32Writing;
+import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberValidation;
+import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberWriting;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
 import org.hestiastore.index.sst.IndexConfiguration;
-import org.hestiastore.index.utils.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Warmup;
 
-public class TestHestiaStore {
-    private final Logger logger = LoggerFactory
-            .getLogger(IndexWritingBenchmark.class);
-    private final static long RANDOM_SEED = 324432L;
-    private final static String PROPERTY_DIRECTORY = "dir";
-    private final static String VALUE = "opice skace po stromech";
-    private final static HashDataProvider HASH_DATA_PROVIDER = new HashDataProvider();
-    private final static Random RANDOM = new Random(RANDOM_SEED);
-    private String directoryFileName;
-    private Directory directory;
+@State(Scope.Benchmark)
+@BenchmarkMode(Mode.Throughput)
+@OutputTimeUnit(TimeUnit.SECONDS)
+public class TestHestiaStore extends AbstractPlainLoadTest {
     private Index<String, String> index;
 
-    private long cx = 0;
-
-    private final static int TEST_COUNT = 100_000;
-    long startMs;
-
-    public void test(final long howMuch) {
-        for (cx = 1; cx < howMuch; cx++) {
-            if ((cx % TEST_COUNT) == 0) {
-                print(startMs);
-            }
-            test_writing();
-        }
-    }
-
-    private void print(long startMs) {
-        long currentMs = System.currentTimeMillis();
-        final long ElapsedMili = currentMs - startMs;
-        final long elapsedMs = ElapsedMili / 1000;
-        final long elapsedMm = ElapsedMili % 1000;
-        System.out.println("Written, " + cx + ", \"" + elapsedMs + "."
-                + elapsedMm + "\", ");
-    }
-
-    public String test_writing() {
-        final long rnd = RANDOM.nextLong(cx);
+    @Benchmark
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    public String write() {
+        final long rnd = RANDOM.nextLong();
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
         final Pair<String, String> pair = Pair.of(hash, VALUE);
         index.put(pair);
         return hash;
     }
 
+    @Setup(Level.Trial)
     public void setup() {
-        directoryFileName = System.getProperty(PROPERTY_DIRECTORY);
-        logger.debug("Property 'dir' is '" + directoryFileName + "'");
-        if (directoryFileName == null || directoryFileName.isEmpty()) {
-            throw new IllegalStateException("Property 'dir' is not set");
-        }
-
-        final File dirFile = new File(directoryFileName);
-        FileUtils.deleteFileRecursively(dirFile);
-        directory = new FsDirectory(dirFile);
+        final File dirFile = prepareDirectory();
+        final Directory directory = new FsDirectory(dirFile);
 
         final IndexConfiguration<String, String> conf = IndexConfiguration
                 .<String, String>builder()//
                 .withName("test-index")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
+                .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
+                .addEncodingFilter(new ChunkFilterCrc32Writing())//
+                // .addEncodingFilter(new ChunkFilterSnappyCompress())//
+                // .addEncodingFilter(new ChunkFilterXorEncrypt())//
+                // .addDecodingFilter(new ChunkFilterXorDecrypt())//
+                // .addDecodingFilter(new ChunkFilterSnappyDecompress())//
+                .addDecodingFilter(new ChunkFilterCrc32Validation())//
+                .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .build();
 
         index = Index.create(directory, conf);
-        startMs = System.currentTimeMillis();
-        print(startMs);
     }
 
+    @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info(
-                "Closing index and directory, number of written keys: " + cx);
+        logger.info("Closing index and directory, number of written keys: ");
         index.close();
     }
 }
