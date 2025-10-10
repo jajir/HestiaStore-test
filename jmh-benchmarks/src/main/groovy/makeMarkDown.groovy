@@ -43,8 +43,8 @@ files.sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
 println '# Benchmark Results'
 println ''
 // Table header printed at the beginning
-println '| Engine       | Score     | Error     | Confidence Interval        |'
-println '|--------------|-----------|-----------|----------------------------|'
+println '| Engine       | Score [ops/s]     | ScoreError| Confidence Interval [ops/s] |'
+println '|:--------------|:-----------------|:-----------|:----------------------------|'
 
 files.each { Path file ->
     def engine = file.fileName.toString().replace('results-', '').replace('.json', '')
@@ -105,6 +105,16 @@ files.each { Path file ->
     }
 }
 
+println ''
+println 'meaning of columns:'
+println ''
+println '- Engine: name of the benchmarked engine (as derived from the JSON filename)'
+println '- Score [ops/s]: number of operations per second (higher is better)'
+println '- ScoreError: error margin of the score (lower is better). It\'s computed as `z * (stdev / sqrt(n)) where`'
+println '  - `z` is the z-score for the desired confidence level (1.96 for 95%)'
+println '  - `stdev` is the standard deviation of the measurements'
+println '  - `n` is the number of measurements'
+println '- Confidence Interval: 95% confidence interval of the score (lower and upper bound). This means that the true mean is likely between this interval of ops/sec. Negative values are possible if the error margin is larger than the score itself.'
 println ''
 println '## Raw JSON Files'
 files.each { Path file ->

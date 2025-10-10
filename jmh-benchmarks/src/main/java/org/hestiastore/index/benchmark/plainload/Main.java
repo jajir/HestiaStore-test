@@ -12,7 +12,7 @@ public class Main {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private final static String PROPERTY_ENGINE = "engine";
-    private final static String ENGINE_HESTIASTORE = "HestiaStore";
+    private final static String ENGINE_HESTIASTORE = "HestiaStoreBasic";
     private final static String ENGINE_HESTIASTORE_COMPRESS = "HestiaStoreCompress";
     private final static String PROPERTY_MAPDB = "MapDB";
     private final static String PROPERTY_H2 = "H2";
@@ -30,7 +30,7 @@ public class Main {
 
         final String includePattern;
         if (ENGINE_HESTIASTORE.equals(engine)) {
-            includePattern = TestHestiaStore.class.getSimpleName();
+            includePattern = TestHestiaStoreBasic.class.getSimpleName();
         } else if (ENGINE_HESTIASTORE_COMPRESS.equals(engine)) {
             includePattern = TestHestiaStoreCompress.class.getSimpleName();
         } else if (PROPERTY_MAPDB.equals(engine)) {
@@ -45,7 +45,7 @@ public class Main {
                 .include(".*" + includePattern + "")//
                 .forks(1)//
                 .resultFormat(ResultFormatType.JSON)//
-                .result("./target/results-" + engine + ".json")//
+                .result("./results/results-" + engine + ".json")//
                 .build()//
         ;
 

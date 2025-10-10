@@ -2,7 +2,6 @@ package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import org.hestiastore.index.benchmark.load.HashDataProvider;
 import org.hestiastore.index.utils.FileUtils;
@@ -20,8 +19,14 @@ abstract class AbstractPlainLoadTest {
     /**
      * Warmup processs definition.
      */
-    protected final static int WARM_UP_ITERACTIONS = 5;
+    protected final static int WARM_UP_ITERACTIONS = 10;
     protected final static int WARM_UP_TIME = 20;
+
+    /**
+     * Measurement processs definition.
+     */
+    protected final static int MEASUREMENT_ITERACTIONS = 25;
+    protected final static int MEASUREMENT_TIME = 20;
 
     protected static final String PROPERTY_DIRECTORY = "dir";
     protected static final String VALUE = "opice skace po stromech";

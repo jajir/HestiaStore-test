@@ -13,6 +13,6 @@ run(){
 
 run H2
 run MapDB
-run HestiaStore
+run HestiaStoreBasic
 run HestiaStoreCompress
 
