@@ -16,6 +16,7 @@ public class Main {
     private final static String ENGINE_HESTIASTORE_COMPRESS = "HestiaStoreCompress";
     private final static String PROPERTY_MAPDB = "MapDB";
     private final static String PROPERTY_H2 = "H2";
+    private final static String PROPERTY_CHRONICLE_MAP = "ChronicleMap";
 
     /**
      * Main entry that runs the selected JMH benchmark class.
@@ -37,6 +38,8 @@ public class Main {
             includePattern = TestMapDB.class.getSimpleName();
         } else if (PROPERTY_H2.equals(engine)) {
             includePattern = TestH2.class.getSimpleName();
+        } else if (PROPERTY_CHRONICLE_MAP.equals(engine)) {
+            includePattern = TestChronicleMap.class.getSimpleName();
         } else {
             throw new IllegalStateException("Unknown engine '" + engine + "'");
         }
