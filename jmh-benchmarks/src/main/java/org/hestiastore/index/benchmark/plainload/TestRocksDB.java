@@ -1,13 +1,9 @@
 package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
-import org.h2.mvstore.type.StringDataType;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -19,45 +15,46 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
+import org.rocksdb.Options;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestH2 extends AbstractPlainLoadTest {
+public class TestRocksDB extends AbstractPlainLoadTest {
 
-    private MVStore store;
-    private MVMap<String, String> map;
+    private Options options;
+    private RocksDB storage;
 
-    @Benchmark()
+    @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String write() {
+    public String write() throws RocksDBException {
         final long rnd = RANDOM.nextLong();
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        map.put(hash, VALUE);
+        storage.put(hash.getBytes(), VALUE.getBytes());
         return hash;
     }
 
     @Setup(Level.Trial)
-    public void setup() {
+    public void setup() throws IOException, RocksDBException {
         File dir = prepareDirectory();
-        store = new MVStore.Builder()//
-                .fileName(dir.getAbsolutePath() + "/test.dat")//
-                .cacheSize(4096)//
-                .autoCommitDisabled()//
-                .open();
 
-        MVMap.Builder<String, String> builder = new MVMap.Builder<String, String>()//
-                .keyType(StringDataType.INSTANCE)//
-                .valueType(StringDataType.INSTANCE);//
-        Map<String, Object> config = new HashMap<>();
-        map = builder.create(store, config);
+        options = new Options()//
+                .setCreateIfMissing(true)//
+                .setUseFsync(false)//
+        ;
+        storage = RocksDB.open(options, dir.getAbsolutePath() + "/rocks");
+
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: ");
-        store.close();
+        logger.info("Closing index and directory");
+        storage.close();
+        options.close();
+        // generateSecondaryMetrics();
     }
 
 }

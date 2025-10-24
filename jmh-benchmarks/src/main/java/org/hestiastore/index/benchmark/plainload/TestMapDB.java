@@ -1,5 +1,6 @@
 package org.hestiastore.index.benchmark.plainload;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import org.mapdb.DB;
@@ -35,13 +36,14 @@ public class TestMapDB extends AbstractPlainLoadTest {
 
     @Setup(Level.Trial)
     public void setup() {
-        prepareDirectory();
+        File dir = prepareDirectory();
 
         // 1) Open (or create) a file-backed database.
-        final DB db = DBMaker.fileDB("data.db") // file on disk
-                .fileChannelEnable() // use FileChannel
+        final DB db = DBMaker//
+                .fileDB(dir.getAbsolutePath() + "/data.db")//
+                .fileChannelEnable() //
                 // .transactionEnable() // enable transactions
-                .checksumHeaderBypass() // enable checksums
+                .checksumHeaderBypass() //
                 .make();
 
         // 2) Create or open a HashMap named "users" with String→User
@@ -55,4 +57,5 @@ public class TestMapDB extends AbstractPlainLoadTest {
         logger.info("Closing index and directory, number of written keys: ");
         storage.close();
     }
+
 }

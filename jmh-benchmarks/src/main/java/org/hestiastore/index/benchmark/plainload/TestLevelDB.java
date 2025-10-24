@@ -1,13 +1,13 @@
 package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
-import org.h2.mvstore.type.StringDataType;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -23,41 +23,38 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestH2 extends AbstractPlainLoadTest {
+public class TestLevelDB extends AbstractPlainLoadTest {
+    private DB storage;
 
-    private MVStore store;
-    private MVMap<String, String> map;
-
-    @Benchmark()
+    @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
     public String write() {
         final long rnd = RANDOM.nextLong();
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        map.put(hash, VALUE);
+        storage.put(hash.getBytes(StandardCharsets.UTF_8),
+                VALUE.getBytes(StandardCharsets.UTF_8));
         return hash;
     }
 
     @Setup(Level.Trial)
-    public void setup() {
+    public void setup() throws IOException {
         File dir = prepareDirectory();
-        store = new MVStore.Builder()//
-                .fileName(dir.getAbsolutePath() + "/test.dat")//
-                .cacheSize(4096)//
-                .autoCommitDisabled()//
-                .open();
 
-        MVMap.Builder<String, String> builder = new MVMap.Builder<String, String>()//
-                .keyType(StringDataType.INSTANCE)//
-                .valueType(StringDataType.INSTANCE);//
-        Map<String, Object> config = new HashMap<>();
-        map = builder.create(store, config);
+        Options options = new Options();
+        options.createIfMissing(true);
+        options.cacheSize(100 * 1024 * 1024L); // 100 MB cache
+
+        File dbFile = new File(dir.getAbsolutePath());
+        dbFile.mkdirs();
+
+        // Use the pure Java factory
+        storage = Iq80DBFactory.factory.open(dbFile, options);
     }
 
     @TearDown(Level.Trial)
-    public void tearDown() {
+    public void tearDown() throws IOException {
         logger.info("Closing index and directory, number of written keys: ");
-        store.close();
+        storage.close();
     }
-
 }

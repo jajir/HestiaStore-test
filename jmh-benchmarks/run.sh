@@ -5,6 +5,7 @@
 
 run(){
   java \
+	-Xmx10000m \
     --add-opens=java.base/java.lang=ALL-UNNAMED \
     --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
     --add-opens=java.base/java.io=ALL-UNNAMED \
@@ -31,5 +32,27 @@ run(){
 #run HestiaStoreBasic
 #run HestiaStoreCompress
 run ChronicleMap
+#run RocksDB
+#run LevelDB
 
-#run HestiaStoreCompress
+pok(){
+    # it's just clumsy backup of all the --add-opens used in the jmh-maven-plugin
+    # when it's needed, just copy-paste it into the java command above
+    java \
+    --add-opens=java.base/java.lang=ALL-UNNAMED \
+    --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+    --add-opens=java.base/java.io=ALL-UNNAMED \
+    --add-opens=java.base/java.nio=ALL-UNNAMED \
+    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+
+}

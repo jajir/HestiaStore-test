@@ -28,7 +28,7 @@ abstract class AbstractPlainLoadTest {
     protected final static int MEASUREMENT_ITERACTIONS = 25;
     protected final static int MEASUREMENT_TIME = 20;
 
-    protected static final String PROPERTY_DIRECTORY = "dir";
+    public static final String PROPERTY_DIRECTORY = "dir";
     protected static final String VALUE = "opice skace po stromech";
     protected static final HashDataProvider HASH_DATA_PROVIDER = new HashDataProvider();
     protected static final long RANDOM_SEED = 324432L;

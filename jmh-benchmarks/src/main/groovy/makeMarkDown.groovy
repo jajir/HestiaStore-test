@@ -8,6 +8,11 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
+def printFile(Path rootDir, String file) {
+    println new String(Files.readAllBytes(rootDir.resolve(file)), StandardCharsets.UTF_8)
+}
+
+
 // Find project root (directory containing a pom.xml highest up from CWD)
 def findProjectRoot(Path start) {
     Path cur = start
@@ -40,69 +45,32 @@ if (Files.exists(resultsDir)) {
 }
 files.sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
 
-println '# Benchmark Results'
+println '# HestiaStore Benchmark Results'
 println ''
+printFile resultsDir, 'test-conditions.md'
+println ''
+println '## Benchmark Results'
+println ''
+def tablePath = resultsDir.resolve('table.json')
+def tableRows = []
+if (Files.exists(tablePath)) {
+    tableRows = mapper.readValue(tablePath.toFile(), List)
+} else {
+    System.err.println("Warning: summary table file '${tablePath}' not found; table section will be empty.")
+}
+
 // Table header printed at the beginning
-println '| Engine       | Score [ops/s]     | ScoreError| Confidence Interval [ops/s] |'
-println '|:--------------|:-----------------|:-----------|:----------------------------|'
+println '| Engine       | Score [ops/s]     | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |'
+println '|:--------------|-----------------:|-----------:|-----------------------------:|---------------:|---------:|'
 
-files.each { Path file ->
-    def engine = file.fileName.toString().replace('results-', '').replace('.json', '')
-    def benchmarks = mapper.readValue(file.toFile(), List)
-
-    // Helper: get nested value by path like "primaryMetric.scoreConfidence[0]"
-    def getByPath
-    getByPath = { Object root, String path ->
-        def cur = root
-        if (path == null || path.isEmpty()) return cur
-        path.split('\n') // avoid accidental newlines
-        path.split(/\./).each { part ->
-            if (cur == null) return null
-            def m = (part =~ /(.*?)\[(\d+)]$/)
-            if (m.matches()) {
-                def name = m[0][1]
-                def idx = Integer.parseInt(m[0][2])
-                if (name) {
-                    cur = (cur instanceof Map) ? cur[name] : null
-                }
-                cur = (cur instanceof List) ? cur.getAt(idx) : null
-            } else {
-                cur = (cur instanceof Map) ? cur[part] : null
-            }
-        }
-        return cur
-    }
-
-    // Helper: try multiple alternative paths for compatibility
-    def firstOf = { obj, List<String> paths ->
-        for (p in paths) {
-            def v = getByPath(obj, p)
-            if (v != null) return v
-        }
-        return null
-    }
-
-    // number formatter: group thousands with space, no decimals
-    def dfs = new DecimalFormatSymbols(Locale.US)
-    dfs.groupingSeparator = ' ' as char
-    def df = new DecimalFormat('#,##0', dfs)
-    def fmtNum = { Object v ->
-        if (!(v instanceof Number)) return ''
-        return df.format((v as Number).doubleValue())
-    }
-
-    benchmarks.each { benchmark ->
-        def scoreVal = firstOf(benchmark, ['primaryMetric.score', 'score'])
-        def errorVal = firstOf(benchmark, ['primaryMetric.scoreError', 'scoreError'])
-        def lo = firstOf(benchmark, ['primaryMetric.scoreConfidence[0]', 'scoreConfidence[0]'])
-        def hi = firstOf(benchmark, ['primaryMetric.scoreConfidence[1]', 'scoreConfidence[1]'])
-
-        def scoreStr = fmtNum(scoreVal).toString().padLeft(9)
-        def errorStr = fmtNum(errorVal).toString().padLeft(9)
-        def ci = (lo instanceof Number && hi instanceof Number) ? (fmtNum(lo) + ' .. ' + fmtNum(hi)) : ''
-
-        println String.format('| %-12s | %s | %s | %s |', engine, scoreStr, errorStr, ci)
-    }
+tableRows.each { row ->
+    def engine = (row['Engine'] ?: '').toString()
+    def score = (row['Score [ops/s]'] ?: '').toString()
+    def error = (row['ScoreError'] ?: '').toString()
+    def ci = (row['Confidence Interval [ops/s]'] ?: '').toString()
+    def occupied = (row['Occupied space'] ?: '').toString()
+    def cpuUsage = (row['cpuUsage'] ?: '').toString()
+    println "| ${engine.padRight(12)} | ${score.padLeft(15)} | ${error.padLeft(9)} | ${ci.padRight(27)} | ${occupied.padRight(14)} | ${cpuUsage.padRight(10)} |"
 }
 
 println ''
@@ -115,6 +83,8 @@ println '  - `z` is the z-score for the desired confidence level (1.96 for 95%)'
 println '  - `stdev` is the standard deviation of the measurements'
 println '  - `n` is the number of measurements'
 println '- Confidence Interval: 95% confidence interval of the score (lower and upper bound). This means that the true mean is likely between this interval of ops/sec. Negative values are possible if the error margin is larger than the score itself.'
+println '- Occupied space : amount of disk space occupied by the engine\'s data structures (lower is better). It is measured after flushing last data to disk.'
+println '- CPU Usage: average CPU usage during the benchmark (lower is better). Please note, that it includes all system processes, not only the benchmarked engine.'
 println ''
 println '## Raw JSON Files'
 files.each { Path file ->
