@@ -16,19 +16,19 @@
   "cpuUsage" : "21%"
 }, {
   "Engine" : "HestiaStoreBasic",
-  "Score [ops/s]" : "208 723",
-  "ScoreError" : "123 398",
-  "Confidence Interval [ops/s]" : "85 325 .. 332 122",
+  "Score [ops/s]" : "197 128",
+  "ScoreError" : "102 228",
+  "Confidence Interval [ops/s]" : "94 901 .. 299 356",
   "Occupied space" : "9.71 GB",
-  "usedMemoryBytes" : "28.16 MB",
+  "usedMemoryBytes" : "28.18 MB",
   "cpuUsage" : "6%"
 }, {
   "Engine" : "HestiaStoreCompress",
-  "Score [ops/s]" : "197 335",
-  "ScoreError" : "110 268",
-  "Confidence Interval [ops/s]" : "87 068 .. 307 603",
-  "Occupied space" : "4.97 GB",
-  "usedMemoryBytes" : "28.25 MB",
+  "Score [ops/s]" : "202 273",
+  "ScoreError" : "102 406",
+  "Confidence Interval [ops/s]" : "99 867 .. 304 678",
+  "Occupied space" : "6.13 GB",
+  "usedMemoryBytes" : "28.15 MB",
   "cpuUsage" : "6%"
 }, {
   "Engine" : "LevelDB",

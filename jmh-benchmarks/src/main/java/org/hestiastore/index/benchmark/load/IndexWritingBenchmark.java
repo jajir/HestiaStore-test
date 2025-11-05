@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.Pair;
+import org.hestiastore.index.Entry;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.sst.Index;
@@ -62,8 +62,8 @@ public class IndexWritingBenchmark {
     public String test_writing() {
         final long rnd = RANDOM.nextLong(cx++);
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        final Pair<String, String> pair = Pair.of(hash, VALUE);
-        index.put(pair);
+        final Entry<String, String> entry = Entry.of(hash, VALUE);
+        index.put(entry);
         return hash;
     }
 

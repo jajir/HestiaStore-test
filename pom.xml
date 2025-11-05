@@ -13,7 +13,7 @@
 	<modules>
         <module>utils</module>
         <module>jmh-benchmarks</module>
-        <module>integration-test</module>
+        <module>integration-tests</module>
     </modules>
 
 	<properties>
@@ -35,7 +35,7 @@
             <dependency>
                 <groupId>org.hestiastore.index</groupId>
                 <artifactId>core</artifactId>
-                <version>0.0.5-SNAPSHOT</version>
+                <version>0.0.6-SNAPSHOT</version>
             </dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>

@@ -4,9 +4,8 @@ import java.io.File;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.Pair;
-import org.hestiastore.index.PairIterator;
-import org.hestiastore.index.PairWriter;
+import org.hestiastore.index.Entry;
+import org.hestiastore.index.EntryIterator;
 import org.hestiastore.index.datatype.TypeDescriptor;
 import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
@@ -78,17 +77,17 @@ public class SequentialFileReadingBenchmark2 {
     @Benchmark
     public String test_reading_buffer() {
         long result = 0;
-        try (PairIterator<String, Long> pairIterator = testFile
+        try (EntryIterator<String, Long> pairIterator = testFile
                 .openIterator()) {
             while (pairIterator.hasNext()) {
-                final Pair<String, Long> pair = pairIterator.next();
-                if (pair == null) {
-                    throw new IllegalStateException("Pair is null");
+                final Entry<String, Long> entry = pairIterator.next();
+                if (entry == null) {
+                    throw new IllegalStateException("Entry is null");
                 }
-                if (pair.getKey() == null) {
+                if (entry.getKey() == null) {
                     throw new IllegalStateException("Key is null");
                 }
-                if (pair.getValue() == null) {
+                if (entry.getValue() == null) {
                     throw new IllegalStateException("Value is null");
                 }
                 result++;

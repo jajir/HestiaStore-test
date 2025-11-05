@@ -182,7 +182,7 @@ public abstract class AbstractIndexCli {
                         (int) bloomFilterIndexSizeInBytes) //
                 .withBloomFilterNumberOfHashFunctions(
                         (int) bloomFilterNumberOfHashFunctions) //
-                .withLogEnabled(false) //
+                .withContextLoggingEnabled(false) //
                 .build();
         return conf;
     }

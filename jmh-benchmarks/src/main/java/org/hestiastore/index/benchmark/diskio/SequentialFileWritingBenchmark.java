@@ -5,13 +5,11 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.hestiastore.index.PairWriter;
 import org.hestiastore.index.datatype.TypeDescriptor;
 import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.directory.Directory.Access;
 import org.hestiastore.index.unsorteddatafile.UnsortedDataFile;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;

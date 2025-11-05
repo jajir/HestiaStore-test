@@ -24,7 +24,7 @@ class HelperTest {
                 .withMaxNumberOfKeysInCache((int) 500_000) //
                 .withBloomFilterIndexSizeInBytes((int) 500_000) //
                 .withBloomFilterNumberOfHashFunctions((int) 3) //
-                .withLogEnabled(false) //
+                .withContextLoggingEnabled(false) //
                 .build();
 
         final TestOutOfMemory test = new TestOutOfMemory(conf, directoryName);

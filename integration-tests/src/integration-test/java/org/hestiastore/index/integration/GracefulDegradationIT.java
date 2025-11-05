@@ -28,7 +28,7 @@ public class GracefulDegradationIT {
 
     public static final int SIGTERM_EXIT_CODE = 128 + 15;
     public static final String MAIN_CLASS_NAME = "org.hestiastore.index.integration.Main";
-    private final String THIS_PACKAGE_FILE_LOCATION = "target/integration-test-0.0.0-SNAPSHOT.jar";
+    private final String THIS_PACKAGE_FILE_LOCATION = "target/integration-tests-0.0.0-SNAPSHOT.jar";
     public static final String DIRECTORY = "target/consistency-check";
     public static final String INDEX_NAME = "test-index";
 

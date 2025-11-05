@@ -3,7 +3,7 @@ package org.hestiastore.index.benchmark.plainload;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.Pair;
+import org.hestiastore.index.Entry;
 import org.hestiastore.index.chunkstore.ChunkFilterCrc32Validation;
 import org.hestiastore.index.chunkstore.ChunkFilterCrc32Writing;
 import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberValidation;
@@ -38,8 +38,8 @@ public class TestHestiaStoreCompress extends AbstractPlainLoadTest {
     public String write() {
         final long rnd = RANDOM.nextLong();
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        final Pair<String, String> pair = Pair.of(hash, VALUE);
-        index.put(pair);
+        final Entry<String, String> entry = Entry.of(hash, VALUE);
+        index.put(entry);
         return hash;
     }
 
@@ -53,6 +53,7 @@ public class TestHestiaStoreCompress extends AbstractPlainLoadTest {
                 .withName("test-index")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
+                .withContextLoggingEnabled(false)//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
                 .addEncodingFilter(new ChunkFilterSnappyCompress())//

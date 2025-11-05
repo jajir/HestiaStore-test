@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.PairWriter;
+import org.hestiastore.index.EntryWriter;
 import org.hestiastore.index.datatype.TypeDescriptor;
 import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
@@ -80,10 +80,10 @@ public class SegmentSearchBenchmark {
         if (segment.getNumberOfKeys() != NUMBER_OF_TESTING_PAIRS) {
             System.out.println("main setup - rebuilding, it's "
                     + segment.getNumberOfKeys());
-            try (PairWriter<String, Long> pairWriter = segment
+            try (EntryWriter<String, Long> entryWriter = segment
                     .openDeltaCacheWriter()) {
                 for (int i = 0; i < NUMBER_OF_TESTING_PAIRS; i++) {
-                    pairWriter.write(dataProvider.generateSequenceString(i),
+                    entryWriter.write(dataProvider.generateSequenceString(i),
                             RANDOM.nextLong());
                 }
             }
