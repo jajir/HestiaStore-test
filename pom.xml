@@ -12,7 +12,8 @@
 
 	<modules>
         <module>utils</module>
-        <module>jmh-benchmarks</module>
+        <module>benchmarks</module>
+        <module>microbenchmarks</module>
         <module>integration-tests</module>
     </modules>
 

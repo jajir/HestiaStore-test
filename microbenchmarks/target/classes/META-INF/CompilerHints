@@ -1,0 +1,9 @@
+dontinline,*.*_all_jmhStub
+dontinline,*.*_avgt_jmhStub
+dontinline,*.*_sample_jmhStub
+dontinline,*.*_ss_jmhStub
+dontinline,*.*_thrpt_jmhStub
+inline,org/hestiastore/microbenchmarks/collections/UniqueCacheBenchmark.get
+inline,org/hestiastore/microbenchmarks/collections/UniqueCacheBenchmark.put
+inline,org/hestiastore/microbenchmarks/collections/UniqueCacheBenchmark.setup
+inline,org/hestiastore/microbenchmarks/collections/UniqueCacheBenchmark.tearDown

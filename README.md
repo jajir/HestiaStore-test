@@ -12,14 +12,14 @@ There are some basic test stiing to forcibly interrupt process of creeating inde
 
 To run tests, run `GracefulDegradationIT` from IDE.
 
-## jmh-benchmarks
+## benchmarks
 
 There are comparison of lowlevel functionality like disk IO operatios.
 
 before each test execution build jar with executables in correct project directory:
 
 ```bash
-cd jmh-benchmarks
+cd benchmarks
 mvn clean package -DskipTests=true
 ```
 

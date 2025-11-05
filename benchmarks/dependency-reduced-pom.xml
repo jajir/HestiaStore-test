@@ -6,8 +6,8 @@
     <version>0.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>jmh-benchmarks</artifactId>
-  <name>HestiaStore JMH benchmarks for index</name>
+  <artifactId>benchmarks</artifactId>
+  <name>HestiaStore Simple Benchmarks</name>
   <description>JMH benchmarks for Hestia store.</description>
   <url>https://github.com/jajir/HestiaStore</url>
   <developers>
@@ -80,7 +80,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>jmh-benchmarks</finalName>
+              <finalName>benchmarks</finalName>
               <transformers>
                 <transformer />
                 <transformer>

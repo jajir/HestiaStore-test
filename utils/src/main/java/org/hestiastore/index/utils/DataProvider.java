@@ -15,7 +15,7 @@ public class DataProvider {
         return generateRandomString(DEFAULT_RANDOM_STRING_LENGTH);
     }
 
-    String generateRandomString(final int lenght) {
+    public String generateRandomString(final int lenght) {
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < lenght; i++) {
             int randomIndex = RANDOM.nextInt(CHARACTERS.length());

@@ -7,4 +7,4 @@ cd ../..
 
 DIR=./target/
 
-RUN=java -jar target/jmh-benchmarks.jar com.coroptis.index.loadtest.Main
+RUN=java -jar target/benchmarks.jar com.coroptis.index.loadtest.Main
