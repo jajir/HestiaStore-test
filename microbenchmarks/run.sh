@@ -7,6 +7,7 @@
 run(){
   java \
     -Ddir=/Volumes/ponrava/test-index \
+	-Xmx10000m \
     -DtestClassName=$1 \
     -cp "target/classes:target/lib/*" \
     org.hestiastore.microbenchmarks.Main
@@ -18,7 +19,7 @@ echo "==> Starting"
 
 echo "==> Project was built"
 
-#run TreeMapCacheBenchmark
+#run DiffKeyBenchmark
 run UniqueCacheBenchmark
 
 echo "==> Done"
