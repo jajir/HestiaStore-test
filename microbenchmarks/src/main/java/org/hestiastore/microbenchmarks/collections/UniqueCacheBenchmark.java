@@ -76,6 +76,7 @@ public class UniqueCacheBenchmark extends AbstractBenchmark {
 
     @TearDown(Level.Trial)
     public void tearDown() throws IOException {
+        System.out.println("Cache size: " + cache.size());
         cache = null;
         cacheFile = null;
         directory = null;

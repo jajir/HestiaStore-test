@@ -103,7 +103,7 @@ static void writeMarkdown(File outFile, List<Row> rows) {
         w.println("# Microbenchmark Comparison")
         w.println("")
         w.println("| File | Method | Score | Unit | Error |")
-        w.println("|---|---|---:|---|---:|")
+        w.println("|------|--------|-------|------|-------|")
         rows.each { r ->
             w.println("| ${r.fileBase} | ${r.method} | ${r.score} | ${r.unit} | ${r.error} |")
         }

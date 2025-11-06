@@ -6,7 +6,6 @@
 run(){
   java \
     -Ddir=/Volumes/ponrava/test-index \
-	-agentpath:/Applications/YourKit-Java-Profiler-2024.9.app/Contents/Resources/bin/mac/libyjpagent.dylib=exceptions=disable,delay=10000,listen=all \
     -Dengine=$1 \
     -cp "target/classes:target/lib/*" \
     org.hestiastore.index.benchmark.plainload.Main

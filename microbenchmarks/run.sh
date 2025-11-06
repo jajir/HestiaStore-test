@@ -19,8 +19,9 @@ echo "==> Starting"
 
 echo "==> Project was built"
 
-#run DiffKeyBenchmark
-run UniqueCacheBenchmark
+#run DiffKeyReaderBenchmark
+#run UniqueCacheBenchmark
+run SingleChunkEntryWriterBenchmark
 
 echo "==> Done"
 
