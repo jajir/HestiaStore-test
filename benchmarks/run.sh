@@ -11,13 +11,23 @@ run(){
     org.hestiastore.index.benchmark.plainload.Main
 }
 
-#run H2
-#run MapDB
-run HestiaStoreBasic
-run HestiaStoreCompress
-#run ChronicleMap
-#run RocksDB
-#run LevelDB
+# Write benchmarks
+#run H2Write
+#run MapDBWrite
+#run HestiaStoreBasicWrite
+#run HestiaStoreCompressWrite
+#run ChronicleMapWrite
+#run RocksDBWrite
+#run LevelDBWrite
+
+# Read benchmarks (use suffixed engine name)
+#run H2Read
+#run MapDBRead
+#run HestiaStoreBasicRead
+#run HestiaStoreCompressRead
+#run ChronicleMapRead
+#run RocksDBRead
+#run LevelDBRead
 
 pok(){
     # it's just clumsy backup of all the --add-opens used in the jmh-maven-plugin

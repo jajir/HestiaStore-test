@@ -2,6 +2,7 @@ package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -22,7 +23,7 @@ import org.rocksdb.RocksDBException;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestRocksDB extends AbstractPlainLoadTest {
+public class TestRocksDBRead extends AbstractReadTest {
 
     private Options options;
     private RocksDB storage;
@@ -30,31 +31,34 @@ public class TestRocksDB extends AbstractPlainLoadTest {
     @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String write() throws RocksDBException {
-        final long rnd = RANDOM.nextLong();
-        final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        storage.put(hash.getBytes(), VALUE.getBytes());
-        return hash;
+    public String read() throws RocksDBException {
+        final String key = pickReadKey();
+        final byte[] value = storage.get(key.getBytes(StandardCharsets.UTF_8));
+        return value != null ? VALUE : key;
     }
 
     @Setup(Level.Trial)
     public void setup() throws IOException, RocksDBException {
-        File dir = prepareDirectory();
-
+        final File dir = prepareDirectory();
         options = new Options()//
                 .setCreateIfMissing(true)//
-                .setUseFsync(false)//
-        ;
-        storage = RocksDB.open(options, dir.getAbsolutePath() + "/rocks");
+                .setUseFsync(false);
+        final File rocksDir = new File(dir, "rocks-read");
+        rocksDir.mkdirs();
+        storage = RocksDB.open(options, rocksDir.getAbsolutePath());
 
+        preloadDataset((key, value) -> storage.put(
+                key.getBytes(StandardCharsets.UTF_8),
+                value.getBytes(StandardCharsets.UTF_8)));
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info("Closing index and directory");
-        storage.close();
-        options.close();
-        // generateSecondaryMetrics();
+        if (storage != null) {
+            storage.close();
+        }
+        if (options != null) {
+            options.close();
+        }
     }
-
 }

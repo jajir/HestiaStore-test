@@ -25,7 +25,7 @@ public class DiskInfoMaker {
      */
     protected String getDirectoryFileName() {
         String directoryFileName = System
-                .getProperty(AbstractPlainLoadTest.PROPERTY_DIRECTORY);
+                .getProperty(AbstractWriteTest.PROPERTY_DIRECTORY);
         if (directoryFileName == null || directoryFileName.isEmpty()) {
             throw new IllegalStateException("Property 'dir' is not set");
         }

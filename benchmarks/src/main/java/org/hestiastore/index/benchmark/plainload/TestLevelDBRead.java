@@ -2,8 +2,12 @@ package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -16,43 +20,41 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 
-import net.openhft.chronicle.map.ChronicleMap;
-
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestChronicleMap extends AbstractPlainLoadTest {
+public class TestLevelDBRead extends AbstractReadTest {
 
-    private ChronicleMap<String, String> map;
+    private DB storage;
 
-    @Benchmark()
+    @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String write() {
-        final long rnd = RANDOM.nextLong();
-        final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        map.put(hash, VALUE);
-        return hash;
+    public String read() {
+        final String key = pickReadKey();
+        final byte[] value = storage.get(key.getBytes(StandardCharsets.UTF_8));
+        return value != null ? VALUE : key;
     }
 
     @Setup(Level.Trial)
     public void setup() throws IOException {
-        File dir = prepareDirectory();
+        final File dir = prepareDirectory();
+        final Options options = new Options();
+        options.createIfMissing(true);
+        options.cacheSize(100 * 1024 * 1024L);
 
-        map = ChronicleMap.of(String.class, String.class)//
-                .name("benchmark")//
-                .entries(100_000_000)//
-                .averageKeySize(32) // ≈ bytes, include UTF-8 + length
-                .averageValueSize(128) // ≈ bytes, include UTF-8 + length
-                .maxBloatFactor(5.0) //
-                .createPersistedTo(
-                        new File(dir.getAbsolutePath() + "/test.dat"));
+        final File dbDir = new File(dir, "leveldb-read");
+        dbDir.mkdirs();
+        storage = Iq80DBFactory.factory.open(dbDir, options);
+        preloadDataset((key, value) -> storage.put(
+                key.getBytes(StandardCharsets.UTF_8),
+                value.getBytes(StandardCharsets.UTF_8)));
     }
 
     @TearDown(Level.Trial)
-    public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: ");
-        map.close();
+    public void tearDown() throws IOException {
+        if (storage != null) {
+            storage.close();
+        }
     }
-
 }

@@ -27,7 +27,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestHestiaStoreBasic extends AbstractPlainLoadTest {
+public class TestHestiaStoreBasicWrite extends AbstractWriteTest {
     private Index<String, String> index;
 
     @Benchmark

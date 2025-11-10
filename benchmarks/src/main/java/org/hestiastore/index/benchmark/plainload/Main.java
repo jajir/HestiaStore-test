@@ -2,6 +2,7 @@ package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.Map;
 
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -17,13 +18,27 @@ public class Main {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private final static String PROPERTY_ENGINE = "engine";
-    private final static String ENGINE_HESTIASTORE = "HestiaStoreBasic";
-    private final static String ENGINE_HESTIASTORE_COMPRESS = "HestiaStoreCompress";
-    private final static String PROPERTY_MAPDB = "MapDB";
-    private final static String PROPERTY_H2 = "H2";
-    private final static String PROPERTY_CHRONICLE_MAP = "ChronicleMap";
-    private final static String PROPERTY_ROCKSDB = "RocksDB";
-    private final static String PROPERTY_LEVELDB = "LevelDB";
+
+    private static final Map<String, Class<?>> ENGINE_TO_BENCHMARK = Map
+            .ofEntries(
+                    Map.entry("HestiaStoreBasic",
+                            TestHestiaStoreBasicWrite.class),
+                    Map.entry("HestiaStoreBasicRead",
+                            TestHestiaStoreBasicRead.class),
+                    Map.entry("HestiaStoreCompress",
+                            TestHestiaStoreCompressWrite.class),
+                    Map.entry("HestiaStoreCompressRead",
+                            TestHestiaStoreCompressRead.class),
+                    Map.entry("MapDB", TestMapDBWrite.class),
+                    Map.entry("MapDBRead", TestMapDBRead.class),
+                    Map.entry("H2", TestH2Write.class),
+                    Map.entry("H2Read", TestH2Read.class),
+                    Map.entry("ChronicleMap", TestChronicleMapWrite.class),
+                    Map.entry("ChronicleMapRead", TestChronicleMapRead.class),
+                    Map.entry("RocksDB", TestRocksDBWrite.class),
+                    Map.entry("RocksDBRead", TestRocksDBRead.class),
+                    Map.entry("LevelDB", TestLevelDBWrite.class),
+                    Map.entry("LevelDBRead", TestLevelDBRead.class));
 
     /**
      * Main entry that runs the selected JMH benchmark class.
@@ -37,24 +52,11 @@ public class Main {
             throw new IllegalStateException("Property 'engine' is not set");
         }
 
-        final String includePattern;
-        if (ENGINE_HESTIASTORE.equals(engine)) {
-            includePattern = TestHestiaStoreBasic.class.getSimpleName();
-        } else if (ENGINE_HESTIASTORE_COMPRESS.equals(engine)) {
-            includePattern = TestHestiaStoreCompress.class.getSimpleName();
-        } else if (PROPERTY_MAPDB.equals(engine)) {
-            includePattern = TestMapDB.class.getSimpleName();
-        } else if (PROPERTY_H2.equals(engine)) {
-            includePattern = TestH2.class.getSimpleName();
-        } else if (PROPERTY_CHRONICLE_MAP.equals(engine)) {
-            includePattern = TestChronicleMap.class.getSimpleName();
-        } else if (PROPERTY_ROCKSDB.equals(engine)) {
-            includePattern = TestRocksDB.class.getSimpleName();
-        } else if (PROPERTY_LEVELDB.equals(engine)) {
-            includePattern = TestLevelDB.class.getSimpleName();
-        } else {
+        final Class<?> benchmarkClass = ENGINE_TO_BENCHMARK.get(engine);
+        if (benchmarkClass == null) {
             throw new IllegalStateException("Unknown engine '" + engine + "'");
         }
+        final String includePattern = benchmarkClass.getSimpleName();
 
         final Options opt = new OptionsBuilder()
                 .include(".*" + includePattern + "")//

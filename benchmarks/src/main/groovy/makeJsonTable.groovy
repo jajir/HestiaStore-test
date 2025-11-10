@@ -102,9 +102,15 @@ files.sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
 def rows = []
 
 files.each { Path file ->
-    String engine = file.fileName.toString()
+    String rawEngine = file.fileName.toString()
             .replace('results-', '')
             .replace('.json', '')
+    boolean isReadVariant = rawEngine.endsWith('Read')
+    String engineBase = isReadVariant
+            ? rawEngine.substring(0, rawEngine.length() - 'Read'.length())
+            : rawEngine
+    String scenario = isReadVariant ? 'Read' : 'Write'
+    String engine = isReadVariant ? "${engineBase} (Read)" : engineBase
 
     def data = mapper.readValue(Files.readAllBytes(file), List)
     if (data.isEmpty()) {
@@ -149,6 +155,7 @@ files.each { Path file ->
 
     rows << [
             'Engine': engine,
+            'Variant': scenario,
             'Score [ops/s]': formatScore(score),
             'ScoreError': formatScore(scoreError),
             'Confidence Interval [ops/s]': confidenceInterval,

@@ -23,7 +23,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestLevelDB extends AbstractPlainLoadTest {
+public class TestLevelDBWrite extends AbstractWriteTest {
     private DB storage;
 
     @Benchmark

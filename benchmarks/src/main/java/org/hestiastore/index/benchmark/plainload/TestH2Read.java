@@ -23,41 +23,43 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestH2 extends AbstractPlainLoadTest {
+public class TestH2Read extends AbstractReadTest {
 
     private MVStore store;
     private MVMap<String, String> map;
 
-    @Benchmark()
+    @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String write() {
-        final long rnd = RANDOM.nextLong();
-        final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
-        map.put(hash, VALUE);
-        return hash;
+    public String read() {
+        final String key = pickReadKey();
+        final String value = map.get(key);
+        return value != null ? value : key;
     }
 
     @Setup(Level.Trial)
     public void setup() {
-        File dir = prepareDirectory();
+        final File dir = prepareDirectory();
         store = new MVStore.Builder()//
-                .fileName(dir.getAbsolutePath() + "/test.dat")//
+                .fileName(new File(dir, "test-read.dat").getAbsolutePath())//
                 .cacheSize(4096)//
                 .autoCommitDisabled()//
                 .open();
 
-        MVMap.Builder<String, String> builder = new MVMap.Builder<String, String>()//
+        final MVMap.Builder<String, String> builder = new MVMap.Builder<String, String>()//
                 .keyType(StringDataType.INSTANCE)//
                 .valueType(StringDataType.INSTANCE);//
-        Map<String, Object> config = new HashMap<>();
+        final Map<String, Object> config = new HashMap<>();
         map = builder.create(store, config);
+
+        preloadDataset((key, value) -> map.put(key, value));
+        store.commit();
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info("Closing index and directory, number of written keys: ");
-        store.close();
+        if (store != null) {
+            store.close();
+        }
     }
-
 }
