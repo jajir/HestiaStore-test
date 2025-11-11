@@ -58,11 +58,19 @@ public class Main {
         }
         final String includePattern = benchmarkClass.getSimpleName();
 
+        final boolean isReadVariant = engine.endsWith("Read");
+        final String engineBase = isReadVariant
+                ? engine.substring(0, engine.length() - "Read".length())
+                : engine;
+        final String resultPrefix = isReadVariant
+                ? "./results/results-read-" + engineBase
+                : "./results/results-write-" + engine;
+
         final Options opt = new OptionsBuilder()
                 .include(".*" + includePattern + "")//
                 .forks(1)//
                 .resultFormat(ResultFormatType.JSON)//
-                .result("./results/results-" + engine + ".json")//
+                .result(resultPrefix + ".json")//
                 .build()//
         ;
 
@@ -74,7 +82,7 @@ public class Main {
         diskInfoMaker.setState(state);
         setAfterCpu(state);
         setMemUsage(state);
-        writeAsJson(state, "./results/results-" + engine + "-my.json");
+        writeAsJson(state, resultPrefix + "-my.json");
     }
 
     private static void setBeforeCpu(final SystemState state) {

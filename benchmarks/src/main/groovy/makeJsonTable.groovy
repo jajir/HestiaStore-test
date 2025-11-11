@@ -105,12 +105,25 @@ files.each { Path file ->
     String rawEngine = file.fileName.toString()
             .replace('results-', '')
             .replace('.json', '')
-    boolean isReadVariant = rawEngine.endsWith('Read')
-    String engineBase = isReadVariant
-            ? rawEngine.substring(0, rawEngine.length() - 'Read'.length())
-            : rawEngine
+
+    boolean isReadVariant = false
+    boolean isExplicitWrite = false
+    String engineBase = rawEngine
+
+    if (rawEngine.startsWith('read-')) {
+        isReadVariant = true
+        engineBase = rawEngine.substring('read-'.length())
+    } else if (rawEngine.endsWith('Read')) { // fallback for legacy files
+        isReadVariant = true
+        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
+    } else if (rawEngine.startsWith('write-')) {
+        isExplicitWrite = true
+        engineBase = rawEngine.substring('write-'.length())
+    }
+
     String scenario = isReadVariant ? 'Read' : 'Write'
-    String engine = isReadVariant ? "${engineBase} (Read)" : engineBase
+    // String engine = isReadVariant ? "${engineBase} (Read)" : engineBase
+    String engine = engineBase
 
     def data = mapper.readValue(Files.readAllBytes(file), List)
     if (data.isEmpty()) {
@@ -165,6 +178,13 @@ files.each { Path file ->
     ]
 }
 
-Path output = resultsDir.resolve('table.json')
-mapper.writeValue(output.toFile(), rows)
-println "Written summary to ${output}"
+def writeRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Write' }
+def readRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Read' }
+
+Path writeOutput = resultsDir.resolve('out-write-table.json')
+Path readOutput = resultsDir.resolve('out-read-table.json')
+
+mapper.writeValue(writeOutput.toFile(), writeRows)
+mapper.writeValue(readOutput.toFile(), readRows)
+
+println "Written summaries to ${writeOutput} and ${readOutput}"

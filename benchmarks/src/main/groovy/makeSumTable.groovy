@@ -35,29 +35,49 @@ if (resultsDir == null) {
     System.exit(1)
 }
 
-Path tableJson = resultsDir.resolve("table.json")
-if (!Files.exists(tableJson)) {
-    System.err.println("Input file ${tableJson} not found.")
+Path writeTable = resultsDir.resolve("out-write-table.json")
+Path readTable = resultsDir.resolve("out-read-table.json")
+
+ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
+List<Map<String, Object>> writeRows = Files.exists(writeTable)
+        ? mapper.readValue(writeTable.toFile(), List)
+        : []
+List<Map<String, Object>> readRows = Files.exists(readTable)
+        ? mapper.readValue(readTable.toFile(), List)
+        : []
+
+if (writeRows.isEmpty() && readRows.isEmpty()) {
+    System.err.println("No summary JSON files found in ${resultsDir}")
     System.exit(1)
 }
 
-ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
-List<Map<String, Object>> rows = mapper.readValue(tableJson.toFile(), List)
-
-Path output = resultsDir.resolve("sum-table.md")
-
-StringBuilder markdown = new StringBuilder()
-markdown.append("| Engine | Score [ops/s] | Occupied space | CPU Usage |\n")
-markdown.append("|:-------|--------------:|---------------:|----------:|\n")
-
-rows.each { row ->
-    String engine = (row["Engine"] ?: "").toString()
-    String score = (row["Score [ops/s]"] ?: "").toString()
-    String occupied = (row["Occupied space"] ?: "").toString()
-    // String usedMemory = (row["usedMemoryBytes"] ?: "").toString()
-    String cpuUsage = (row["cpuUsage"] ?: "").toString()
-    markdown.append("| ${engine} | ${score.padLeft(13)} | ${occupied} | ${cpuUsage} |\n")
+def buildMarkdown = { List<Map<String, Object>> rows ->
+    StringBuilder markdown = new StringBuilder()
+    markdown.append("| Engine | Score [ops/s] | Occupied space | CPU Usage |\n")
+    markdown.append("|:-------|--------------:|---------------:|----------:|\n")
+    rows.each { row ->
+        String engine = (row["Engine"] ?: "").toString()
+        String score = (row["Score [ops/s]"] ?: "").toString()
+        String occupied = (row["Occupied space"] ?: "").toString()
+        String cpuUsage = (row["cpuUsage"] ?: "").toString()
+        markdown.append("| ${engine} | ${score.padLeft(13)} | ${occupied} | ${cpuUsage} |\n")
+    }
+    return markdown.toString()
 }
 
-Files.writeString(output, markdown.toString())
-println("Wrote ${output}")
+Path writeOutput = resultsDir.resolve("out-write-table.md")
+Path readOutput = resultsDir.resolve("out-read-table.md")
+
+if (!writeRows.isEmpty()) {
+    Files.writeString(writeOutput, buildMarkdown(writeRows))
+    println("Wrote ${writeOutput}")
+} else if (Files.exists(writeOutput)) {
+    Files.delete(writeOutput)
+}
+
+if (!readRows.isEmpty()) {
+    Files.writeString(readOutput, buildMarkdown(readRows))
+    println("Wrote ${readOutput}")
+} else if (Files.exists(readOutput)) {
+    Files.delete(readOutput)
+}
