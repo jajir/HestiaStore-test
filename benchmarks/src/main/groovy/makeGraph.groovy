@@ -7,6 +7,7 @@ import java.util.Locale
 File baseDir = new File(System.getProperty('user.dir'))
 File writeFile = new File(baseDir, 'results/out-write-table.json')
 File readFile = new File(baseDir, 'results/out-read-table.json')
+File sequentialFile = new File(baseDir, 'results/out-sequential-table.json')
 
 def datasets = []
 def slurper = new JsonSlurper()
@@ -23,9 +24,15 @@ if (readFile.exists()) {
         datasets << [rows: rows, output: new File(baseDir, 'results/out-read.svg')]
     }
 }
+if (sequentialFile.exists()) {
+    def rows = slurper.parse(sequentialFile) as List
+    if (!rows.isEmpty()) {
+        datasets << [rows: rows, output: new File(baseDir, 'results/out-sequential.svg')]
+    }
+}
 
 if (datasets.isEmpty()) {
-    System.err.println "No summary files found. Expected ${writeFile.name} or ${readFile.name} in results/."
+    System.err.println "No summary files found. Expected ${writeFile.name}, ${readFile.name} or ${sequentialFile.name} in results/."
     System.exit(1)
 }
 

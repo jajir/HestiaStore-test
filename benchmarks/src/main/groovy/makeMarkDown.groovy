@@ -78,22 +78,41 @@ String buildReport(List<Map<String, Object>> rows, Path conditionsPath, List<Pat
 
 List<Path> writeRaw = jsonFiles.findAll { it.fileName.toString().contains('results-write-') }
 List<Path> readRaw = jsonFiles.findAll { it.fileName.toString().contains('results-read-') }
+List<Path> sequentialRaw = jsonFiles.findAll { it.fileName.toString().contains('results-sequential-') }
 
 List<Map<String, Object>> writeRows = []
 List<Map<String, Object>> readRows = []
+List<Map<String, Object>> sequentialRows = []
 Path writeTable = resultsDir.resolve('out-write-table.json')
 Path readTable = resultsDir.resolve('out-read-table.json')
+Path sequentialTable = resultsDir.resolve('out-sequential-table.json')
 if (Files.exists(writeTable)) {
     writeRows = mapper.readValue(writeTable.toFile(), List)
 }
 if (Files.exists(readTable)) {
     readRows = mapper.readValue(readTable.toFile(), List)
 }
+if (Files.exists(sequentialTable)) {
+    sequentialRows = mapper.readValue(sequentialTable.toFile(), List)
+}
 
 Path writeOutput = resultsDir.resolve('out-write.md')
 Path readOutput = resultsDir.resolve('out-read.md')
-Files.writeString(writeOutput, buildReport(writeRows, resultsDir.resolve('out-write-test-conditions.md'), writeRaw), StandardCharsets.UTF_8)
-Files.writeString(readOutput, buildReport(readRows, resultsDir.resolve('out-read-test-conditions.md'), readRaw), StandardCharsets.UTF_8)
+Path sequentialOutput = resultsDir.resolve('out-sequential.md')
+Files.writeString(writeOutput,
+        buildReport(writeRows,
+                resultsDir.resolve('out-write-test-conditions.md'), writeRaw),
+        StandardCharsets.UTF_8)
+Files.writeString(readOutput,
+        buildReport(readRows,
+                resultsDir.resolve('out-read-test-conditions.md'), readRaw),
+        StandardCharsets.UTF_8)
+Files.writeString(sequentialOutput,
+        buildReport(sequentialRows,
+                resultsDir.resolve('out-sequential-test-conditions.md'),
+                sequentialRaw),
+        StandardCharsets.UTF_8)
 
 println "Wrote ${writeOutput}"
 println "Wrote ${readOutput}"
+println "Wrote ${sequentialOutput}"

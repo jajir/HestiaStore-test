@@ -1,0 +1,64 @@
+[ {
+  "Engine" : "ChronicleMap",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "1 707 702",
+  "ScoreError" : "82 988",
+  "Confidence Interval [ops/s]" : "1 624 713 .. 1 790 690",
+  "Occupied space" : "2.03 GB",
+  "usedMemoryBytes" : "30.92 MB",
+  "cpuUsage" : "13%"
+}, {
+  "Engine" : "H2",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "364 687",
+  "ScoreError" : "43 577",
+  "Confidence Interval [ops/s]" : "321 110 .. 408 264",
+  "Occupied space" : "8 KB",
+  "usedMemoryBytes" : "30.1 MB",
+  "cpuUsage" : "14%"
+}, {
+  "Engine" : "HestiaStoreBasic",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "592",
+  "ScoreError" : "68",
+  "Confidence Interval [ops/s]" : "524 .. 660",
+  "Occupied space" : "507.94 MB",
+  "usedMemoryBytes" : "30.3 MB",
+  "cpuUsage" : "15%"
+}, {
+  "Engine" : "HestiaStoreCompress",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "579",
+  "ScoreError" : "21",
+  "Confidence Interval [ops/s]" : "558 .. 600",
+  "Occupied space" : "283.94 MB",
+  "usedMemoryBytes" : "30.34 MB",
+  "cpuUsage" : "12%"
+}, {
+  "Engine" : "LevelDB",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "190 698",
+  "ScoreError" : "6 694",
+  "Confidence Interval [ops/s]" : "184 004 .. 197 391",
+  "Occupied space" : "363.32 MB",
+  "usedMemoryBytes" : "29.96 MB",
+  "cpuUsage" : "10%"
+}, {
+  "Engine" : "MapDB",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "1 528",
+  "ScoreError" : "228",
+  "Confidence Interval [ops/s]" : "1 300 .. 1 756",
+  "Occupied space" : "1.3 GB",
+  "usedMemoryBytes" : "30 MB",
+  "cpuUsage" : "5%"
+}, {
+  "Engine" : "RocksDB",
+  "Variant" : "Sequential",
+  "Score [ops/s]" : "109 551",
+  "ScoreError" : "10 513",
+  "Confidence Interval [ops/s]" : "99 038 .. 120 064",
+  "Occupied space" : "324.23 MB",
+  "usedMemoryBytes" : "30.35 MB",
+  "cpuUsage" : "10%"
+} ]

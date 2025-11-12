@@ -25,20 +25,32 @@ public class Main {
                             TestHestiaStoreBasicWrite.class),
                     Map.entry("HestiaStoreBasicRead",
                             TestHestiaStoreBasicRead.class),
+                    Map.entry("HestiaStoreBasicSequential",
+                            TestHestiaStoreBasicSequential.class),
                     Map.entry("HestiaStoreCompress",
                             TestHestiaStoreCompressWrite.class),
                     Map.entry("HestiaStoreCompressRead",
                             TestHestiaStoreCompressRead.class),
+                    Map.entry("HestiaStoreCompressSequential",
+                            TestHestiaStoreCompressSequential.class),
                     Map.entry("MapDB", TestMapDBWrite.class),
                     Map.entry("MapDBRead", TestMapDBRead.class),
+                    Map.entry("MapDBSequential", TestMapDBSequential.class),
                     Map.entry("H2", TestH2Write.class),
                     Map.entry("H2Read", TestH2Read.class),
+                    Map.entry("H2Sequential", TestH2Sequential.class),
                     Map.entry("ChronicleMap", TestChronicleMapWrite.class),
                     Map.entry("ChronicleMapRead", TestChronicleMapRead.class),
+                    Map.entry("ChronicleMapSequential",
+                            TestChronicleMapSequential.class),
                     Map.entry("RocksDB", TestRocksDBWrite.class),
                     Map.entry("RocksDBRead", TestRocksDBRead.class),
+                    Map.entry("RocksDBSequential",
+                            TestRocksDBSequential.class),
                     Map.entry("LevelDB", TestLevelDBWrite.class),
-                    Map.entry("LevelDBRead", TestLevelDBRead.class));
+                    Map.entry("LevelDBRead", TestLevelDBRead.class),
+                    Map.entry("LevelDBSequential",
+                            TestLevelDBSequential.class));
 
     /**
      * Main entry that runs the selected JMH benchmark class.
@@ -59,12 +71,20 @@ public class Main {
         final String includePattern = benchmarkClass.getSimpleName();
 
         final boolean isReadVariant = engine.endsWith("Read");
-        final String engineBase = isReadVariant
-                ? engine.substring(0, engine.length() - "Read".length())
-                : engine;
-        final String resultPrefix = isReadVariant
-                ? "./results/results-read-" + engineBase
-                : "./results/results-write-" + engine;
+        final boolean isSequentialVariant = engine.endsWith("Sequential");
+        final String engineBase;
+        final String resultPrefix;
+        if (isReadVariant) {
+            engineBase = engine.substring(0, engine.length() - "Read".length());
+            resultPrefix = "./results/results-read-" + engineBase;
+        } else if (isSequentialVariant) {
+            engineBase = engine
+                    .substring(0, engine.length() - "Sequential".length());
+            resultPrefix = "./results/results-sequential-" + engineBase;
+        } else {
+            engineBase = engine;
+            resultPrefix = "./results/results-write-" + engine;
+        }
 
         final Options opt = new OptionsBuilder()
                 .include(".*" + includePattern + "")//

@@ -29,9 +29,19 @@ run(){
 #run RocksDBRead
 #run LevelDBRead
 
+# Sequential read benchmarks
+#run H2Sequential
+#run MapDBSequential
+#run HestiaStoreBasicSequential
+#run HestiaStoreCompressSequential
+#run ChronicleMapSequential
+#run RocksDBSequential
+#run LevelDBSequential
+
 pok(){
     # it's just clumsy backup of all the --add-opens used in the jmh-maven-plugin
     # when it's needed, just copy-paste it into the java command above
+    # follown open modules are requirement for chronicle map
     java \
 	-agentpath:/Applications/YourKit-Java-Profiler-2024.9.app/Contents/Resources/bin/mac/libyjpagent.dylib=exceptions=disable,delay=10000,listen=all \
     --add-opens=java.base/java.lang=ALL-UNNAMED \

@@ -107,6 +107,7 @@ files.each { Path file ->
             .replace('.json', '')
 
     boolean isReadVariant = false
+    boolean isSequentialVariant = false
     boolean isExplicitWrite = false
     String engineBase = rawEngine
 
@@ -116,13 +117,15 @@ files.each { Path file ->
     } else if (rawEngine.endsWith('Read')) { // fallback for legacy files
         isReadVariant = true
         engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
+    } else if (rawEngine.startsWith('sequential-')) {
+        isSequentialVariant = true
+        engineBase = rawEngine.substring('sequential-'.length())
     } else if (rawEngine.startsWith('write-')) {
         isExplicitWrite = true
         engineBase = rawEngine.substring('write-'.length())
     }
 
-    String scenario = isReadVariant ? 'Read' : 'Write'
-    // String engine = isReadVariant ? "${engineBase} (Read)" : engineBase
+    String scenario = isReadVariant ? 'Read' : (isSequentialVariant ? 'Sequential' : 'Write')
     String engine = engineBase
 
     def data = mapper.readValue(Files.readAllBytes(file), List)
@@ -180,11 +183,14 @@ files.each { Path file ->
 
 def writeRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Write' }
 def readRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Read' }
+def sequentialRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Sequential' }
 
 Path writeOutput = resultsDir.resolve('out-write-table.json')
 Path readOutput = resultsDir.resolve('out-read-table.json')
+Path sequentialOutput = resultsDir.resolve('out-sequential-table.json')
 
 mapper.writeValue(writeOutput.toFile(), writeRows)
 mapper.writeValue(readOutput.toFile(), readRows)
+mapper.writeValue(sequentialOutput.toFile(), sequentialRows)
 
-println "Written summaries to ${writeOutput} and ${readOutput}"
+println "Written summaries to ${writeOutput}, ${readOutput} and ${sequentialOutput}"

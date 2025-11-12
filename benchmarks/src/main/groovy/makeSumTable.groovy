@@ -37,6 +37,7 @@ if (resultsDir == null) {
 
 Path writeTable = resultsDir.resolve("out-write-table.json")
 Path readTable = resultsDir.resolve("out-read-table.json")
+Path sequentialTable = resultsDir.resolve("out-sequential-table.json")
 
 ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 List<Map<String, Object>> writeRows = Files.exists(writeTable)
@@ -45,8 +46,11 @@ List<Map<String, Object>> writeRows = Files.exists(writeTable)
 List<Map<String, Object>> readRows = Files.exists(readTable)
         ? mapper.readValue(readTable.toFile(), List)
         : []
+List<Map<String, Object>> sequentialRows = Files.exists(sequentialTable)
+        ? mapper.readValue(sequentialTable.toFile(), List)
+        : []
 
-if (writeRows.isEmpty() && readRows.isEmpty()) {
+if (writeRows.isEmpty() && readRows.isEmpty() && sequentialRows.isEmpty()) {
     System.err.println("No summary JSON files found in ${resultsDir}")
     System.exit(1)
 }
@@ -67,6 +71,7 @@ def buildMarkdown = { List<Map<String, Object>> rows ->
 
 Path writeOutput = resultsDir.resolve("out-write-table.md")
 Path readOutput = resultsDir.resolve("out-read-table.md")
+Path sequentialOutput = resultsDir.resolve("out-sequential-table.md")
 
 if (!writeRows.isEmpty()) {
     Files.writeString(writeOutput, buildMarkdown(writeRows))
@@ -80,4 +85,11 @@ if (!readRows.isEmpty()) {
     println("Wrote ${readOutput}")
 } else if (Files.exists(readOutput)) {
     Files.delete(readOutput)
+}
+
+if (!sequentialRows.isEmpty()) {
+    Files.writeString(sequentialOutput, buildMarkdown(sequentialRows))
+    println("Wrote ${sequentialOutput}")
+} else if (Files.exists(sequentialOutput)) {
+    Files.delete(sequentialOutput)
 }
