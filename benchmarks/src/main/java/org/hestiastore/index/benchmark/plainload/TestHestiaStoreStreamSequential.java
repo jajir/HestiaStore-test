@@ -1,8 +1,11 @@
 package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
+import org.hestiastore.index.Entry;
 import org.hestiastore.index.chunkstore.ChunkFilterCrc32Validation;
 import org.hestiastore.index.chunkstore.ChunkFilterCrc32Writing;
 import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberValidation;
@@ -28,18 +31,45 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestHestiaStoreCompressSequential
-        extends AbstractSequentialReadTest {
+public class TestHestiaStoreStreamSequential extends AbstractReadTest {
 
     private Index<String, String> index;
+    private Stream<Entry<String, String>> currentStream;
+    private Iterator<Entry<String, String>> streamIterator;
 
     @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String readSequential() {
-        final String key = nextSequentialKey();
-        final String value = index.get(key);
-        return value != null ? value : key;
+    public String readSequentialStream() {
+        ensureIterator();
+        if (!streamIterator.hasNext()) {
+            resetStream();
+        }
+        if (!streamIterator.hasNext()) {
+            return VALUE;
+        }
+        final Entry<String, String> entry = streamIterator.next();
+        return entry.getValue();
+    }
+
+    private void ensureIterator() {
+        if (streamIterator == null) {
+            resetStream();
+        }
+    }
+
+    private void resetStream() {
+        closeStream();
+        currentStream = index.getStream();
+        streamIterator = currentStream.iterator();
+    }
+
+    private void closeStream() {
+        if (currentStream != null) {
+            currentStream.close();
+            currentStream = null;
+            streamIterator = null;
+        }
     }
 
     @Setup(Level.Trial)
@@ -49,7 +79,7 @@ public class TestHestiaStoreCompressSequential
 
         final IndexConfiguration<String, String> conf = IndexConfiguration
                 .<String, String>builder()//
-                .withName("test-index-seq-compress")//
+                .withName("test-index-seq-stream")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
                 .withContextLoggingEnabled(false)//
@@ -64,16 +94,17 @@ public class TestHestiaStoreCompressSequential
         index = Index.create(directory, conf);
         preloadDataset((key, value) -> index.put(key, value));
         index.flush();
-        resetSequentialCursor();
+        resetStream();
     }
 
     @Setup(Level.Iteration)
     public void iterationSetup() {
-        resetSequentialCursor();
+        resetStream();
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
+        closeStream();
         if (index != null) {
             index.close();
         }

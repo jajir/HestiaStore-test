@@ -26,13 +26,13 @@
   "usedMemoryBytes" : "30.3 MB",
   "cpuUsage" : "15%"
 }, {
-  "Engine" : "HestiaStoreCompress",
+  "Engine" : "HestiaStoreStream",
   "Variant" : "Sequential",
-  "Score [ops/s]" : "579",
-  "ScoreError" : "21",
-  "Confidence Interval [ops/s]" : "558 .. 600",
+  "Score [ops/s]" : "4 792 777",
+  "ScoreError" : "144 132",
+  "Confidence Interval [ops/s]" : "4 648 646 .. 4 936 909",
   "Occupied space" : "283.94 MB",
-  "usedMemoryBytes" : "30.34 MB",
+  "usedMemoryBytes" : "30.4 MB",
   "cpuUsage" : "12%"
 }, {
   "Engine" : "LevelDB",

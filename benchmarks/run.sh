@@ -34,6 +34,7 @@ run(){
 #run MapDBSequential
 #run HestiaStoreBasicSequential
 #run HestiaStoreCompressSequential
+run HestiaStoreStreamSequential
 #run ChronicleMapSequential
 #run RocksDBSequential
 #run LevelDBSequential

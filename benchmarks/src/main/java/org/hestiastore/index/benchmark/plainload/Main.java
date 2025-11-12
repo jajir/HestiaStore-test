@@ -33,6 +33,8 @@ public class Main {
                             TestHestiaStoreCompressRead.class),
                     Map.entry("HestiaStoreCompressSequential",
                             TestHestiaStoreCompressSequential.class),
+                    Map.entry("HestiaStoreCompressSequential2",
+                            TestHestiaStoreStreamSequential.class),
                     Map.entry("MapDB", TestMapDBWrite.class),
                     Map.entry("MapDBRead", TestMapDBRead.class),
                     Map.entry("MapDBSequential", TestMapDBSequential.class),
@@ -45,12 +47,10 @@ public class Main {
                             TestChronicleMapSequential.class),
                     Map.entry("RocksDB", TestRocksDBWrite.class),
                     Map.entry("RocksDBRead", TestRocksDBRead.class),
-                    Map.entry("RocksDBSequential",
-                            TestRocksDBSequential.class),
+                    Map.entry("RocksDBSequential", TestRocksDBSequential.class),
                     Map.entry("LevelDB", TestLevelDBWrite.class),
-                    Map.entry("LevelDBRead", TestLevelDBRead.class),
-                    Map.entry("LevelDBSequential",
-                            TestLevelDBSequential.class));
+                    Map.entry("LevelDBRead", TestLevelDBRead.class), Map.entry(
+                            "LevelDBSequential", TestLevelDBSequential.class));
 
     /**
      * Main entry that runs the selected JMH benchmark class.
@@ -71,15 +71,17 @@ public class Main {
         final String includePattern = benchmarkClass.getSimpleName();
 
         final boolean isReadVariant = engine.endsWith("Read");
-        final boolean isSequentialVariant = engine.endsWith("Sequential");
+        final boolean isSequentialVariant = engine.endsWith("Sequential")
+                || engine.endsWith("Sequential2");
         final String engineBase;
         final String resultPrefix;
         if (isReadVariant) {
             engineBase = engine.substring(0, engine.length() - "Read".length());
             resultPrefix = "./results/results-read-" + engineBase;
         } else if (isSequentialVariant) {
-            engineBase = engine
-                    .substring(0, engine.length() - "Sequential".length());
+            final String suffix = engine.endsWith("Sequential2") ? "Sequential2"
+                    : "Sequential";
+            engineBase = engine.substring(0, engine.length() - suffix.length());
             resultPrefix = "./results/results-sequential-" + engineBase;
         } else {
             engineBase = engine;

@@ -6,4 +6,5 @@
 - Measurement iterations continue sequential scans, looping back to the first key whenever the end is reached. This focuses on sustained read throughput when data is consumed in order.
 - The read workload remains single-threaded; each invocation issues exactly one lookup to keep measurements comparable with the other suites.
 - Directories remain on disk after the run so disk usage and auxiliary metrics can be collected by reporting scripts.
+- Tests for HestiaStoreStream use dedicated stream API. Without using Stream API is performance visible in line HestiaStoreBasic.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
