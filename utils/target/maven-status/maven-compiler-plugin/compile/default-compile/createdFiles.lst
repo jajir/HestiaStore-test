@@ -1,5 +1,6 @@
 org/hestiastore/index/utils/TestStatus.class
 org/hestiastore/index/utils/IndexUtils.class
+org/hestiastore/index/utils/HashDataProvider.class
 org/hestiastore/index/utils/AbstractIndexCli.class
 org/hestiastore/index/utils/CommandLineConf.class
 org/hestiastore/index/utils/FileUtils.class

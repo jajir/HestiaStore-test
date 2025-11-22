@@ -21,8 +21,11 @@ echo "==> Project was built"
 
 #run DiffKeyReaderBenchmark
 #run UniqueCacheBenchmark
-run SingleChunkEntryWriterBenchmark
+#run SingleChunkEntryWriterBenchmark
+
+#run RandomReadsInputStreamBenchmark
+#run RandomReadsRandomFileAccessBenchmark
+run RandomReadsChannelsBenchmark
 
 echo "==> Done"
-
 

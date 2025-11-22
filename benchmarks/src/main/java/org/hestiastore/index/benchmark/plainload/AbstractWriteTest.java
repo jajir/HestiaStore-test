@@ -3,7 +3,7 @@ package org.hestiastore.index.benchmark.plainload;
 import java.io.File;
 import java.util.Random;
 
-import org.hestiastore.index.benchmark.load.HashDataProvider;
+import org.hestiastore.index.utils.HashDataProvider;
 import org.hestiastore.index.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
