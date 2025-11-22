@@ -6,6 +6,7 @@
 run(){
   java \
     -Ddir=/Volumes/ponrava/test-index \
+	-agentpath:/Applications/YourKit-Java-Profiler-2024.9.app/Contents/Resources/bin/mac/libyjpagent.dylib=exceptions=disable,delay=10000,listen=all \
     -Dengine=$1 \
     -cp "target/classes:target/lib/*" \
     org.hestiastore.index.benchmark.plainload.Main
@@ -23,7 +24,7 @@ run(){
 # Read benchmarks (use suffixed engine name)
 #run H2Read
 #run MapDBRead
-#run HestiaStoreBasicRead
+run HestiaStoreBasicRead
 #run HestiaStoreCompressRead
 #run ChronicleMapRead
 #run RocksDBRead
@@ -34,7 +35,7 @@ run(){
 #run MapDBSequential
 #run HestiaStoreBasicSequential
 #run HestiaStoreCompressSequential
-run HestiaStoreStreamSequential
+#run HestiaStoreStreamSequential
 #run ChronicleMapSequential
 #run RocksDBSequential
 #run LevelDBSequential

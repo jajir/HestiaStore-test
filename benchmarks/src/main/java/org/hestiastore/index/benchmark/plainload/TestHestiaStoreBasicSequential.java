@@ -50,6 +50,7 @@ public class TestHestiaStoreBasicSequential extends AbstractSequentialReadTest {
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
                 .withContextLoggingEnabled(false)//
+                .withMaxNumberOfKeysInReadCache(4_000_000)//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
@@ -74,4 +75,3 @@ public class TestHestiaStoreBasicSequential extends AbstractSequentialReadTest {
         }
     }
 }
-

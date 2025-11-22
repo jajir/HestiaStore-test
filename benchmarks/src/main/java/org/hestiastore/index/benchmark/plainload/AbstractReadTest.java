@@ -1,5 +1,7 @@
 package org.hestiastore.index.benchmark.plainload;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Base class for read-focused benchmarks. It preloads a fixed number of entries
  * and provides helpers to pick keys for hit or miss scenarios.
@@ -37,19 +39,26 @@ abstract class AbstractReadTest extends AbstractWriteTest {
     }
 
     protected String randomExistingKey() {
-        final long index = Math.floorMod(RANDOM.nextLong(),
-                PRELOAD_ENTRY_COUNT);
+        // Always pick an index from the preloaded range [0,
+        // PRELOAD_ENTRY_COUNT).
+        // ThreadLocalRandom avoids contention between benchmark threads and
+        // keeps
+        // the hit-rate stable.
+        final long index = ThreadLocalRandom.current()
+                .nextLong(PRELOAD_ENTRY_COUNT);
         return keyForIndex(index);
     }
 
     protected String randomMissingKey() {
+        // Pick an index strictly outside the preloaded range to force a miss.
         final long index = PRELOAD_ENTRY_COUNT
-                + Math.floorMod(RANDOM.nextLong(), PRELOAD_ENTRY_COUNT);
+                + ThreadLocalRandom.current().nextLong(PRELOAD_ENTRY_COUNT);
         return keyForIndex(index);
     }
 
     protected String pickReadKey() {
-        return RANDOM.nextDouble() < MISS_PROBABILITY ? randomMissingKey()
+        return ThreadLocalRandom.current().nextDouble() < MISS_PROBABILITY
+                ? randomMissingKey()
                 : randomExistingKey();
     }
 }
