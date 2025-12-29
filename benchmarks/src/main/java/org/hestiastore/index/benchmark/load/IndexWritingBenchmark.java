@@ -7,8 +7,10 @@ import java.util.concurrent.TimeUnit;
 import org.hestiastore.index.Entry;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.FileUtils;
 import org.hestiastore.index.utils.HashDataProvider;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -43,7 +45,8 @@ public class IndexWritingBenchmark {
     private final static Random RANDOM = new Random(RANDOM_SEED);
     private String directoryFileName;
     private Directory directory;
-    private Index<String, String> index;
+    private AsyncDirectory asyncDirectory;
+    private SegmentIndex<String, String> index;
 
     private long cx = 1;
 
@@ -79,6 +82,7 @@ public class IndexWritingBenchmark {
         final File dirFile = new File(directoryFileName);
         FileUtils.deleteFileRecursively(dirFile);
         directory = new FsDirectory(dirFile);
+        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
         final IndexConfiguration<String, String> conf = IndexConfiguration
                 .<String, String>builder()//
@@ -87,7 +91,7 @@ public class IndexWritingBenchmark {
                 .withValueClass(String.class)//
                 .build();
 
-        index = Index.create(directory, conf);
+        index = SegmentIndex.create(asyncDirectory, conf);
     }
 
     @TearDown
@@ -95,6 +99,9 @@ public class IndexWritingBenchmark {
         logger.info(
                 "Closing index and directory, number of written keys: " + cx);
         index.close();
+        if (asyncDirectory != null) {
+            asyncDirectory.close();
+        }
     }
 
 }

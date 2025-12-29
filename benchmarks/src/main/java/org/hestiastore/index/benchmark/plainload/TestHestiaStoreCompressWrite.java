@@ -12,8 +12,10 @@ import org.hestiastore.index.chunkstore.ChunkFilterSnappyCompress;
 import org.hestiastore.index.chunkstore.ChunkFilterSnappyDecompress;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -30,7 +32,8 @@ import org.openjdk.jmh.annotations.Warmup;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
-    private Index<String, String> index;
+    private SegmentIndex<String, String> index;
+    private AsyncDirectory asyncDirectory;
 
     @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
@@ -47,6 +50,7 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
     public void setup() {
         final File dirFile = prepareDirectory();
         final Directory directory = new FsDirectory(dirFile);
+        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
         final IndexConfiguration<String, String> conf = IndexConfiguration
                 .<String, String>builder()//
@@ -64,12 +68,15 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .build();
 
-        index = Index.create(directory, conf);
+        index = SegmentIndex.create(asyncDirectory, conf);
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
         logger.info("Closing index and directory, number of written keys: ");
         index.close();
+        if (asyncDirectory != null) {
+            asyncDirectory.close();
+        }
     }
 }

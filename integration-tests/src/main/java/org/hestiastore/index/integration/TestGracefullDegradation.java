@@ -5,8 +5,10 @@ import java.util.Objects;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.FileUtils;
 import org.hestiastore.index.utils.TestStatus;
 import org.slf4j.Logger;
@@ -17,7 +19,8 @@ public class TestGracefullDegradation {
     private static final long WRITE_KEYS = 9_000_000L;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Index<String, Long> index;
+    private final SegmentIndex<String, Long> index;
+    private final AsyncDirectory asyncDirectory;
 
     TestGracefullDegradation(final IndexConfiguration<String, Long> conf,
             final String directoryName) {
@@ -27,7 +30,8 @@ public class TestGracefullDegradation {
         final File directoryFile = new File(directoryName);
         FileUtils.deleteFileRecursively(directoryFile);
         final Directory dir = new FsDirectory(directoryFile);
-        this.index = Index.create(dir, conf);
+        this.asyncDirectory = AsyncDirectoryAdapter.wrap(dir);
+        this.index = SegmentIndex.create(asyncDirectory, conf);
     }
 
     void startTest() {
@@ -41,6 +45,7 @@ public class TestGracefullDegradation {
         TestStatus.setReadyToTest(true);
         writeKeys(WRITE_PREPARE_KEYS, WRITE_KEYS);
         index.close();
+        asyncDirectory.close();
         throw new IllegalStateException(
                 "Graceful degradation should be tested, but it was not.");
     }

@@ -16,6 +16,8 @@ import org.hestiastore.index.datatype.TypeReader;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FileReader;
 import org.hestiastore.index.directory.FsDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.hestiastore.index.sorteddatafile.DiffKeyReader;
 import org.hestiastore.index.sorteddatafile.SortedDataFile;
 import org.hestiastore.index.sorteddatafile.SortedDataFileWriterTx;
@@ -51,6 +53,7 @@ public class DiffKeyReaderBenchmark extends AbstractBenchmark {
     private static final TypeDescriptor<String> typeString = new TypeDescriptorString();
 
     private FsDirectory directory;
+    private AsyncDirectory asyncDirectory;
     private SortedDataFile<String, String> dataFile;
 
     // Reader state reused across benchmark iterations
@@ -61,12 +64,13 @@ public class DiffKeyReaderBenchmark extends AbstractBenchmark {
     @Setup(Level.Trial)
     public void setup() throws IOException {
         this.directory = new FsDirectory(prepareDirectory());
+        this.asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
         // Prepare file instance
         this.dataFile = SortedDataFile.<String, String>builder()//
                 .withKeyTypeDescriptor(typeString)//
                 .withValueTypeDescriptor(typeString)//
-                .withDirectory(directory)//
+                .withAsyncDirectory(asyncDirectory)//
                 .withFileName(FILE_NAME)//
                 .build();
 
@@ -147,5 +151,9 @@ public class DiffKeyReaderBenchmark extends AbstractBenchmark {
         closeReaders();
         dataFile = null;
         directory = null;
+        if (asyncDirectory != null) {
+            asyncDirectory.close();
+            asyncDirectory = null;
+        }
     }
 }

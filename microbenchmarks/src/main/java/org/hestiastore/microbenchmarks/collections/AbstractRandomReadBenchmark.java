@@ -9,8 +9,10 @@ import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberValidation;
 import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberWriting;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.FileUtils;
 import org.hestiastore.index.utils.HashDataProvider;
 
@@ -49,22 +51,24 @@ abstract class AbstractRandomReadBenchmark extends AbstractBenchmark {
         dir.mkdirs();
 
         final Directory directory = new FsDirectory(dir);
+        final AsyncDirectory asyncDirectory = AsyncDirectoryAdapter
+                .wrap(directory);
         final IndexConfiguration<String, String> conf = IndexConfiguration
                 .<String, String>builder()//
                 .withName("random-read-index")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
                 .withContextLoggingEnabled(false)//
-                .withMaxNumberOfKeysInReadCache(4_000_000)//
+                .withMaxNumberOfKeysInCache(4_000_000)//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .build();
 
-        Index<String, String> index = null;
+        SegmentIndex<String, String> index = null;
         try {
-            index = Index.create(directory, conf);
+            index = SegmentIndex.create(asyncDirectory, conf);
             for (long i = 0; i < PRELOAD_ENTRY_COUNT; i++) {
                 index.put(hashDataProvider.makeHash(i), VALUE);
             }
@@ -73,6 +77,7 @@ abstract class AbstractRandomReadBenchmark extends AbstractBenchmark {
             if (index != null) {
                 index.close();
             }
+            asyncDirectory.close();
         }
 
         this.segmentFile = new File(dir, SEGMENT_FILE_NAME);

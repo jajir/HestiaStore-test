@@ -3,7 +3,7 @@ package org.hestiastore.index.integration;
 import java.util.Objects;
 import java.util.Random;
 
-import org.hestiastore.index.sst.Index;
+import org.hestiastore.index.segmentindex.SegmentIndex;
 import org.hestiastore.index.utils.DataProvider;
 
 @Deprecated
@@ -11,9 +11,9 @@ public class SearchData {
     private final static String KEY_SUFFIX = "-bereke-prase-veverka-jede-ryhle";
     private final static Random RANDOM = new Random();
     private final static DataProvider DATA_PROVIDER = new DataProvider();
-    private final Index<String, Long> index;
+    private final SegmentIndex<String, Long> index;
 
-    public SearchData(final Index<String, Long> index) {
+    public SearchData(final SegmentIndex<String, Long> index) {
         this.index = Objects.requireNonNull(index, "index must not be null");
     }
 

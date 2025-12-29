@@ -10,8 +10,10 @@ import java.io.File;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.AbstractIndexCli;
 import org.hestiastore.index.utils.CommandLineConf;
 import org.hestiastore.index.utils.FileUtils;
@@ -86,19 +88,22 @@ public class GracefulDegradationIT {
         // Validate index consistency
         IndexUtils.optionalyRemoveLockFile(DIRECTORY);
         final Directory dir = new FsDirectory(new File(DIRECTORY));
+        final AsyncDirectory asyncDirectory = AsyncDirectoryAdapter.wrap(dir);
         final IndexConfiguration<String, Long> indexConfiguration = IndexConfiguration
                 .<String, Long>builder()//
                 .withKeyClass(String.class)//
                 .withValueClass(Long.class)//
                 .withName(INDEX_NAME) //
                 .build();
-        final Index<String, Long> index = Index.open(dir, indexConfiguration);
+        final SegmentIndex<String, Long> index = SegmentIndex.open(
+                asyncDirectory, indexConfiguration);
         index.checkAndRepairConsistency();
         final long cx = index.getStream().count();
         logger.info("Index size: " + cx);
         assertTrue(cx > 0,
                 "Index should contain some data, but it is empty: " + cx);
         index.close();
+        asyncDirectory.close();
     }
 
     @Test

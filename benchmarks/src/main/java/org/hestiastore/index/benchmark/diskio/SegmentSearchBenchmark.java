@@ -10,6 +10,8 @@ import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.hestiastore.index.segment.Segment;
 import org.hestiastore.index.segment.SegmentBuilder;
 import org.hestiastore.index.segment.SegmentId;
@@ -24,6 +26,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.slf4j.Logger;
@@ -57,6 +60,7 @@ public class SegmentSearchBenchmark {
 
     private String directoryFileName;
     private Directory directory;
+    private AsyncDirectory asyncDirectory;
     private Segment<String, Long> segment;
 
     @Param({ "1", "2", "4", "8", "16", "32" })
@@ -70,6 +74,7 @@ public class SegmentSearchBenchmark {
             throw new IllegalStateException("Property 'dir' is not set");
         }
         directory = new FsDirectory(new File(directoryFileName));
+        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
         final Segment<String, Long> segment = getCommonBuilder()// get default
                 // builder
@@ -122,7 +127,7 @@ public class SegmentSearchBenchmark {
 
     private SegmentBuilder<String, Long> getCommonBuilder() {
         return Segment.<String, Long>builder()//
-                .withDirectory(directory)//
+                .withAsyncDirectory(asyncDirectory)//
                 .withId(SEGMENT_ID)//
                 .withKeyTypeDescriptor(TYPE_DESCRIPTOR_STRING)//
                 .withValueTypeDescriptor(TYPE_DESCRIPTOR_LONG)//
@@ -132,4 +137,13 @@ public class SegmentSearchBenchmark {
                 .withBloomFilterIndexSizeInBytes(0);// disable bloom filter
     }
 
+    @TearDown(Level.Trial)
+    public void tearDown() {
+        if (segment != null) {
+            segment.close();
+        }
+        if (asyncDirectory != null) {
+            asyncDirectory.close();
+        }
+    }
 }

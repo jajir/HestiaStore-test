@@ -11,10 +11,13 @@ import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.hestiastore.index.unsorteddatafile.UnsortedDataFile;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
@@ -22,6 +25,7 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.slf4j.Logger;
@@ -48,6 +52,7 @@ public class SequentialFileReadingBenchmark {
 
     private String directoryFileName;
     private Directory directory;
+    private AsyncDirectory asyncDirectory;
     private UnsortedDataFile<String, Long> testFile;
 
     @Param({ "1", "2", "4", "8", "16", "32" })
@@ -61,6 +66,7 @@ public class SequentialFileReadingBenchmark {
             throw new IllegalStateException("Property 'dir' is not set");
         }
         directory = new FsDirectory(new File(directoryFileName));
+        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
         testFile = getDataFile(diskIoBufferSize);
 
@@ -97,7 +103,7 @@ public class SequentialFileReadingBenchmark {
 
     private UnsortedDataFile<String, Long> getDataFile(int bufferSize) {
         return UnsortedDataFile.<String, Long>builder()//
-                .withDirectory(directory)//
+                .withAsyncDirectory(asyncDirectory)//
                 .withFileName(FILE_NAME)//
                 .withKeyWriter(TYPE_DESCRIPTOR_STRING.getTypeWriter())//
                 .withKeyReader(TYPE_DESCRIPTOR_STRING.getTypeReader())//
@@ -107,4 +113,10 @@ public class SequentialFileReadingBenchmark {
                 .build();
     }
 
+    @TearDown(Level.Trial)
+    public void tearDown() {
+        if (asyncDirectory != null) {
+            asyncDirectory.close();
+        }
+    }
 }

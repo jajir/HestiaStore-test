@@ -8,6 +8,8 @@ import org.hestiastore.index.cache.UniqueCache;
 import org.hestiastore.index.datatype.TypeDescriptor;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.directory.FsDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.hestiastore.index.sorteddatafile.SortedDataFile;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -29,6 +31,7 @@ import org.openjdk.jmh.annotations.Warmup;
 public class UniqueCacheBenchmark extends AbstractBenchmark {
 
     private FsDirectory directory;
+    private AsyncDirectory asyncDirectory;
     private UniqueCache<String, String> cache;
     private SortedDataFile<String, String> cacheFile;
 
@@ -56,10 +59,11 @@ public class UniqueCacheBenchmark extends AbstractBenchmark {
     @Setup(Level.Trial)
     public void setup() throws IOException {
         this.directory = new FsDirectory(prepareDirectory());
+        this.asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
         cacheFile = SortedDataFile.<String, String>builder()//
                 .withKeyTypeDescriptor(keyTypeDescriptor)//
                 .withValueTypeDescriptor(keyTypeDescriptor)//
-                .withDirectory(directory)//
+                .withAsyncDirectory(asyncDirectory)//
                 .withFileName("segment-file")//
                 .build();
         this.cache = UniqueCache.<String, String>builder()//
@@ -80,6 +84,10 @@ public class UniqueCacheBenchmark extends AbstractBenchmark {
         cache = null;
         cacheFile = null;
         directory = null;
+        if (asyncDirectory != null) {
+            asyncDirectory.close();
+            asyncDirectory = null;
+        }
     }
 
 }

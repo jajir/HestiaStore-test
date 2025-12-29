@@ -7,8 +7,10 @@ import java.util.Objects;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.FileUtils;
 import org.hestiastore.index.utils.TestStatus;
 import org.slf4j.Logger;
@@ -29,7 +31,8 @@ public class TestOutOfMemory {
 
     private final IndexConfiguration<String, Long> conf;
     private final String directoryName;
-    private final Index<String, Long> index;
+    private final AsyncDirectory asyncDirectory;
+    private final SegmentIndex<String, Long> index;
 
     TestOutOfMemory(final IndexConfiguration<String, Long> conf,
             final String directoryName) {
@@ -39,7 +42,8 @@ public class TestOutOfMemory {
         final File directoryFile = new File(directoryName);
         FileUtils.deleteFileRecursively(directoryFile);
         final Directory dir = new FsDirectory(directoryFile);
-        this.index = Index.create(dir, conf);
+        this.asyncDirectory = AsyncDirectoryAdapter.wrap(dir);
+        this.index = SegmentIndex.create(asyncDirectory, conf);
     }
 
     void startTest() {
@@ -55,6 +59,7 @@ public class TestOutOfMemory {
         writeKeys(WRITE_PREPARE_KEYS, WRITE_KEYS);
         index.flush();
         index.close();
+        asyncDirectory.close();
 
         throw new IllegalStateException(
                 "OutOfMemoryError should be thrown, but it was not.");
