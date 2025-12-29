@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # before running this script, ensure you have built the project with:
-#   mvn clean package
+#   mvn -Dmaven.compiler.useIncrementalCompilation=falseclean package
 #
 
 run(){

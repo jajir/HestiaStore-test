@@ -18,8 +18,8 @@ class HelperTest {
                 .withValueClass(Long.class)//
                 .withName("indexicek") //
                 .withMaxNumberOfKeysInSegment((int) 500_000) //
-                .withMaxNumberOfKeysInSegmentCache(100_000L) //
-                .withMaxNumberOfKeysInSegmentCacheDuringFlushing(200_000L) //
+                .withMaxNumberOfKeysInSegmentCache(100_000) //
+                .withMaxNumberOfKeysInSegmentCacheDuringFlushing(200_000) //
                 .withMaxNumberOfKeysInSegmentChunk((int) 1_000) //
                 .withMaxNumberOfKeysInCache((int) 500_000) //
                 .withBloomFilterIndexSizeInBytes((int) 500_000) //

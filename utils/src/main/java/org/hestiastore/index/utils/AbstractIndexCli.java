@@ -147,19 +147,19 @@ public abstract class AbstractIndexCli {
 
     protected IndexConfiguration<String, Long> createIndexConfiguration(
             final CommandLine cmd) {
-        final long maxNumberOfKeysInSegment = extractMaxNumberOfKeysInSegmentOption(
+        final int maxNumberOfKeysInSegment = extractMaxNumberOfKeysInSegmentOption(
                 cmd);
-        final long maxNumberOfKeysInSegmentCache = extractMaxNumberOfKeysInSegmentCacheOption(
+        final int maxNumberOfKeysInSegmentCache = extractMaxNumberOfKeysInSegmentCacheOption(
                 cmd);
-        final long maxNumberOfKeysInSegmentCacheDuringFlushing = extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
+        final int maxNumberOfKeysInSegmentCacheDuringFlushing = extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
                 cmd);
-        final long maxNumberOfKeysInSegmentChunk = extractMaxNumberOfKeysInSegmentIndexPageOption(
+        final int maxNumberOfKeysInSegmentChunk = extractMaxNumberOfKeysInSegmentIndexPageOption(
                 cmd);
-        final long maxNumberOfKeysInCache = extractMaxNumberOfKeysInCacheOption(
+        final int maxNumberOfKeysInCache = extractMaxNumberOfKeysInCacheOption(
                 cmd);
-        final long bloomFilterIndexSizeInBytes = extractBloomFilterIndexSizeInBytesOption(
+        final int bloomFilterIndexSizeInBytes = extractBloomFilterIndexSizeInBytesOption(
                 cmd);
-        final long bloomFilterNumberOfHashFunctions = extractBloomFilterNumberOfHashFunctionsOption(
+        final int bloomFilterNumberOfHashFunctions = extractBloomFilterNumberOfHashFunctionsOption(
                 cmd);
         final String indexName = extractIndexName(cmd);
 
@@ -195,10 +195,9 @@ public abstract class AbstractIndexCli {
         return Index.create(dir, conf);
     }
 
-    protected long extractMaxNumberOfKeysInSegmentOption(
-            final CommandLine cmd) {
+    protected int extractMaxNumberOfKeysInSegmentOption(final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT)) {
-            return parseLong(
+            return parseInt(
                     cmd.getOptionValue(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT));
         } else {
             throw new IllegalArgumentException(
@@ -206,10 +205,10 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractMaxNumberOfKeysInSegmentCacheOption(
+    protected int extractMaxNumberOfKeysInSegmentCacheOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE)) {
-            return parseLong(cmd.getOptionValue(
+            return parseInt(cmd.getOptionValue(
                     OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE));
         } else {
             throw new IllegalArgumentException(
@@ -217,11 +216,11 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
+    protected int extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
             final CommandLine cmd) {
         if (cmd.hasOption(
                 OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING)) {
-            return parseLong(cmd.getOptionValue(
+            return parseInt(cmd.getOptionValue(
                     OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING));
         } else {
             throw new IllegalArgumentException(
@@ -229,10 +228,10 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractMaxNumberOfKeysInSegmentIndexPageOption(
+    protected int extractMaxNumberOfKeysInSegmentIndexPageOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE)) {
-            return parseLong(cmd.getOptionValue(
+            return parseInt(cmd.getOptionValue(
                     OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE));
         } else {
             throw new IllegalArgumentException(
@@ -240,9 +239,9 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractMaxNumberOfKeysInCacheOption(final CommandLine cmd) {
+    protected int extractMaxNumberOfKeysInCacheOption(final CommandLine cmd) {
         if (cmd.hasOption(OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE)) {
-            return parseLong(
+            return parseInt(
                     cmd.getOptionValue(OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE));
         } else {
             throw new IllegalArgumentException(
@@ -250,10 +249,10 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractBloomFilterIndexSizeInBytesOption(
+    protected int extractBloomFilterIndexSizeInBytesOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_BLOOM_FILTER_INDEX_SIZE_IN_BYTES)) {
-            return parseLong(cmd
+            return parseInt(cmd
                     .getOptionValue(OPTION_BLOOM_FILTER_INDEX_SIZE_IN_BYTES));
         } else {
             throw new IllegalArgumentException(
@@ -261,10 +260,10 @@ public abstract class AbstractIndexCli {
         }
     }
 
-    protected long extractBloomFilterNumberOfHashFunctionsOption(
+    protected int extractBloomFilterNumberOfHashFunctionsOption(
             final CommandLine cmd) {
         if (cmd.hasOption(OPTION_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS)) {
-            return parseLong(cmd.getOptionValue(
+            return parseInt(cmd.getOptionValue(
                     OPTION_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS));
         } else {
             throw new IllegalArgumentException(
@@ -298,4 +297,11 @@ public abstract class AbstractIndexCli {
         return out;
     }
 
+    protected int parseInt(final String str) {
+        Objects.requireNonNull(str);
+        final String tmp = str.replace("_", "").replace("L", "").replace("l",
+                "");
+        final int out = Integer.parseInt(tmp);
+        return out;
+    }
 }
