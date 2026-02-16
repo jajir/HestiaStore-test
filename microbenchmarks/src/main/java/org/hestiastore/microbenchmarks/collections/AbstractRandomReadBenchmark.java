@@ -9,8 +9,8 @@ import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberValidation;
 import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberWriting;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.FileUtils;
 import org.hestiastore.index.utils.HashDataProvider;
 
@@ -62,9 +62,9 @@ abstract class AbstractRandomReadBenchmark extends AbstractBenchmark {
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .build();
 
-        Index<String, String> index = null;
+        SegmentIndex<String, String> index = null;
         try {
-            index = Index.create(directory, conf);
+            index = SegmentIndex.create(directory, conf);
             for (long i = 0; i < PRELOAD_ENTRY_COUNT; i++) {
                 index.put(hashDataProvider.makeHash(i), VALUE);
             }

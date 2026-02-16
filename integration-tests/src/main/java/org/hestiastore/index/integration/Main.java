@@ -5,7 +5,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.AbstractIndexCli;
 
 public class Main extends AbstractIndexCli {

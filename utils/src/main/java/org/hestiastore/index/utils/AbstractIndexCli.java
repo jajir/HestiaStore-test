@@ -14,8 +14,8 @@ import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 
 /**
  * Abstract class that all support command line interface for creating index.
@@ -187,12 +187,12 @@ public abstract class AbstractIndexCli {
         return conf;
     }
 
-    protected Index<String, Long> createIndex(final CommandLine cmd) {
+    protected SegmentIndex<String, Long> createIndex(final CommandLine cmd) {
         final String directory = extractDirectoryOption(cmd);
         final Directory dir = new FsDirectory(new File(directory));
         final IndexConfiguration<String, Long> conf = createIndexConfiguration(
                 cmd);
-        return Index.create(dir, conf);
+        return SegmentIndex.create(dir, conf);
     }
 
     protected int extractMaxNumberOfKeysInSegmentOption(final CommandLine cmd) {

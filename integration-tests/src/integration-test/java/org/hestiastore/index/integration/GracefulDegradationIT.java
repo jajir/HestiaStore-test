@@ -10,8 +10,8 @@ import java.io.File;
 
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.utils.AbstractIndexCli;
 import org.hestiastore.index.utils.CommandLineConf;
 import org.hestiastore.index.utils.FileUtils;
@@ -92,7 +92,7 @@ public class GracefulDegradationIT {
                 .withValueClass(Long.class)//
                 .withName(INDEX_NAME) //
                 .build();
-        final Index<String, Long> index = Index.open(dir, indexConfiguration);
+        final SegmentIndex<String, Long> index = SegmentIndex.open(dir, indexConfiguration);
         index.checkAndRepairConsistency();
         final long cx = index.getStream().count();
         logger.info("Index size: " + cx);

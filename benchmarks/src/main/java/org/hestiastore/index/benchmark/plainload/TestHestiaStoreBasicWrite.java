@@ -10,8 +10,8 @@ import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberValidation;
 import org.hestiastore.index.chunkstore.ChunkFilterMagicNumberWriting;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -28,7 +28,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class TestHestiaStoreBasicWrite extends AbstractWriteTest {
-    private Index<String, String> index;
+    private SegmentIndex<String, String> index;
 
     @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
@@ -62,7 +62,7 @@ public class TestHestiaStoreBasicWrite extends AbstractWriteTest {
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .build();
 
-        index = Index.create(directory, conf);
+        index = SegmentIndex.create(directory, conf);
     }
 
     @TearDown(Level.Trial)

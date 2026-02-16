@@ -1,6 +1,6 @@
 package org.hestiastore.index.integration;
 
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.junit.jupiter.api.Test;
 
 /**

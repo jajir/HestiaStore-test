@@ -14,8 +14,8 @@ import org.hestiastore.index.chunkstore.ChunkFilterSnappyCompress;
 import org.hestiastore.index.chunkstore.ChunkFilterSnappyDecompress;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.sst.Index;
-import org.hestiastore.index.sst.IndexConfiguration;
+import org.hestiastore.index.segmentindex.SegmentIndex;
+import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -33,7 +33,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class TestHestiaStoreStreamSequential extends AbstractReadTest {
 
-    private Index<String, String> index;
+    private SegmentIndex<String, String> index;
     private Stream<Entry<String, String>> currentStream;
     private Iterator<Entry<String, String>> streamIterator;
 
@@ -91,7 +91,7 @@ public class TestHestiaStoreStreamSequential extends AbstractReadTest {
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .build();
 
-        index = Index.create(directory, conf);
+        index = SegmentIndex.create(directory, conf);
         preloadDataset((key, value) -> index.put(key, value));
         index.flush();
         resetStream();

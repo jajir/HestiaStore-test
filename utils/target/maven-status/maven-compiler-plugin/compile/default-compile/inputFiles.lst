@@ -1,8 +1,9 @@
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/IoUtils.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/TestStatus.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/HashDataProvider.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/IndexUtils.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/CommandLineConf.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/DataProvider.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/AbstractIndexCli.java
-/Users/janjirout/repos/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/FileUtils.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/IndexUtils.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/ThredTestMain.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/DataProvider.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/AbstractIndexCli.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/CommandLineConf.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/FileUtils.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/TestStatus.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/IoUtils.java
+/Users/jan/projects/HestiaStore-test/utils/src/main/java/org/hestiastore/index/utils/HashDataProvider.java
