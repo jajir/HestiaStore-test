@@ -16,7 +16,7 @@ run(){
 #run H2Write
 #run MapDBWrite
 #run HestiaStoreBasicWrite
-#run HestiaStoreCompressWrite
+run HestiaStoreCompressWrite
 #run ChronicleMapWrite
 #run RocksDBWrite
 #run LevelDBWrite
@@ -24,7 +24,7 @@ run(){
 # Read benchmarks (use suffixed engine name)
 #run H2Read
 #run MapDBRead
-run HestiaStoreBasicRead
+#run HestiaStoreBasicRead
 #run HestiaStoreCompressRead
 #run ChronicleMapRead
 #run RocksDBRead

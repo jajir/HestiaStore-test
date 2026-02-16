@@ -27,7 +27,7 @@ public class Main {
                             TestHestiaStoreBasicRead.class),
                     Map.entry("HestiaStoreBasicSequential",
                             TestHestiaStoreBasicSequential.class),
-                    Map.entry("HestiaStoreCompress",
+                    Map.entry("HestiaStoreCompressWrite",
                             TestHestiaStoreCompressWrite.class),
                     Map.entry("HestiaStoreCompressRead",
                             TestHestiaStoreCompressRead.class),

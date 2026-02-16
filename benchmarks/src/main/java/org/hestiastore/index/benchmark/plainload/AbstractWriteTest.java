@@ -3,6 +3,7 @@ package org.hestiastore.index.benchmark.plainload;
 import java.io.File;
 import java.util.Random;
 
+import org.hestiastore.index.segmentindex.IndexConfigurationBuilder;
 import org.hestiastore.index.utils.HashDataProvider;
 import org.hestiastore.index.utils.FileUtils;
 import org.slf4j.Logger;
@@ -36,6 +37,15 @@ abstract class AbstractWriteTest {
 
     protected String directoryFileName;
 
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT = 500_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE = 100_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE = 100_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE_DURING_MAINTENANCE = 200_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CHUNK = 1_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_CACHE = 500_000;
+    protected static final int INDEX_BLOOM_FILTER_INDEX_SIZE_IN_BYTES = 500_000;
+    protected static final int INDEX_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS = 3;
+
     /**
      * Prepare target directory based on system property and return it.
      */
@@ -49,6 +59,26 @@ abstract class AbstractWriteTest {
         FileUtils.deleteFileRecursively(dirFile);
         dirFile.mkdirs();
         return dirFile;
+    }
+
+    protected <K, V> IndexConfigurationBuilder<K, V> applySegmentIndexTuning(
+            final IndexConfigurationBuilder<K, V> builder) {
+        return builder.withContextLoggingEnabled(false)
+                .withMaxNumberOfKeysInSegment(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT)
+                .withMaxNumberOfKeysInSegmentCache(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE)
+                .withMaxNumberOfKeysInSegmentWriteCache(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE)
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE_DURING_MAINTENANCE)
+                .withMaxNumberOfKeysInSegmentChunk(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CHUNK)
+                .withMaxNumberOfKeysInCache(INDEX_MAX_NUMBER_OF_KEYS_IN_CACHE)
+                .withBloomFilterIndexSizeInBytes(
+                        INDEX_BLOOM_FILTER_INDEX_SIZE_IN_BYTES)
+                .withBloomFilterNumberOfHashFunctions(
+                        INDEX_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS);
     }
 
 }

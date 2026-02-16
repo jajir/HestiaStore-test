@@ -85,6 +85,16 @@ public class IndexWritingBenchmark {
                 .withName("test-index")//
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
+                .withContextLoggingEnabled(false)//
+                .withMaxNumberOfKeysInSegment(500_000)//
+                .withMaxNumberOfKeysInSegmentCache(100_000)//
+                .withMaxNumberOfKeysInSegmentWriteCache(100_000)//
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                        200_000)//
+                .withMaxNumberOfKeysInSegmentChunk(1_000)//
+                .withMaxNumberOfKeysInCache(500_000)//
+                .withBloomFilterIndexSizeInBytes(500_000)//
+                .withBloomFilterNumberOfHashFunctions(3)//
                 .build();
 
         index = SegmentIndex.create(directory, conf);

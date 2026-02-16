@@ -46,13 +46,11 @@ public class TestHestiaStoreCompressRead extends AbstractReadTest {
         final File dirFile = prepareDirectory();
         final Directory directory = new FsDirectory(dirFile);
 
-        final IndexConfiguration<String, String> conf = IndexConfiguration
-                .<String, String>builder()//
+        final IndexConfiguration<String, String> conf = applySegmentIndexTuning(
+                IndexConfiguration.<String, String>builder()//
                 .withName("test-index-read-compress")//
                 .withKeyClass(String.class)//
-                .withValueClass(String.class)//
-                .withContextLoggingEnabled(false)//
-                .withMaxNumberOfKeysInReadCache(4_000_000)//
+                .withValueClass(String.class))//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
                 .addEncodingFilter(new ChunkFilterSnappyCompress())//

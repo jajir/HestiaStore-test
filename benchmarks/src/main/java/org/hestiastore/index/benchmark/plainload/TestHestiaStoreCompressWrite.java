@@ -48,12 +48,11 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
         final File dirFile = prepareDirectory();
         final Directory directory = new FsDirectory(dirFile);
 
-        final IndexConfiguration<String, String> conf = IndexConfiguration
-                .<String, String>builder()//
-                .withName("test-index")//
-                .withKeyClass(String.class)//
-                .withValueClass(String.class)//
-                .withContextLoggingEnabled(false)//
+        final IndexConfiguration<String, String> conf = applySegmentIndexTuning(
+                IndexConfiguration.<String, String>builder()//
+                        .withName("test-index")//
+                        .withKeyClass(String.class)//
+                        .withValueClass(String.class))//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
                 .addEncodingFilter(new ChunkFilterSnappyCompress())//
@@ -62,6 +61,15 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
                 .addDecodingFilter(new ChunkFilterSnappyDecompress())//
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
+                .withNumberOfCpuThreads(10)//
+                .withNumberOfIoThreads(4)//
+                .withNumberOfSegmentIndexMaintenanceThreads(10)//
+                .withMaxNumberOfKeysInSegment(10_000_000)//
+                .withMaxNumberOfKeysInSegmentCache(1_000_000)//
+                .withMaxNumberOfKeysInSegmentWriteCache(300_000)//
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                        600_000) //
+                .withMaxNumberOfSegmentsInCache(10)//
                 .build();
 
         index = SegmentIndex.create(directory, conf);

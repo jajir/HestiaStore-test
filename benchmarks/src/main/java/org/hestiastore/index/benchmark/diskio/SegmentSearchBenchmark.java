@@ -12,7 +12,11 @@ import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.segment.Segment;
 import org.hestiastore.index.segment.SegmentBuilder;
+import org.hestiastore.index.segment.SegmentBuildResult;
 import org.hestiastore.index.segment.SegmentId;
+import org.hestiastore.index.segment.SegmentResult;
+import org.hestiastore.index.directory.async.AsyncDirectory;
+import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -57,6 +61,7 @@ public class SegmentSearchBenchmark {
 
     private String directoryFileName;
     private Directory directory;
+    private AsyncDirectory asyncDirectory;
     private Segment<String, Long> segment;
 
     @Param({ "1", "2", "4", "8", "16", "32" })
@@ -70,27 +75,33 @@ public class SegmentSearchBenchmark {
             throw new IllegalStateException("Property 'dir' is not set");
         }
         directory = new FsDirectory(new File(directoryFileName));
+        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
-        final Segment<String, Long> segment = getCommonBuilder()// get default
+        final Segment<String, Long> preparedSegment = requireBuilt(
+                getCommonBuilder()// get default
                 // builder
                 .withMaxNumberOfKeysInSegmentCache(1000)//
-                .withMaxNumberOfKeysInSegmentCacheDuringFlushing(100_000)//
-                .build();
+                .withMaxNumberOfKeysInSegmentWriteCache(1_000)//
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                        100_000)//
+                .build(),
+                "build prepared segment");
 
-        if (segment.getNumberOfKeys() != NUMBER_OF_TESTING_PAIRS) {
+        if (preparedSegment.getNumberOfKeys() != NUMBER_OF_TESTING_PAIRS) {
             System.out.println("main setup - rebuilding, it's "
-                    + segment.getNumberOfKeys());
-            try (EntryWriter<String, Long> entryWriter = segment
-                    .openDeltaCacheWriter()) {
+                    + preparedSegment.getNumberOfKeys());
+            try (EntryWriter<String, Long> entryWriter = getCommonBuilder()
+                    .openWriterTx().open()) {
                 for (int i = 0; i < NUMBER_OF_TESTING_PAIRS; i++) {
-                    entryWriter.write(dataProvider.generateSequenceString(i),
+                    entryWriter.write(
+                            dataProvider.generateSequenceString(i),
                             RANDOM.nextLong());
                 }
             }
-            segment.forceCompact();
+            requireOk(preparedSegment.compact(), "compact");
         }
 
-        segment.close();
+        requireOk(preparedSegment.close(), "close prepared segment");
     }
 
     /**
@@ -99,9 +110,9 @@ public class SegmentSearchBenchmark {
     @Setup(Level.Iteration)
     public void setupIteration() {
         int bufferSize = 1024 * diskIoBufferSize;
-        segment = getCommonBuilder()// default builder
+        segment = requireBuilt(getCommonBuilder()// default builder
                 .withDiskIoBufferSize(bufferSize)//
-                .build();
+                .build(), "build iteration segment");
     }
 
     @Benchmark
@@ -112,7 +123,7 @@ public class SegmentSearchBenchmark {
         for (int i = 0; i < NUMBER_OF_TESTING_SEARCH_OPERATIONS; i++) {
             final String key = dataProvider.generateSequenceString(
                     RANDOM.nextInt(NUMBER_OF_TESTING_PAIRS));
-            final Long value = segment.get(key);
+            final Long value = requireOk(segment.get(key), "get");
             if (value != null) {
                 result += value;
             }
@@ -121,15 +132,33 @@ public class SegmentSearchBenchmark {
     }
 
     private SegmentBuilder<String, Long> getCommonBuilder() {
-        return Segment.<String, Long>builder()//
-                .withDirectory(directory)//
+        return Segment.<String, Long>builder(asyncDirectory)//
                 .withId(SEGMENT_ID)//
                 .withKeyTypeDescriptor(TYPE_DESCRIPTOR_STRING)//
                 .withValueTypeDescriptor(TYPE_DESCRIPTOR_LONG)//
                 .withMaxNumberOfKeysInSegmentCache(3)//
-                .withMaxNumberOfKeysInSegmentCacheDuringFlushing(100)//
+                .withMaxNumberOfKeysInSegmentWriteCache(3)//
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(100)//
                 .withMaxNumberOfKeysInSegmentChunk(100)//
                 .withBloomFilterIndexSizeInBytes(0);// disable bloom filter
+    }
+
+    private static <T> T requireBuilt(final SegmentBuildResult<T> result,
+            final String operation) {
+        if (result == null || !result.isOk()) {
+            throw new IllegalStateException(
+                    "Segment operation failed: " + operation);
+        }
+        return result.getValue();
+    }
+
+    private static <T> T requireOk(final SegmentResult<T> result,
+            final String operation) {
+        if (result == null || !result.isOk()) {
+            throw new IllegalStateException(
+                    "Segment operation failed: " + operation);
+        }
+        return result.getValue();
     }
 
 }
