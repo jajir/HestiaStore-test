@@ -15,8 +15,6 @@ import org.hestiastore.index.segment.SegmentBuilder;
 import org.hestiastore.index.segment.SegmentBuildResult;
 import org.hestiastore.index.segment.SegmentId;
 import org.hestiastore.index.segment.SegmentResult;
-import org.hestiastore.index.directory.async.AsyncDirectory;
-import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -61,7 +59,6 @@ public class SegmentSearchBenchmark {
 
     private String directoryFileName;
     private Directory directory;
-    private AsyncDirectory asyncDirectory;
     private Segment<String, Long> segment;
 
     @Param({ "1", "2", "4", "8", "16", "32" })
@@ -75,7 +72,6 @@ public class SegmentSearchBenchmark {
             throw new IllegalStateException("Property 'dir' is not set");
         }
         directory = new FsDirectory(new File(directoryFileName));
-        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
 
         final Segment<String, Long> preparedSegment = requireBuilt(
                 getCommonBuilder()// get default
@@ -132,7 +128,7 @@ public class SegmentSearchBenchmark {
     }
 
     private SegmentBuilder<String, Long> getCommonBuilder() {
-        return Segment.<String, Long>builder(asyncDirectory)//
+        return Segment.<String, Long>builder(directory)//
                 .withId(SEGMENT_ID)//
                 .withKeyTypeDescriptor(TYPE_DESCRIPTOR_STRING)//
                 .withValueTypeDescriptor(TYPE_DESCRIPTOR_LONG)//

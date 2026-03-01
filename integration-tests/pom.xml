@@ -21,8 +21,8 @@
 	  <!-- mvn jdeps:jdkinternals -->
 	<dependencies>
 		<dependency>
-			<groupId>org.hestiastore.index</groupId>
-			<artifactId>core</artifactId>
+			<groupId>org.hestiastore</groupId>
+			<artifactId>engine</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.hestiastore.index.test</groupId>

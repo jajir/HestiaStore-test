@@ -76,6 +76,16 @@ public abstract class AbstractIndexCli {
             .desc("Max number of keys in segment cache during flushing")
             .build();
 
+    // Backward-compatible alias used by older scripts.
+    private final static String STR_MAX_MOVE_NO = "max-move-no";
+    public final static String PARAM_MAX_MOVE_NO = "--" + STR_MAX_MOVE_NO;
+    protected final static Option OPTION_MAX_MOVE_NO = Option.builder()//
+            .longOpt(STR_MAX_MOVE_NO)//
+            .hasArg(true)//
+            .required(false)//
+            .desc("Alias for max segment write-cache threshold during maintenance")//
+            .build();
+
     private final static String STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE = "max-number-of-keys-in-segment-index-page";
     public final static String PARAM_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE = "--"
             + STR_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE;
@@ -124,6 +134,7 @@ public abstract class AbstractIndexCli {
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE);
         options.addOption(
                 OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING);
+        options.addOption(OPTION_MAX_MOVE_NO);
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_INDEX_PAGE);
         options.addOption(OPTION_MAX_NUMBER_OF_KEYS_IN_CACHE);
         options.addOption(OPTION_BLOOM_FILTER_INDEX_SIZE_IN_BYTES);
@@ -177,7 +188,7 @@ public abstract class AbstractIndexCli {
                         maxNumberOfKeysInSegmentCacheDuringFlushing) //
                 .withMaxNumberOfKeysInSegmentChunk(
                         (int) maxNumberOfKeysInSegmentChunk) //
-                .withMaxNumberOfKeysInCache((int) maxNumberOfKeysInCache) //
+                .withMaxNumberOfSegmentsInCache((int) maxNumberOfKeysInCache) //
                 .withBloomFilterIndexSizeInBytes(
                         (int) bloomFilterIndexSizeInBytes) //
                 .withBloomFilterNumberOfHashFunctions(
@@ -218,6 +229,9 @@ public abstract class AbstractIndexCli {
 
     protected int extractMaxNumberOfKeysInSegmentCacheDuringFlushingOption(
             final CommandLine cmd) {
+        if (cmd.hasOption(OPTION_MAX_MOVE_NO)) {
+            return parseInt(cmd.getOptionValue(OPTION_MAX_MOVE_NO));
+        }
         if (cmd.hasOption(
                 OPTION_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE_DURING_FLUSHING)) {
             return parseInt(cmd.getOptionValue(

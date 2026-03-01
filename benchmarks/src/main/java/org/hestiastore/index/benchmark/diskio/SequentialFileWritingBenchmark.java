@@ -10,8 +10,6 @@ import org.hestiastore.index.datatype.TypeDescriptorLong;
 import org.hestiastore.index.datatype.TypeDescriptorString;
 import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
-import org.hestiastore.index.directory.async.AsyncDirectory;
-import org.hestiastore.index.directory.async.AsyncDirectoryAdapter;
 import org.hestiastore.index.unsorteddatafile.UnsortedDataFile;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -49,7 +47,6 @@ public class SequentialFileWritingBenchmark {
 
     private String directoryFileName;
     private Directory directory;
-    private AsyncDirectory asyncDirectory;
     private UnsortedDataFile<String, Long> testFile;
 
     @Param({ "1", "2", "4", "8", "16", "32" })
@@ -63,7 +60,6 @@ public class SequentialFileWritingBenchmark {
             throw new IllegalStateException("Property 'dir' is not set");
         }
         directory = new FsDirectory(new File(directoryFileName));
-        asyncDirectory = AsyncDirectoryAdapter.wrap(directory);
         testFile = getDataFile(diskIoBufferSize);
     }
 
@@ -83,7 +79,7 @@ public class SequentialFileWritingBenchmark {
 
     private UnsortedDataFile<String, Long> getDataFile(int bufferSize) {
         return UnsortedDataFile.<String, Long>builder()//
-                .withAsyncDirectory(asyncDirectory)//
+                .withDirectory(directory)//
                 .withFileName(FILE_NAME)//
                 .withKeyWriter(TYPE_DESCRIPTOR_STRING.getTypeWriter())//
                 .withKeyReader(TYPE_DESCRIPTOR_STRING.getTypeReader())//

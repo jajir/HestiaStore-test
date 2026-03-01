@@ -92,7 +92,7 @@ public class IndexWritingBenchmark {
                 .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
                         200_000)//
                 .withMaxNumberOfKeysInSegmentChunk(1_000)//
-                .withMaxNumberOfKeysInCache(500_000)//
+                .withMaxNumberOfSegmentsInCache(500_000)//
                 .withBloomFilterIndexSizeInBytes(500_000)//
                 .withBloomFilterNumberOfHashFunctions(3)//
                 .build();

@@ -34,8 +34,8 @@
 	<dependencyManagement>
 		<dependencies>
             <dependency>
-                <groupId>org.hestiastore.index</groupId>
-                <artifactId>core</artifactId>
+                <groupId>org.hestiastore</groupId>
+                <artifactId>engine</artifactId>
                 <version>0.0.6-SNAPSHOT</version>
             </dependency>
 			<dependency>

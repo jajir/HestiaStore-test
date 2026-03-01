@@ -55,7 +55,7 @@ abstract class AbstractRandomReadBenchmark extends AbstractBenchmark {
                 .withKeyClass(String.class)//
                 .withValueClass(String.class)//
                 .withContextLoggingEnabled(false)//
-                .withMaxNumberOfKeysInReadCache(4_000_000)//
+                .withMaxNumberOfKeysInSegmentCache(4_000_000)//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//

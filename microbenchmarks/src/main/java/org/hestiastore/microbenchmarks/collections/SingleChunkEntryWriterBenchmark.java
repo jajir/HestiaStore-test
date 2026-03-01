@@ -77,7 +77,7 @@ public class SingleChunkEntryWriterBenchmark extends AbstractBenchmark {
     private void tryCloseWriter() {
         try {
             if (writer != null) {
-                writer.close();
+                writer.closeSequence();
             }
         } catch (Exception ignore) {
             // Best-effort close in benchmark teardown/rotation

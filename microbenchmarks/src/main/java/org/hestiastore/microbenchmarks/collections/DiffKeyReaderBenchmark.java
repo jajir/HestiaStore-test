@@ -84,7 +84,7 @@ public class DiffKeyReaderBenchmark extends AbstractBenchmark {
     private void openReaders() {
         // Open a fresh reader and reset keyReader state
         this.fileReader = directory.getFileReader(FILE_NAME);
-        this.keyReader = new DiffKeyReader<>(typeString.getConvertorFromBytes());
+        this.keyReader = new DiffKeyReader<>(typeString.getTypeDecoder());
         this.valueReader = typeString.getTypeReader();
     }
 

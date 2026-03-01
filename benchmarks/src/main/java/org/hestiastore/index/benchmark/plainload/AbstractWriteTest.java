@@ -74,7 +74,7 @@ abstract class AbstractWriteTest {
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE_DURING_MAINTENANCE)
                 .withMaxNumberOfKeysInSegmentChunk(
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CHUNK)
-                .withMaxNumberOfKeysInCache(INDEX_MAX_NUMBER_OF_KEYS_IN_CACHE)
+                .withMaxNumberOfSegmentsInCache(INDEX_MAX_NUMBER_OF_KEYS_IN_CACHE)
                 .withBloomFilterIndexSizeInBytes(
                         INDEX_BLOOM_FILTER_INDEX_SIZE_IN_BYTES)
                 .withBloomFilterNumberOfHashFunctions(

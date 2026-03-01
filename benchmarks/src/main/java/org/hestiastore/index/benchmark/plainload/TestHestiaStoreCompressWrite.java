@@ -61,7 +61,7 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
                 .addDecodingFilter(new ChunkFilterSnappyDecompress())//
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
-                .withNumberOfCpuThreads(10)//
+                .withIndexWorkerThreadCount(10)//
                 .withNumberOfIoThreads(4)//
                 .withNumberOfSegmentIndexMaintenanceThreads(10)//
                 .withMaxNumberOfKeysInSegment(10_000_000)//

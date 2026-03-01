@@ -22,7 +22,7 @@ class HelperTest {
                 .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
                         200_000) //
                 .withMaxNumberOfKeysInSegmentChunk((int) 1_000) //
-                .withMaxNumberOfKeysInCache((int) 500_000) //
+                .withMaxNumberOfSegmentsInCache((int) 500_000) //
                 .withBloomFilterIndexSizeInBytes((int) 500_000) //
                 .withBloomFilterNumberOfHashFunctions((int) 3) //
                 .withContextLoggingEnabled(false) //
