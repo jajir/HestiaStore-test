@@ -1,8 +1,6 @@
 package org.hestiastore.index.benchmark.plainload;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.hestiastore.index.Entry;
@@ -16,7 +14,6 @@ import org.hestiastore.index.directory.Directory;
 import org.hestiastore.index.directory.FsDirectory;
 import org.hestiastore.index.segmentindex.IndexConfiguration;
 import org.hestiastore.index.segmentindex.SegmentIndex;
-import org.hestiastore.management.restjson.ManagementAgentServer;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -34,7 +31,6 @@ import org.openjdk.jmh.annotations.Warmup;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
     private SegmentIndex<String, String> index;
-    private ManagementAgentServer agent;
 
     @Benchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
@@ -66,41 +62,22 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .withIndexWorkerThreadCount(10)//
-                .withNumberOfIoThreads(4)//
-                .withNumberOfSegmentIndexMaintenanceThreads(10)//
+                .withNumberOfStableSegmentMaintenanceThreads(10)//
                 .withMaxNumberOfKeysInSegment(10_000_000)//
                 .withMaxNumberOfKeysInSegmentCache(1_000_000)//
-                .withMaxNumberOfKeysInSegmentWriteCache(300_000)//
-                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                .withMaxNumberOfKeysInActivePartition(300_000)//
+                .withMaxNumberOfKeysInPartitionBuffer(
                         600_000) //
                 // .withIndexBusyTimeoutMillis(1000 * 60)//
                 .withMaxNumberOfSegmentsInCache(10)//
                 .build();
 
         index = SegmentIndex.create(directory, conf);
-        startAgent(index);
-    }
-
-    private void startAgent(SegmentIndex<String, String> index) {
-        try {
-            agent = new ManagementAgentServer("127.0.0.1", 8085, index,
-                    "test-index",
-                    Set.of("maxNumberOfSegmentsInCache",
-                            "maxNumberOfKeysInSegmentCache",
-                            "maxNumberOfKeysInSegmentWriteCache",
-                            "maxNumberOfKeysInSegmentWriteCacheDuringMaintenance"));
-            agent.start();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
     }
 
     @TearDown(Level.Trial)
     public void tearDown() {
         logger.info("Closing index and directory, number of written keys: ");
-        if (agent != null) {
-            agent.close();
-        }
         index.close();
     }
 }

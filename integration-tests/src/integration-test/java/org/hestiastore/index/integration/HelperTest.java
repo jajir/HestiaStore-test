@@ -19,7 +19,8 @@ class HelperTest {
                 .withName("indexicek") //
                 .withMaxNumberOfKeysInSegment((int) 500_000) //
                 .withMaxNumberOfKeysInSegmentCache(100_000) //
-                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                .withMaxNumberOfKeysInActivePartition(50_000) //
+                .withMaxNumberOfKeysInPartitionBuffer(
                         200_000) //
                 .withMaxNumberOfKeysInSegmentChunk((int) 1_000) //
                 .withMaxNumberOfSegmentsInCache((int) 500_000) //

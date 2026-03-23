@@ -68,9 +68,9 @@ abstract class AbstractWriteTest {
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT)
                 .withMaxNumberOfKeysInSegmentCache(
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE)
-                .withMaxNumberOfKeysInSegmentWriteCache(
+                .withMaxNumberOfKeysInActivePartition(
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE)
-                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                .withMaxNumberOfKeysInPartitionBuffer(
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE_DURING_MAINTENANCE)
                 .withMaxNumberOfKeysInSegmentChunk(
                         INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CHUNK)
