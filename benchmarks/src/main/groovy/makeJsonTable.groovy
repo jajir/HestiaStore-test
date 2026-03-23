@@ -3,13 +3,13 @@
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import java.nio.charset.StandardCharsets
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
-// Find project root (directory containing a pom.xml highest up from CWD)
 Path findProjectRoot(Path start) {
     Path cur = start
     Path lastPom = null
@@ -40,6 +40,7 @@ def mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 def dfs = new DecimalFormatSymbols(Locale.US)
 dfs.groupingSeparator = ' ' as char
 def scoreFormat = new DecimalFormat('#,##0', dfs)
+def latencyFormat = new DecimalFormat('#,##0.###', dfs)
 def sizeFormat = new DecimalFormat('#,##0.##', dfs)
 def percentFormat = new DecimalFormat('#,##0', dfs)
 
@@ -68,12 +69,20 @@ def normalizeNumber = { Object value ->
     return null
 }
 
-def formatScore = { Object value ->
+def formatOpsScore = { Object value ->
     Double number = normalizeNumber(value)
     if (number == null) {
         return ''
     }
     return scoreFormat.format(number)
+}
+
+def formatLatency = { Object value ->
+    Double number = normalizeNumber(value)
+    if (number == null) {
+        return ''
+    }
+    return latencyFormat.format(number)
 }
 
 def humanReadableSize = { long bytes ->
@@ -88,6 +97,15 @@ def humanReadableSize = { long bytes ->
         unitIdx++
     }
     return "${sizeFormat.format(size)} ${units[unitIdx]}"
+}
+
+def percentileValue = { Map percentiles, String... keys ->
+    for (String key : keys) {
+        if (percentiles?.containsKey(key)) {
+            return percentiles[key]
+        }
+    }
+    return null
 }
 
 def files = []
@@ -108,24 +126,33 @@ files.each { Path file ->
 
     boolean isReadVariant = false
     boolean isSequentialVariant = false
-    boolean isExplicitWrite = false
+    boolean isMultithreadReadVariant = false
     String engineBase = rawEngine
+    String threads = ''
 
-    if (rawEngine.startsWith('read-')) {
+    if (rawEngine.startsWith('multithread-read-')) {
+        isMultithreadReadVariant = true
+        engineBase = rawEngine.substring('multithread-read-'.length())
+        def matcher = engineBase =~ /^(.*)-threads(\d+)$/
+        if (matcher.matches()) {
+            engineBase = matcher.group(1)
+            threads = matcher.group(2)
+        }
+    } else if (rawEngine.startsWith('read-')) {
         isReadVariant = true
         engineBase = rawEngine.substring('read-'.length())
-    } else if (rawEngine.endsWith('Read')) { // fallback for legacy files
+    } else if (rawEngine.endsWith('Read')) {
         isReadVariant = true
         engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
     } else if (rawEngine.startsWith('sequential-')) {
         isSequentialVariant = true
         engineBase = rawEngine.substring('sequential-'.length())
     } else if (rawEngine.startsWith('write-')) {
-        isExplicitWrite = true
         engineBase = rawEngine.substring('write-'.length())
     }
 
-    String scenario = isReadVariant ? 'Read' : (isSequentialVariant ? 'Sequential' : 'Write')
+    String scenario = isMultithreadReadVariant ? 'MultithreadRead'
+            : (isReadVariant ? 'Read' : (isSequentialVariant ? 'Sequential' : 'Write'))
     String engine = engineBase
 
     def data = mapper.readValue(Files.readAllBytes(file), List)
@@ -142,7 +169,9 @@ files.each { Path file ->
         Double lo = normalizeNumber(confidence[0])
         Double hi = normalizeNumber(confidence[1])
         if (lo != null && hi != null) {
-            confidenceInterval = "${formatScore(lo)} .. ${formatScore(hi)}"
+            confidenceInterval = isMultithreadReadVariant
+                    ? "${formatLatency(lo)} .. ${formatLatency(hi)}"
+                    : "${formatOpsScore(lo)} .. ${formatOpsScore(hi)}"
         }
     }
 
@@ -169,28 +198,49 @@ files.each { Path file ->
         }
     }
 
-    rows << [
-            'Engine': engine,
-            'Variant': scenario,
-            'Score [ops/s]': formatScore(score),
-            'ScoreError': formatScore(scoreError),
-            'Confidence Interval [ops/s]': confidenceInterval,
-            'Occupied space': occupied,
-            'usedMemoryBytes': usedMemoryStr,
-            'cpuUsage': cpuUsageStr
-    ]
+    if (isMultithreadReadVariant) {
+        Map percentiles = primary?.get('scorePercentiles') as Map ?: [:]
+        rows << [
+                'Engine': engine,
+                'Variant': scenario,
+                'Threads': threads,
+                'Mean [us/op]': formatLatency(score),
+                'ScoreError': formatLatency(scoreError),
+                'Confidence Interval [us/op]': confidenceInterval,
+                'p50 [us/op]': formatLatency(percentileValue(percentiles, '50.0', '50')),
+                'p95 [us/op]': formatLatency(percentileValue(percentiles, '95.0', '95')),
+                'p99 [us/op]': formatLatency(percentileValue(percentiles, '99.0', '99')),
+                'Occupied space': occupied,
+                'usedMemoryBytes': usedMemoryStr,
+                'cpuUsage': cpuUsageStr
+        ]
+    } else {
+        rows << [
+                'Engine': engine,
+                'Variant': scenario,
+                'Score [ops/s]': formatOpsScore(score),
+                'ScoreError': formatOpsScore(scoreError),
+                'Confidence Interval [ops/s]': confidenceInterval,
+                'Occupied space': occupied,
+                'usedMemoryBytes': usedMemoryStr,
+                'cpuUsage': cpuUsageStr
+        ]
+    }
 }
 
 def writeRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Write' }
 def readRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Read' }
 def sequentialRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Sequential' }
+def multithreadReadRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadRead' }
 
 Path writeOutput = resultsDir.resolve('out-write-table.json')
 Path readOutput = resultsDir.resolve('out-read-table.json')
 Path sequentialOutput = resultsDir.resolve('out-sequential-table.json')
+Path multithreadReadOutput = resultsDir.resolve('out-multithread-read-table.json')
 
 mapper.writeValue(writeOutput.toFile(), writeRows)
 mapper.writeValue(readOutput.toFile(), readRows)
 mapper.writeValue(sequentialOutput.toFile(), sequentialRows)
+mapper.writeValue(multithreadReadOutput.toFile(), multithreadReadRows)
 
-println "Written summaries to ${writeOutput}, ${readOutput} and ${sequentialOutput}"
+println "Written summaries to ${writeOutput}, ${readOutput}, ${sequentialOutput} and ${multithreadReadOutput}"

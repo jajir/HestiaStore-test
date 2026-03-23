@@ -1,27 +1,42 @@
 #!/bin/bash
 
-#mvn -Dmaven.compiler.useIncrementalCompilation=false clean package
+set -euo pipefail
 
+BENCHMARK_DIR="${BENCHMARK_DIR:-/Volumes/ponrava/test-index}"
+BENCHMARK_PRELOAD_ENTRY_COUNT="${BENCHMARK_PRELOAD_ENTRY_COUNT:-10000000}"
+BENCHMARK_MISS_PROBABILITY="${BENCHMARK_MISS_PROBABILITY:-0.2}"
+YOURKIT_AGENT="${YOURKIT_AGENT:-}"
 
-run(){
+java_args=()
+if [[ -n "${YOURKIT_AGENT}" ]]; then
+  java_args+=("-agentpath:${YOURKIT_AGENT}=exceptions=disable,delay=10000,listen=all")
+fi
+
+run() {
+  local engine="$1"
+  local threads="${2:-1}"
+
   java \
-    -Ddir=/Volumes/ponrava/test-index \
-	-agentpath:/Applications/YourKit-Java-Profiler.app/Contents/Resources/bin/mac/libyjpagent.dylib=exceptions=disable,delay=10000,listen=all \
-    -Dengine=$1 \
+    -Ddir="${BENCHMARK_DIR}" \
+    -Dengine="${engine}" \
+    -DbenchmarkThreads="${threads}" \
+    -DbenchmarkPreloadEntryCount="${BENCHMARK_PRELOAD_ENTRY_COUNT}" \
+    -DbenchmarkMissProbability="${BENCHMARK_MISS_PROBABILITY}" \
+    "${java_args[@]}" \
     -cp "target/classes:target/lib/*" \
     org.hestiastore.index.benchmark.plainload.Main
 }
 
 # Write benchmarks
-#run H2Write
-#run MapDBWrite
-#run HestiaStoreBasicWrite
-run HestiaStoreCompressWrite
-#run ChronicleMapWrite
-#run RocksDBWrite
-#run LevelDBWrite
+#run H2
+#run MapDB
+#run HestiaStoreBasic
+#run HestiaStoreCompressWrite
+#run ChronicleMap
+#run RocksDB
+#run LevelDB
 
-# Read benchmarks (use suffixed engine name)
+# Read benchmarks
 #run H2Read
 #run MapDBRead
 #run HestiaStoreBasicRead
@@ -35,31 +50,17 @@ run HestiaStoreCompressWrite
 #run MapDBSequential
 #run HestiaStoreBasicSequential
 #run HestiaStoreCompressSequential
-#run HestiaStoreStreamSequential
+#run HestiaStoreCompressSequential2
 #run ChronicleMapSequential
 #run RocksDBSequential
 #run LevelDBSequential
 
-pok(){
-    # it's just clumsy backup of all the --add-opens used in the jmh-maven-plugin
-    # when it's needed, just copy-paste it into the java command above
-    # follown open modules are requirement for chronicle map
-    java \
-	-agentpath:/Applications/YourKit-Java-Profiler-2024.9.app/Contents/Resources/bin/mac/libyjpagent.dylib=exceptions=disable,delay=10000,listen=all \
-    --add-opens=java.base/java.lang=ALL-UNNAMED \
-    --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
-    --add-opens=java.base/java.io=ALL-UNNAMED \
-    --add-opens=java.base/java.nio=ALL-UNNAMED \
-    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED \
-    --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
-
-}
+# Multithread read latency benchmarks with percentile output in JMH JSON.
+# Default thread count is 4 for this section.
+run HestiaStoreBasicMultithreadRead 4
+#run HestiaStoreCompressMultithreadRead 4
+#run H2MultithreadRead 4
+#run MapDBMultithreadRead 4
+#run ChronicleMapMultithreadRead 4
+#run RocksDBMultithreadRead 4
+#run LevelDBMultithreadRead 4

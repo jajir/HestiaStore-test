@@ -4,9 +4,17 @@ import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
 
+import org.hestiastore.index.benchmark.multithread.TestChronicleMapMultithreadRead;
+import org.hestiastore.index.benchmark.multithread.TestH2MultithreadRead;
+import org.hestiastore.index.benchmark.multithread.TestHestiaStoreBasicMultithreadRead;
+import org.hestiastore.index.benchmark.multithread.TestHestiaStoreCompressMultithreadRead;
+import org.hestiastore.index.benchmark.multithread.TestLevelDBMultithreadRead;
+import org.hestiastore.index.benchmark.multithread.TestMapDBMultithreadRead;
+import org.hestiastore.index.benchmark.multithread.TestRocksDBMultithreadRead;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.results.format.ResultFormatType;
 import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.slf4j.Logger;
@@ -18,6 +26,8 @@ public class Main {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private final static String PROPERTY_ENGINE = "engine";
+    private final static String PROPERTY_BENCHMARK_THREADS = "benchmarkThreads";
+    private final static String MULTITHREAD_READ_SUFFIX = "MultithreadRead";
 
     private static final Map<String, Class<?>> ENGINE_TO_BENCHMARK = Map
             .ofEntries(
@@ -49,8 +59,22 @@ public class Main {
                     Map.entry("RocksDBRead", TestRocksDBRead.class),
                     Map.entry("RocksDBSequential", TestRocksDBSequential.class),
                     Map.entry("LevelDB", TestLevelDBWrite.class),
-                    Map.entry("LevelDBRead", TestLevelDBRead.class), Map.entry(
-                            "LevelDBSequential", TestLevelDBSequential.class));
+                    Map.entry("LevelDBRead", TestLevelDBRead.class),
+                    Map.entry("LevelDBSequential", TestLevelDBSequential.class),
+                    Map.entry("HestiaStoreBasic" + MULTITHREAD_READ_SUFFIX,
+                            TestHestiaStoreBasicMultithreadRead.class),
+                    Map.entry("HestiaStoreCompress" + MULTITHREAD_READ_SUFFIX,
+                            TestHestiaStoreCompressMultithreadRead.class),
+                    Map.entry("MapDB" + MULTITHREAD_READ_SUFFIX,
+                            TestMapDBMultithreadRead.class),
+                    Map.entry("H2" + MULTITHREAD_READ_SUFFIX,
+                            TestH2MultithreadRead.class),
+                    Map.entry("ChronicleMap" + MULTITHREAD_READ_SUFFIX,
+                            TestChronicleMapMultithreadRead.class),
+                    Map.entry("RocksDB" + MULTITHREAD_READ_SUFFIX,
+                            TestRocksDBMultithreadRead.class),
+                    Map.entry("LevelDB" + MULTITHREAD_READ_SUFFIX,
+                            TestLevelDBMultithreadRead.class));
 
     /**
      * Main entry that runs the selected JMH benchmark class.
@@ -70,12 +94,21 @@ public class Main {
         }
         final String includePattern = benchmarkClass.getSimpleName();
 
-        final boolean isReadVariant = engine.endsWith("Read");
+        final boolean isMultithreadReadVariant = engine
+                .endsWith(MULTITHREAD_READ_SUFFIX);
+        final boolean isReadVariant = !isMultithreadReadVariant
+                && engine.endsWith("Read");
         final boolean isSequentialVariant = engine.endsWith("Sequential")
                 || engine.endsWith("Sequential2");
         final String engineBase;
         final String resultPrefix;
-        if (isReadVariant) {
+        final int threadCount = resolveThreadCount();
+        if (isMultithreadReadVariant) {
+            engineBase = engine.substring(
+                    0, engine.length() - MULTITHREAD_READ_SUFFIX.length());
+            resultPrefix = "./results/results-multithread-read-" + engineBase
+                    + "-threads" + threadCount;
+        } else if (isReadVariant) {
             engineBase = engine.substring(0, engine.length() - "Read".length());
             resultPrefix = "./results/results-read-" + engineBase;
         } else if (isSequentialVariant) {
@@ -88,13 +121,17 @@ public class Main {
             resultPrefix = "./results/results-write-" + engine;
         }
 
-        final Options opt = new OptionsBuilder()
+        final ChainedOptionsBuilder builder = new OptionsBuilder()
                 .include(".*" + includePattern + "")//
                 .forks(1)//
                 .resultFormat(ResultFormatType.JSON)//
-                .result(resultPrefix + ".json")//
-                .build()//
-        ;
+                .result(resultPrefix + ".json");
+        if (isMultithreadReadVariant) {
+            builder.threads(threadCount);
+            LOGGER.info("Running {} with {} benchmark threads", engine,
+                    threadCount);
+        }
+        final Options opt = builder.build();
 
         for (RunResult results : new Runner(opt).run()) {
             LOGGER.debug(
@@ -129,6 +166,23 @@ public class Main {
         com.sun.management.OperatingSystemMXBean os = (com.sun.management.OperatingSystemMXBean) ManagementFactory
                 .getOperatingSystemMXBean();
         return os.getProcessCpuTime(); // nanoseconds
+    }
+
+    private static int resolveThreadCount() {
+        final String raw = System.getProperty(PROPERTY_BENCHMARK_THREADS, "1");
+        try {
+            final int value = Integer.parseInt(raw);
+            if (value <= 0) {
+                throw new IllegalStateException("Property '"
+                        + PROPERTY_BENCHMARK_THREADS + "' must be > 0");
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException(
+                    "Property '" + PROPERTY_BENCHMARK_THREADS
+                            + "' must be an integer",
+                    e);
+        }
     }
 
     public static void writeAsJson(Object results, String fileName) {

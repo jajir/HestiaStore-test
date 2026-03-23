@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * Common base for simple "plain load" tests that insert many key/value pairs
  * into different storage engines while periodically printing progress.
  */
-abstract class AbstractWriteTest {
+public abstract class AbstractWriteTest {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
