@@ -1,25 +1,18 @@
 # HestiaStore-test
 
-here are some test focusing on more complicated long running tasks. There are maven modules focused on specifics tasks. Some pf test run in separate thread. Because of that builded jar have to created. So before any testing run:
+Here are benchmark-oriented tests focused on longer-running scenarios. The project is now a single Maven module in the repository root, so build from the root before running anything:
 
 ```bash
 mvn clean package
 ```
 
-## integration-test
-
-There are some basic test stiing to forcibly interrupt process of creeating index to verify that index stays consistent.
-
-To run tests, run `GracefulDegradationIT` from IDE.
-
 ## benchmarks
 
 There are comparison of lowlevel functionality like disk IO operatios.
 
-before each test execution build jar with executables in correct project directory:
+Before each test execution build the jar with executables in the project root:
 
 ```bash
-cd benchmarks
 mvn clean package -DskipTests=true
 ```
 
