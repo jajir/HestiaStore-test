@@ -184,9 +184,9 @@ public abstract class AbstractIndexCli {
                 .withMaxNumberOfKeysInSegment((int) maxNumberOfKeysInSegment) //
                 .withMaxNumberOfKeysInSegmentCache(
                         maxNumberOfKeysInSegmentCache) //
-                .withMaxNumberOfKeysInActivePartition(
+                .withMaxNumberOfKeysInSegmentWriteCache(
                         maxNumberOfKeysInSegmentCache / 2) //
-                .withMaxNumberOfKeysInPartitionBuffer(
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
                         maxNumberOfKeysInSegmentCacheDuringFlushing) //
                 .withMaxNumberOfKeysInSegmentChunk(
                         (int) maxNumberOfKeysInSegmentChunk) //

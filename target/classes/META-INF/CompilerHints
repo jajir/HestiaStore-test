@@ -16,6 +16,7 @@ inline,org/hestiastore/index/benchmark/load/IndexWritingBenchmark.setup
 inline,org/hestiastore/index/benchmark/load/IndexWritingBenchmark.tearDown
 inline,org/hestiastore/index/benchmark/load/IndexWritingBenchmark.test_writing
 inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.read
+inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.readThroughput
 inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.setupBenchmark
 inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.tearDownBenchmark
 inline,org/hestiastore/index/benchmark/plainload/TestChronicleMapRead.read

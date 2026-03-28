@@ -98,29 +98,27 @@ String buildMultithreadLatencyReport(List<Map<String, Object>> rows,
     if (rows.isEmpty()) {
         out.append('_No summary rows available._\n\n')
     } else {
-        out.append('| Engine       | Threads | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | ScoreError | Confidence Interval [us/op] | CPU Usage |\n')
-        out.append('|:-------------|--------:|-------------:|------------:|------------:|------------:|-----------:|----------------------------:|---------:|\n')
+        out.append('| Engine       | Threads | Throughput [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | CPU Usage |\n')
+        out.append('|:-------------|--------:|-------------------:|-------------:|------------:|------------:|------------:|---------:|\n')
         rows.each { row ->
             def engine = (row['Engine'] ?: '').toString()
             def threads = (row['Threads'] ?: '').toString()
+            def throughput = (row['Throughput [ops/s]'] ?: '').toString()
             def mean = (row['Mean [us/op]'] ?: '').toString()
             def p50 = (row['p50 [us/op]'] ?: '').toString()
             def p95 = (row['p95 [us/op]'] ?: '').toString()
             def p99 = (row['p99 [us/op]'] ?: '').toString()
-            def error = (row['ScoreError'] ?: '').toString()
-            def ci = (row['Confidence Interval [us/op]'] ?: '').toString()
             def cpuUsage = (row['cpuUsage'] ?: '').toString()
-            out.append("| ${engine.padRight(12)} | ${threads.padLeft(7)} | ${mean.padLeft(12)} | ${p50.padLeft(11)} | ${p95.padLeft(11)} | ${p99.padLeft(11)} | ${error.padLeft(9)} | ${ci.padRight(26)} | ${cpuUsage.padRight(10)} |\n")
+            out.append("| ${engine.padRight(12)} | ${threads.padLeft(7)} | ${throughput.padLeft(18)} | ${mean.padLeft(12)} | ${p50.padLeft(11)} | ${p95.padLeft(11)} | ${p99.padLeft(11)} | ${cpuUsage.padRight(10)} |\n")
         }
         out.append('\n')
     }
     out.append('meaning of columns:\n\n')
     out.append('- Engine: name of the benchmarked engine.\n')
     out.append('- Threads: number of concurrent JMH benchmark threads.\n')
+    out.append('- Throughput [ops/s]: aggregate completed operations per second, higher is better.\n')
     out.append('- Mean [us/op]: average per-operation latency in microseconds, lower is better.\n')
     out.append('- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.\n')
-    out.append('- ScoreError: error margin of the mean latency.\n')
-    out.append('- Confidence Interval [us/op]: 95% confidence interval of the mean latency.\n')
     out.append('- CPU Usage: average CPU usage during the benchmark.\n\n')
     return appendRawFiles(out, rawFiles)
 }

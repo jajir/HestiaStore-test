@@ -108,6 +108,32 @@ def percentileValue = { Map percentiles, String... keys ->
     return null
 }
 
+def findBenchmarkEntry = { List data, List<String> preferredModes,
+        boolean fallbackToFirst = true ->
+    for (String mode : preferredModes) {
+        def entry = data.find { (it['mode'] ?: '').toString() == mode }
+        if (entry != null) {
+            return entry as Map
+        }
+    }
+    return fallbackToFirst && data ? data[0] as Map : null
+}
+
+def buildConfidenceInterval = { Map primary, boolean latency ->
+    List confidence = primary?.get('scoreConfidence') as List
+    if (confidence?.size() != 2) {
+        return ''
+    }
+    Double lo = normalizeNumber(confidence[0])
+    Double hi = normalizeNumber(confidence[1])
+    if (lo == null || hi == null) {
+        return ''
+    }
+    return latency
+            ? "${formatLatency(lo)} .. ${formatLatency(hi)}"
+            : "${formatOpsScore(lo)} .. ${formatOpsScore(hi)}"
+}
+
 def files = []
 Files.newDirectoryStream(resultsDir, 'results-*.json').each { Path file ->
     def name = file.fileName.toString()
@@ -159,21 +185,12 @@ files.each { Path file ->
     if (data.isEmpty()) {
         return
     }
-    def entry = data[0] as Map
-    def primary = entry['primaryMetric'] as Map
+    def entry = findBenchmarkEntry(data, ['thrpt', 'sample', 'avgt'])
+    def primary = entry?.get('primaryMetric') as Map
     Double score = normalizeNumber(primary?.get('score'))
     Double scoreError = normalizeNumber(primary?.get('scoreError'))
-    List confidence = primary?.get('scoreConfidence') as List
-    String confidenceInterval = ''
-    if (confidence?.size() == 2) {
-        Double lo = normalizeNumber(confidence[0])
-        Double hi = normalizeNumber(confidence[1])
-        if (lo != null && hi != null) {
-            confidenceInterval = isMultithreadReadVariant
-                    ? "${formatLatency(lo)} .. ${formatLatency(hi)}"
-                    : "${formatOpsScore(lo)} .. ${formatOpsScore(hi)}"
-        }
-    }
+    String confidenceInterval = buildConfidenceInterval(primary,
+            isMultithreadReadVariant)
 
     Path myVariant = file.parent.resolve(file.fileName.toString().replace('.json', '-my.json'))
     String occupied = ''
@@ -199,14 +216,27 @@ files.each { Path file ->
     }
 
     if (isMultithreadReadVariant) {
-        Map percentiles = primary?.get('scorePercentiles') as Map ?: [:]
+        def latencyEntry = findBenchmarkEntry(data, ['sample', 'avgt'])
+        def throughputEntry = findBenchmarkEntry(data, ['thrpt'], false)
+        Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
+        Map throughputPrimary = throughputEntry?.get('primaryMetric') as Map ?: [:]
+        Map percentiles = latencyPrimary?.get('scorePercentiles') as Map ?: [:]
         rows << [
                 'Engine': engine,
                 'Variant': scenario,
                 'Threads': threads,
-                'Mean [us/op]': formatLatency(score),
-                'ScoreError': formatLatency(scoreError),
-                'Confidence Interval [us/op]': confidenceInterval,
+                'Throughput [ops/s]': formatOpsScore(
+                        normalizeNumber(throughputPrimary?.get('score'))),
+                'Throughput Error [ops/s]': formatOpsScore(
+                        normalizeNumber(throughputPrimary?.get('scoreError'))),
+                'Throughput Confidence Interval [ops/s]': buildConfidenceInterval(
+                        throughputPrimary, false),
+                'Mean [us/op]': formatLatency(
+                        normalizeNumber(latencyPrimary?.get('score'))),
+                'Latency Error [us/op]': formatLatency(
+                        normalizeNumber(latencyPrimary?.get('scoreError'))),
+                'Confidence Interval [us/op]': buildConfidenceInterval(
+                        latencyPrimary, true),
                 'p50 [us/op]': formatLatency(percentileValue(percentiles, '50.0', '50')),
                 'p95 [us/op]': formatLatency(percentileValue(percentiles, '95.0', '95')),
                 'p99 [us/op]': formatLatency(percentileValue(percentiles, '99.0', '99')),

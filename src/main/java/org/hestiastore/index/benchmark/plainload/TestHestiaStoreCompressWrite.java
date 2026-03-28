@@ -62,11 +62,11 @@ public class TestHestiaStoreCompressWrite extends AbstractWriteTest {
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
                 .withIndexWorkerThreadCount(10)//
-                .withNumberOfStableSegmentMaintenanceThreads(10)//
+                .withNumberOfSegmentIndexMaintenanceThreads(10)//
                 .withMaxNumberOfKeysInSegment(10_000_000)//
                 .withMaxNumberOfKeysInSegmentCache(1_000_000)//
-                .withMaxNumberOfKeysInActivePartition(300_000)//
-                .withMaxNumberOfKeysInPartitionBuffer(
+                .withMaxNumberOfKeysInSegmentWriteCache(300_000)//
+                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
                         600_000) //
                 // .withIndexBusyTimeoutMillis(1000 * 60)//
                 .withMaxNumberOfSegmentsInCache(10)//

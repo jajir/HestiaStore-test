@@ -16,11 +16,11 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 
 /**
- * Shared base for multithread read-latency benchmarks.
+ * Shared base for multithread read benchmarks.
  *
- * SampleTime mode is intentional here because it lets JMH emit percentile
- * distributions, which are more informative for engine comparison under
- * contention than aggregate throughput alone.
+ * The suite intentionally exposes the same read operation through both
+ * SampleTime and Throughput modes so the console and JMH JSON capture latency
+ * distributions and aggregate ops/s in the same run.
  */
 public abstract class AbstractMultithreadReadBenchmark
         extends AbstractWriteTest {
@@ -39,6 +39,19 @@ public abstract class AbstractMultithreadReadBenchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
     public final String read() throws Exception {
+        return performRead();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
+    public final String readThroughput() throws Exception {
+        return performRead();
+    }
+
+    private String performRead() throws Exception {
         final String key = pickReadKey();
         final String value = readValue(key);
         return value != null ? value : key;
