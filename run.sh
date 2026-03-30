@@ -180,49 +180,66 @@ run() {
 }
 
 # Write benchmarks
-#run H2
-#run MapDB
-#run HestiaStoreBasic
-#run HestiaStoreCompressWrite
-#run ChronicleMap
-#run RocksDB
-#run LevelDB
+write_benchmarks(){
+    run H2
+    run MapDB
+    run HestiaStoreBasic
+    run HestiaStoreCompressWrite
+    run ChronicleMap
+    run RocksDB
+    run LevelDB
+}
 
 # Read benchmarks
-#run H2Read
-#run MapDBRead
-#run HestiaStoreBasicRead
-#run HestiaStoreCompressRead
-#run ChronicleMapRead
-#run RocksDBRead
-#run LevelDBRead
+read_benchmarks(){
+    run H2Read
+    run MapDBRead
+    run HestiaStoreBasicRead
+    run HestiaStoreCompressRead
+    run ChronicleMapRead
+    run RocksDBRead
+    run LevelDBRead
+}
 
 # Sequential read benchmarks
-#run H2Sequential
-#run MapDBSequential
-#run HestiaStoreBasicSequential
-#run HestiaStoreCompressSequential
-#run HestiaStoreCompressSequential2
-#run ChronicleMapSequential
-#run RocksDBSequential
-#run LevelDBSequential
+sequential_benchmarks(){
+    run H2Sequential
+    run MapDBSequential
+    run HestiaStoreBasicSequential
+    run HestiaStoreCompressSequential
+    run HestiaStoreCompressSequential2
+    run ChronicleMapSequential
+    run RocksDBSequential
+    run LevelDBSequential
+}
 
 # Multithread read latency benchmarks with percentile output in JMH JSON.
 # Default thread count is 4 for this section.
-run HestiaStoreBasicMultithreadRead 4
-#run HestiaStoreCompressMultithreadRead 4
-#run H2MultithreadRead 4
-#run MapDBMultithreadRead 4
-#run ChronicleMapMultithreadRead 4
-#run RocksDBMultithreadRead 4
-#run LevelDBMultithreadRead 4
+multithread_read_benchmarks(){
+    run HestiaStoreBasicMultithreadRead 4
+    run HestiaStoreCompressMultithreadRead 4
+    run H2MultithreadRead 4
+    run MapDBMultithreadRead 4
+    run ChronicleMapMultithreadRead 4
+    run RocksDBMultithreadRead 4
+    run LevelDBMultithreadRead 4
+}
 
 # Multithread write latency benchmarks with percentile output in JMH JSON.
 # Default thread count is 4 for this section.
-#run HestiaStoreBasicMultithreadWrite 4
-run HestiaStoreCompressMultithreadWrite 4
-#run H2MultithreadWrite 4
-#run MapDBMultithreadWrite 4
-#run ChronicleMapMultithreadWrite 4
-#run RocksDBMultithreadWrite 4
-#run LevelDBMultithreadWrite 4
+multithread_write_benchmarks(){
+    run HestiaStoreBasicMultithreadWrite 4
+    run HestiaStoreCompressMultithreadWrite 4
+    run H2MultithreadWrite 4
+    run MapDBMultithreadWrite 4
+    run ChronicleMapMultithreadWrite 4
+    run RocksDBMultithreadWrite 4
+    run LevelDBMultithreadWrite 4
+}
+
+read_benchmarks
+write_benchmarks
+sequential_benchmarks
+#multithread_read_benchmarks
+#multithread_write_benchmarks
+
