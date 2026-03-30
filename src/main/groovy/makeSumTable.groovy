@@ -38,6 +38,8 @@ if (resultsDir == null) {
 Path writeTable = resultsDir.resolve("out-write-table.json")
 Path readTable = resultsDir.resolve("out-read-table.json")
 Path sequentialTable = resultsDir.resolve("out-sequential-table.json")
+Path multithreadReadTable = resultsDir.resolve("out-multithread-read-table.json")
+Path multithreadWriteTable = resultsDir.resolve("out-multithread-write-table.json")
 
 ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 List<Map<String, Object>> writeRows = Files.exists(writeTable)
@@ -49,8 +51,15 @@ List<Map<String, Object>> readRows = Files.exists(readTable)
 List<Map<String, Object>> sequentialRows = Files.exists(sequentialTable)
         ? mapper.readValue(sequentialTable.toFile(), List)
         : []
+List<Map<String, Object>> multithreadReadRows = Files.exists(multithreadReadTable)
+        ? mapper.readValue(multithreadReadTable.toFile(), List)
+        : []
+List<Map<String, Object>> multithreadWriteRows = Files.exists(multithreadWriteTable)
+        ? mapper.readValue(multithreadWriteTable.toFile(), List)
+        : []
 
-if (writeRows.isEmpty() && readRows.isEmpty() && sequentialRows.isEmpty()) {
+if (writeRows.isEmpty() && readRows.isEmpty() && sequentialRows.isEmpty()
+        && multithreadReadRows.isEmpty() && multithreadWriteRows.isEmpty()) {
     System.err.println("No summary JSON files found in ${resultsDir}")
     System.exit(1)
 }
@@ -69,9 +78,29 @@ def buildMarkdown = { List<Map<String, Object>> rows ->
     return markdown.toString()
 }
 
+def buildMultithreadMarkdown = { List<Map<String, Object>> rows ->
+    StringBuilder markdown = new StringBuilder()
+    markdown.append("| Engine | Threads | Throughput [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | CPU Usage |\n")
+    markdown.append("|:-------|--------:|-------------------:|-------------:|------------:|------------:|------------:|----------:|\n")
+    rows.each { row ->
+        String engine = (row["Engine"] ?: "").toString()
+        String threads = (row["Threads"] ?: "").toString()
+        String throughput = (row["Throughput [ops/s]"] ?: "").toString()
+        String mean = (row["Mean [us/op]"] ?: "").toString()
+        String p50 = (row["p50 [us/op]"] ?: "").toString()
+        String p95 = (row["p95 [us/op]"] ?: "").toString()
+        String p99 = (row["p99 [us/op]"] ?: "").toString()
+        String cpuUsage = (row["cpuUsage"] ?: "").toString()
+        markdown.append("| ${engine} | ${threads} | ${throughput} | ${mean} | ${p50} | ${p95} | ${p99} | ${cpuUsage} |\n")
+    }
+    return markdown.toString()
+}
+
 Path writeOutput = resultsDir.resolve("out-write-table.md")
 Path readOutput = resultsDir.resolve("out-read-table.md")
 Path sequentialOutput = resultsDir.resolve("out-sequential-table.md")
+Path multithreadReadOutput = resultsDir.resolve("out-multithread-read-table.md")
+Path multithreadWriteOutput = resultsDir.resolve("out-multithread-write-table.md")
 
 if (!writeRows.isEmpty()) {
     Files.writeString(writeOutput, buildMarkdown(writeRows))
@@ -92,4 +121,20 @@ if (!sequentialRows.isEmpty()) {
     println("Wrote ${sequentialOutput}")
 } else if (Files.exists(sequentialOutput)) {
     Files.delete(sequentialOutput)
+}
+
+if (!multithreadReadRows.isEmpty()) {
+    Files.writeString(multithreadReadOutput,
+            buildMultithreadMarkdown(multithreadReadRows))
+    println("Wrote ${multithreadReadOutput}")
+} else if (Files.exists(multithreadReadOutput)) {
+    Files.delete(multithreadReadOutput)
+}
+
+if (!multithreadWriteRows.isEmpty()) {
+    Files.writeString(multithreadWriteOutput,
+            buildMultithreadMarkdown(multithreadWriteRows))
+    println("Wrote ${multithreadWriteOutput}")
+} else if (Files.exists(multithreadWriteOutput)) {
+    Files.delete(multithreadWriteOutput)
 }

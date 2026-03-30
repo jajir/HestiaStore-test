@@ -5,41 +5,107 @@ import groovy.xml.MarkupBuilder
 import java.util.Locale
 
 File baseDir = new File(System.getProperty('user.dir'))
-File writeFile = new File(baseDir, 'results/out-write-table.json')
-File readFile = new File(baseDir, 'results/out-read-table.json')
-File sequentialFile = new File(baseDir, 'results/out-sequential-table.json')
-
 def datasets = []
 def slurper = new JsonSlurper()
 
-if (writeFile.exists()) {
-    def rows = slurper.parse(writeFile) as List
-    if (!rows.isEmpty()) {
-        datasets << [rows: rows, output: new File(baseDir, 'results/out-write.svg')]
-    }
-}
-if (readFile.exists()) {
-    def rows = slurper.parse(readFile) as List
-    if (!rows.isEmpty()) {
-        datasets << [rows: rows, output: new File(baseDir, 'results/out-read.svg')]
-    }
-}
-if (sequentialFile.exists()) {
-    def rows = slurper.parse(sequentialFile) as List
-    if (!rows.isEmpty()) {
-        datasets << [rows: rows, output: new File(baseDir, 'results/out-sequential.svg')]
+def datasetConfigs = [
+        [
+                input: new File(baseDir, 'results/out-write-table.json'),
+                output: new File(baseDir, 'results/out-write.svg'),
+                valueKey: 'Score [ops/s]',
+                labelSuffix: ''
+        ],
+        [
+                input: new File(baseDir, 'results/out-read-table.json'),
+                output: new File(baseDir, 'results/out-read.svg'),
+                valueKey: 'Score [ops/s]',
+                labelSuffix: ''
+        ],
+        [
+                input: new File(baseDir, 'results/out-sequential-table.json'),
+                output: new File(baseDir, 'results/out-sequential.svg'),
+                valueKey: 'Score [ops/s]',
+                labelSuffix: ''
+        ],
+        [
+                input: new File(baseDir,
+                        'results/out-multithread-read-table.json'),
+                output: new File(baseDir, 'results/out-multithread-read.svg'),
+                valueKey: 'Throughput [ops/s]',
+                labelSuffix: ' ops/s'
+        ],
+        [
+                input: new File(baseDir,
+                        'results/out-multithread-write-table.json'),
+                output: new File(baseDir, 'results/out-multithread-write.svg'),
+                valueKey: 'Throughput [ops/s]',
+                labelSuffix: ' ops/s'
+        ]
+]
+
+datasetConfigs.each { config ->
+    File inputFile = config.input as File
+    if (inputFile.exists()) {
+        def rows = slurper.parse(inputFile) as List
+        if (!rows.isEmpty()) {
+            datasets << [
+                    rows: rows,
+                    output: config.output,
+                    valueKey: config.valueKey,
+                    labelSuffix: config.labelSuffix
+            ]
+        }
     }
 }
 
 if (datasets.isEmpty()) {
-    System.err.println "No summary files found. Expected ${writeFile.name}, ${readFile.name} or ${sequentialFile.name} in results/."
-    System.exit(1)
+    println "No benchmark summary files found in results/. Skipping SVG generation."
+    System.exit(0)
 }
 
 def palette = [
         '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
         '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC'
 ]
+
+def canonicalEngineName = { String engine ->
+    String value = engine?.trim()
+    if (!value) {
+        return 'Unknown'
+    }
+    if (value.startsWith('HestiaStoreBasic')) {
+        return 'HestiaStoreBasic'
+    }
+    if (value.startsWith('HestiaStoreCompress')) {
+        return 'HestiaStoreCompress'
+    }
+    if (value.startsWith('HestiaStoreStream')) {
+        return 'HestiaStoreStream'
+    }
+    return value
+}
+
+def fixedEngineColors = [
+        ChronicleMap      : '#4E79A7',
+        H2                : '#F28E2B',
+        HestiaStoreBasic  : '#E15759',
+        HestiaStoreCompress: '#76B7B2',
+        HestiaStoreStream : '#59A14F',
+        LevelDB           : '#EDC948',
+        MapDB             : '#B07AA1',
+        RocksDB           : '#FF9DA7',
+        Unknown           : '#9C755F'
+]
+
+def fallbackColorFor = { String engine ->
+    int index = Math.floorMod(engine.hashCode(), palette.size())
+    palette[index]
+}
+
+def colorForEngine = { String engine ->
+    String canonical = canonicalEngineName(engine)
+    fixedEngineColors[canonical] ?: fallbackColorFor(canonical)
+}
 
 def darker = { String hex ->
     int rgb = Integer.parseInt(hex.substring(1), 16)
@@ -52,12 +118,13 @@ def darker = { String hex ->
     String.format('#%02X%02X%02X', r, g, b)
 }
 
-def renderChart = { List data, File outputFile ->
+def renderChart = { List data, File outputFile, String valueKey,
+        String labelSuffix ->
     if (data.isEmpty()) {
         return
     }
     def processed = data.collect { row ->
-        def rawScore = row['Score [ops/s]']?.toString()?.replaceAll('[^0-9.]', '')
+        def rawScore = row[valueKey]?.toString()?.replaceAll('[^0-9.]', '')
         long scoreValue = rawScore ? rawScore.toLong() : 0L
         [engine: row.Engine?.toString() ?: 'Unknown', score: scoreValue]
     }
@@ -98,12 +165,13 @@ def renderChart = { List data, File outputFile ->
 
             text(item.engine, class: 'label', x: engineLeftMargin, y: rowCenter)
 
-            String barColor = palette[idx % palette.size()]
+            String barColor = colorForEngine(item.engine)
             rect(x: barX, y: barY, width: barWidth, height: barHeight,
                     rx: 6, ry: 6, fill: barColor, stroke: darker(barColor),
                     'stroke-width': 2)
 
-            String formattedScore = String.format(Locale.US, '%,d ops/s', item.score)
+            String formattedScore = String.format(Locale.US, '%,d%s',
+                    item.score, labelSuffix)
             text(formattedScore, class: 'value', x: barX + barWidth + 16, y: rowCenter)
         }
     }
@@ -114,5 +182,6 @@ def renderChart = { List data, File outputFile ->
 }
 
 datasets.each { dataset ->
-    renderChart(dataset.rows as List, dataset.output as File)
+    renderChart(dataset.rows as List, dataset.output as File,
+            dataset.valueKey as String, dataset.labelSuffix as String)
 }

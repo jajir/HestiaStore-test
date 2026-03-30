@@ -24,42 +24,16 @@ Path rootDir = findProjectRoot(cwd)
 Path resultsDir = rootDir.resolve('results')
 ObjectMapper mapper = new ObjectMapper()
 
-List<Path> jsonFiles = []
-if (Files.exists(resultsDir)) {
-    try {
-        Files.newDirectoryStream(resultsDir, 'results-*.json').each { jsonFiles << it }
-    } catch (ignored) {
-        Files.list(resultsDir).filter {
-            it.fileName.toString().startsWith('results-') && it.fileName.toString().endsWith('.json')
-        }.forEach { jsonFiles << it }
-    }
-}
-jsonFiles.sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
-
 String readConditions(Path path) {
     return Files.exists(path)
             ? new String(Files.readAllBytes(path), StandardCharsets.UTF_8) + '\n\n'
             : ''
 }
 
-String appendRawFiles(StringBuilder out, List<Path> rawFiles) {
-    out.append('## Raw JSON Files\n')
-    rawFiles.each { Path file ->
-        out.append('\n### ').append(file.fileName.toString()).append('\n\n')
-        out.append('```json\n')
-                .append(new String(Files.readAllBytes(file), StandardCharsets.UTF_8))
-                .append('\n```\n')
-    }
-    return out.toString()
-}
-
 String buildThroughputReport(List<Map<String, Object>> rows, Path conditionsPath,
-        List<Path> rawFiles, String titleSuffix) {
+        String titleSuffix) {
     StringBuilder out = new StringBuilder()
-    out.append('# HestiaStore Benchmark Results\n\n')
-    if (titleSuffix) {
-        out.append("## ${titleSuffix}\n\n")
-    }
+    out.append("# HestiaStore Benchmark for '${titleSuffix}' operations\n\n")    
     out.append(readConditions(conditionsPath))
     out.append('## Benchmark Results\n\n')
     if (rows.isEmpty()) {
@@ -85,11 +59,11 @@ String buildThroughputReport(List<Map<String, Object>> rows, Path conditionsPath
     out.append('- Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.\n')
     out.append('- Occupied space: amount of disk space occupied by the engine data.\n')
     out.append('- CPU Usage: average CPU usage during the benchmark.\n\n')
-    return appendRawFiles(out, rawFiles)
+    return out.toString()
 }
 
 String buildMultithreadLatencyReport(List<Map<String, Object>> rows,
-        Path conditionsPath, List<Path> rawFiles, String title) {
+        Path conditionsPath, String title) {
     StringBuilder out = new StringBuilder()
     out.append('# HestiaStore Benchmark Results\n\n')
     out.append("## ${title}\n\n")
@@ -120,17 +94,8 @@ String buildMultithreadLatencyReport(List<Map<String, Object>> rows,
     out.append('- Mean [us/op]: average per-operation latency in microseconds, lower is better.\n')
     out.append('- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.\n')
     out.append('- CPU Usage: average CPU usage during the benchmark.\n\n')
-    return appendRawFiles(out, rawFiles)
+    return out.toString()
 }
-
-List<Path> writeRaw = jsonFiles.findAll { it.fileName.toString().contains('results-write-') }
-List<Path> readRaw = jsonFiles.findAll {
-    it.fileName.toString().contains('results-read-') &&
-            !it.fileName.toString().contains('results-multithread-read-')
-}
-List<Path> sequentialRaw = jsonFiles.findAll { it.fileName.toString().contains('results-sequential-') }
-List<Path> multithreadReadRaw = jsonFiles.findAll { it.fileName.toString().contains('results-multithread-read-') }
-List<Path> multithreadWriteRaw = jsonFiles.findAll { it.fileName.toString().contains('results-multithread-write-') }
 
 List<Map<String, Object>> writeRows = []
 List<Map<String, Object>> readRows = []
@@ -165,28 +130,28 @@ Path multithreadReadOutput = resultsDir.resolve('out-multithread-read.md')
 Path multithreadWriteOutput = resultsDir.resolve('out-multithread-write.md')
 Files.writeString(writeOutput,
         buildThroughputReport(writeRows,
-                resultsDir.resolve('out-write-test-conditions.md'), writeRaw,
+                resultsDir.resolve('out-write-test-conditions.md'),
                 'Write'),
         StandardCharsets.UTF_8)
 Files.writeString(readOutput,
         buildThroughputReport(readRows,
-                resultsDir.resolve('out-read-test-conditions.md'), readRaw,
+                resultsDir.resolve('out-read-test-conditions.md'),
                 'Read'),
         StandardCharsets.UTF_8)
 Files.writeString(sequentialOutput,
         buildThroughputReport(sequentialRows,
                 resultsDir.resolve('out-sequential-test-conditions.md'),
-                sequentialRaw, 'Sequential Read'),
+                'Sequential Read'),
         StandardCharsets.UTF_8)
 Files.writeString(multithreadReadOutput,
         buildMultithreadLatencyReport(multithreadReadRows,
                 resultsDir.resolve('out-multithread-read-test-conditions.md'),
-                multithreadReadRaw, 'Multithread Read Latency'),
+                'Multithread Read Latency'),
         StandardCharsets.UTF_8)
 Files.writeString(multithreadWriteOutput,
         buildMultithreadLatencyReport(multithreadWriteRows,
                 resultsDir.resolve('out-multithread-write-test-conditions.md'),
-                multithreadWriteRaw, 'Multithread Write Latency'),
+                'Multithread Write Latency'),
         StandardCharsets.UTF_8)
 
 println "Wrote ${writeOutput}"

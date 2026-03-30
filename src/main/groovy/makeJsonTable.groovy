@@ -194,11 +194,27 @@ files.each { Path file ->
                                     : 'Write')))
     String engine = engineBase
 
-    def data = mapper.readValue(Files.readAllBytes(file), List)
+    byte[] rawBytes = Files.readAllBytes(file)
+    if (rawBytes.length == 0) {
+        System.err.println("Skipping empty result file: ${file.fileName}")
+        return
+    }
+
+    List data
+    try {
+        data = mapper.readValue(rawBytes, List)
+    } catch (Exception e) {
+        System.err.println("Skipping unreadable result file ${file.fileName}: ${e.message}")
+        return
+    }
     if (data.isEmpty()) {
         return
     }
     def entry = findBenchmarkEntry(data, ['thrpt', 'sample', 'avgt'])
+    if (entry == null) {
+        System.err.println("Skipping result file without a usable benchmark entry: ${file.fileName}")
+        return
+    }
     def primary = entry?.get('primaryMetric') as Map
     Double score = normalizeNumber(primary?.get('score'))
     Double scoreError = normalizeNumber(primary?.get('scoreError'))
@@ -209,20 +225,29 @@ files.each { Path file ->
     String usedMemoryStr = ''
     String cpuUsageStr = ''
     if (Files.exists(myVariant)) {
-        def extra = mapper.readValue(Files.readAllBytes(myVariant), Map)
-        Double totalSize = normalizeNumber(extra?.get('totalDirectorySize') ?: extra?.get('totalSize'))
-        if (totalSize != null) {
-            occupied = humanReadableSize(totalSize.longValue())
-        }
-        Double usedMemory = normalizeNumber(extra?.get('usedMemoryBytes'))
-        if (usedMemory != null) {
-            usedMemoryStr = humanReadableSize(usedMemory.longValue())
-        }
-        Double cpuUsage = normalizeNumber(extra?.get('cpuUsage'))
-        if (cpuUsage != null) {
-            cpuUsageStr = percentFormat.format(cpuUsage * 100d)
-            if (!cpuUsageStr.isEmpty()) {
-                cpuUsageStr = cpuUsageStr + '%'
+        byte[] extraBytes = Files.readAllBytes(myVariant)
+        if (extraBytes.length == 0) {
+            System.err.println("Skipping empty metadata file: ${myVariant.fileName}")
+        } else {
+            try {
+                def extra = mapper.readValue(extraBytes, Map)
+                Double totalSize = normalizeNumber(extra?.get('totalDirectorySize') ?: extra?.get('totalSize'))
+                if (totalSize != null) {
+                    occupied = humanReadableSize(totalSize.longValue())
+                }
+                Double usedMemory = normalizeNumber(extra?.get('usedMemoryBytes'))
+                if (usedMemory != null) {
+                    usedMemoryStr = humanReadableSize(usedMemory.longValue())
+                }
+                Double cpuUsage = normalizeNumber(extra?.get('cpuUsage'))
+                if (cpuUsage != null) {
+                    cpuUsageStr = percentFormat.format(cpuUsage * 100d)
+                    if (!cpuUsageStr.isEmpty()) {
+                        cpuUsageStr = cpuUsageStr + '%'
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Skipping unreadable metadata file ${myVariant.fileName}: ${e.message}")
             }
         }
     }

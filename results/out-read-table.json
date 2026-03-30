@@ -1,12 +1,12 @@
 [ {
   "Engine" : "ChronicleMap",
   "Variant" : "Read",
-  "Score [ops/s]" : "1 682 003",
-  "ScoreError" : "292 058",
-  "Confidence Interval [ops/s]" : "1 389 944 .. 1 974 061",
+  "Score [ops/s]" : "1 981 013",
+  "ScoreError" : "23 056",
+  "Confidence Interval [ops/s]" : "1 957 958 .. 2 004 069",
   "Occupied space" : "2.03 GB",
-  "usedMemoryBytes" : "30.76 MB",
-  "cpuUsage" : "13%"
+  "usedMemoryBytes" : "21.83 MB",
+  "cpuUsage" : "29%"
 }, {
   "Engine" : "H2",
   "Variant" : "Read",
@@ -19,12 +19,12 @@
 }, {
   "Engine" : "HestiaStoreBasic",
   "Variant" : "Read",
-  "Score [ops/s]" : "669",
-  "ScoreError" : "41",
-  "Confidence Interval [ops/s]" : "628 .. 710",
+  "Score [ops/s]" : "818",
+  "ScoreError" : "6",
+  "Confidence Interval [ops/s]" : "812 .. 824",
   "Occupied space" : "507.94 MB",
-  "usedMemoryBytes" : "30 MB",
-  "cpuUsage" : "11%"
+  "usedMemoryBytes" : "19.8 MB",
+  "cpuUsage" : "20%"
 }, {
   "Engine" : "HestiaStoreCompress",
   "Variant" : "Read",
