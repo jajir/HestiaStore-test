@@ -209,7 +209,7 @@ run() {
 
 # Multithread read latency benchmarks with percentile output in JMH JSON.
 # Default thread count is 4 for this section.
-#run HestiaStoreBasicMultithreadRead 4
+run HestiaStoreBasicMultithreadRead 4
 #run HestiaStoreCompressMultithreadRead 4
 #run H2MultithreadRead 4
 #run MapDBMultithreadRead 4
@@ -220,9 +220,9 @@ run() {
 # Multithread write latency benchmarks with percentile output in JMH JSON.
 # Default thread count is 4 for this section.
 #run HestiaStoreBasicMultithreadWrite 4
-#run HestiaStoreCompressMultithreadWrite 4
-run H2MultithreadWrite 4
-run MapDBMultithreadWrite 4
-run ChronicleMapMultithreadWrite 4
-run RocksDBMultithreadWrite 4
-run LevelDBMultithreadWrite 4
+run HestiaStoreCompressMultithreadWrite 4
+#run H2MultithreadWrite 4
+#run MapDBMultithreadWrite 4
+#run ChronicleMapMultithreadWrite 4
+#run RocksDBMultithreadWrite 4
+#run LevelDBMultithreadWrite 4
