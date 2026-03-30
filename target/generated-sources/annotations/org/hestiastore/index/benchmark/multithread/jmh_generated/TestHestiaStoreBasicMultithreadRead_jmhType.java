@@ -1,4 +1,0 @@
-package org.hestiastore.index.benchmark.multithread.jmh_generated;
-public class TestHestiaStoreBasicMultithreadRead_jmhType extends TestHestiaStoreBasicMultithreadRead_jmhType_B3 {
-}
-

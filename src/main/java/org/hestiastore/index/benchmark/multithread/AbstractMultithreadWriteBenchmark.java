@@ -34,15 +34,6 @@ public abstract class AbstractMultithreadWriteBenchmark
         return performWrite();
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public final String writeThroughput() throws Exception {
-        return performWrite();
-    }
-
     @Setup(Level.Trial)
     public final void setupBenchmark() throws Exception {
         final File directory = prepareDirectory();

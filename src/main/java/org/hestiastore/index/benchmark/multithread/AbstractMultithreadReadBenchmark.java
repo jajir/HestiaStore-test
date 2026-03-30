@@ -42,15 +42,6 @@ public abstract class AbstractMultithreadReadBenchmark
         return performRead();
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public final String readThroughput() throws Exception {
-        return performRead();
-    }
-
     private String performRead() throws Exception {
         final String key = pickReadKey();
         final String value = readValue(key);
@@ -61,8 +52,8 @@ public abstract class AbstractMultithreadReadBenchmark
     public final void setupBenchmark() throws Exception {
         preloadEntryCount = Long.getLong(PROPERTY_PRELOAD_ENTRY_COUNT,
                 DEFAULT_PRELOAD_ENTRY_COUNT);
-        missProbability = Double.parseDouble(
-                System.getProperty(PROPERTY_MISS_PROBABILITY,
+        missProbability = Double
+                .parseDouble(System.getProperty(PROPERTY_MISS_PROBABILITY,
                         Double.toString(DEFAULT_MISS_PROBABILITY)));
         validateConfiguration();
 
@@ -103,14 +94,12 @@ public abstract class AbstractMultithreadReadBenchmark
 
     private void validateConfiguration() {
         if (preloadEntryCount <= 0) {
-            throw new IllegalStateException(
-                    "Property '" + PROPERTY_PRELOAD_ENTRY_COUNT
-                            + "' must be > 0");
+            throw new IllegalStateException("Property '"
+                    + PROPERTY_PRELOAD_ENTRY_COUNT + "' must be > 0");
         }
         if (missProbability < 0d || missProbability > 1d) {
-            throw new IllegalStateException(
-                    "Property '" + PROPERTY_MISS_PROBABILITY
-                            + "' must be between 0 and 1");
+            throw new IllegalStateException("Property '"
+                    + PROPERTY_MISS_PROBABILITY + "' must be between 0 and 1");
         }
     }
 
