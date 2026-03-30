@@ -4,20 +4,73 @@
 #
 set -euo pipefail
 
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 BENCHMARK_DIR="${BENCHMARK_DIR:-/Volumes/ponrava/test-index}"
 BENCHMARK_PRELOAD_ENTRY_COUNT="${BENCHMARK_PRELOAD_ENTRY_COUNT:-10000000}"
 BENCHMARK_MISS_PROBABILITY="${BENCHMARK_MISS_PROBABILITY:-0.2}"
 YOURKIT_AGENT="${YOURKIT_AGENT:-}"
 PROFILE="${PROFILE:-}"
+GENERATE_REPORTS="${GENERATE_REPORTS:-}"
 
 usage() {
   echo "Usage: ./run.sh [--profile] [--yourkit-agent PATH]"
+  echo "       ./run.sh --reports"
+  echo
+  echo "This script runs the benchmarks enabled near the bottom of run.sh."
+  echo "Raw JMH output is written into ./results/results-*.json and ./results/results-*-my.json."
+  echo
+  echo "Environment:"
+  echo "  BENCHMARK_DIR                  Working directory used by the benchmark engines."
+  echo "                                 Default: ${BENCHMARK_DIR}"
+  echo "  BENCHMARK_PRELOAD_ENTRY_COUNT  Preloaded entry count for multithread read tests."
+  echo "                                 Default: ${BENCHMARK_PRELOAD_ENTRY_COUNT}"
+  echo "  BENCHMARK_MISS_PROBABILITY     Miss ratio for multithread read tests."
+  echo "                                 Default: ${BENCHMARK_MISS_PROBABILITY}"
+  echo "  PROFILE                        Set to 1 to enable YourKit profiling."
+  echo "  YOURKIT_AGENT                  Explicit path to libyjpagent."
+  echo
+  echo "Report generation:"
+  echo "  ./makeJsonTable.sh"
+  echo "  ./makeSumTable.sh"
+  echo "  ./makeGraph.sh"
+  echo "  ./makeMarkDown.sh"
+  echo
+  echo "Shortcut:"
+  echo "  ./run.sh --reports"
+  echo
+  echo "Report outputs:"
+  echo "  results/out-*-table.json              Normalized summary data"
+  echo "  results/out-*.md                      Detailed Markdown reports"
+  echo "  results/out-*-table.md                Compact Markdown tables"
+  echo "  results/out-*.svg                     SVG charts when throughput tables exist"
+  echo "  results/benchmark-results.md          Landing page listing generated reports"
   echo
   echo "Examples:"
   echo "  ./run.sh"
   echo "  ./run.sh --profile"
   echo "  ./run.sh --profile --yourkit-agent /Applications/YourKit-Java-Profiler-2024.9.app/Contents/Resources/bin/mac/libyjpagent.dylib"
+  echo "  BENCHMARK_DIR=/tmp/hestia-bench ./run.sh"
+  echo "  ./run.sh --reports"
   echo "  PROFILE=1 ./run.sh"
+}
+
+require_groovy() {
+  if ! command -v groovy >/dev/null 2>&1; then
+    echo "Groovy is required for report generation." >&2
+    exit 1
+  fi
+}
+
+generate_reports() {
+  require_groovy
+  (
+    cd "${PROJECT_ROOT}"
+    ./makeJsonTable.sh
+    ./makeSumTable.sh
+    ./makeGraph.sh
+    ./makeMarkDown.sh
+  )
 }
 
 resolve_default_yourkit_agent() {
@@ -52,6 +105,10 @@ while [[ $# -gt 0 ]]; do
       YOURKIT_AGENT="$2"
       shift 2
       ;;
+    --reports)
+      GENERATE_REPORTS=1
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -63,6 +120,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ -n "${GENERATE_REPORTS}" ]]; then
+  generate_reports
+  exit 0
+fi
 
 if [[ -z "${YOURKIT_AGENT}" ]]; then
   YOURKIT_AGENT="$(resolve_default_yourkit_agent || true)"

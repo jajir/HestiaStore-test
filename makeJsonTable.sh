@@ -1,3 +1,7 @@
 #!/bin/bash
-	
-./src/main/groovy/makeJsonTable.groovy
+
+set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+groovy "${PROJECT_ROOT}/src/main/groovy/makeJsonTable.groovy"

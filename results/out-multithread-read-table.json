@@ -1,0 +1,211 @@
+[ {
+  "Engine" : "ChronicleMap",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "3 576 111",
+  "Throughput Error [ops/s]" : "36 163",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "3 539 948", "3 612 275" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MyA1MzkgOTQ4IC4uIDMgNjEyIDI3NQ=="
+  },
+  "Mean [us/op]" : "1.23",
+  "Latency Error [us/op]" : "0.101",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "1.129", "1.331" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MS4xMjkgLi4gMS4zMzE="
+  },
+  "p50 [us/op]" : "0.791",
+  "p95 [us/op]" : "1.832",
+  "p99 [us/op]" : "11.152",
+  "Occupied space" : "2.03 GB",
+  "usedMemoryBytes" : "183.8 MB",
+  "cpuUsage" : "13%"
+}, {
+  "Engine" : "H2",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "2 697 310",
+  "Throughput Error [ops/s]" : "133 513",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "2 563 797", "2 830 823" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MiA1NjMgNzk3IC4uIDIgODMwIDgyMw=="
+  },
+  "Mean [us/op]" : "1.588",
+  "Latency Error [us/op]" : "0.232",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "1.356", "1.82" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MS4zNTYgLi4gMS44Mg=="
+  },
+  "p50 [us/op]" : "1.334",
+  "p95 [us/op]" : "2",
+  "p99 [us/op]" : "3.208",
+  "Occupied space" : "8 KB",
+  "usedMemoryBytes" : "145.62 MB",
+  "cpuUsage" : "13%"
+}, {
+  "Engine" : "HestiaStoreBasic",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "18 406",
+  "Throughput Error [ops/s]" : "1 389",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "17 017", "19 795" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MTcgMDE3IC4uIDE5IDc5NQ=="
+  },
+  "Mean [us/op]" : "223.809",
+  "Latency Error [us/op]" : "1.788",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "222.02", "225.597" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MjIyLjAyIC4uIDIyNS41OTc="
+  },
+  "p50 [us/op]" : "252.928",
+  "p95 [us/op]" : "522.24",
+  "p99 [us/op]" : "850.944",
+  "Occupied space" : "542.14 MB",
+  "usedMemoryBytes" : "158.61 MB",
+  "cpuUsage" : "20%"
+}, {
+  "Engine" : "HestiaStoreCompress",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "19 082",
+  "Throughput Error [ops/s]" : "966",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "18 116", "20 048" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MTggMTE2IC4uIDIwIDA0OA=="
+  },
+  "Mean [us/op]" : "203.459",
+  "Latency Error [us/op]" : "2.792",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "200.668", "206.251" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MjAwLjY2OCAuLiAyMDYuMjUx"
+  },
+  "p50 [us/op]" : "248.576",
+  "p95 [us/op]" : "438.272",
+  "p99 [us/op]" : "660.48",
+  "Occupied space" : "328.7 MB",
+  "usedMemoryBytes" : "131.3 MB",
+  "cpuUsage" : "18%"
+}, {
+  "Engine" : "LevelDB",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "158 000",
+  "Throughput Error [ops/s]" : "7 743",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "150 257", "165 742" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MTUwIDI1NyAuLiAxNjUgNzQy"
+  },
+  "Mean [us/op]" : "19.925",
+  "Latency Error [us/op]" : "0.214",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "19.711", "20.139" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MTkuNzExIC4uIDIwLjEzOQ=="
+  },
+  "p50 [us/op]" : "11.744",
+  "p95 [us/op]" : "56.64",
+  "p99 [us/op]" : "80.512",
+  "Occupied space" : "363.32 MB",
+  "usedMemoryBytes" : "97.12 MB",
+  "cpuUsage" : "26%"
+}, {
+  "Engine" : "MapDB",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "3 141",
+  "Throughput Error [ops/s]" : "474",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "2 667", "3 615" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MiA2NjcgLi4gMyA2MTU="
+  },
+  "Mean [us/op]" : "38.502",
+  "Latency Error [us/op]" : "0.455",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "38.046", "38.957" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MzguMDQ2IC4uIDM4Ljk1Nw=="
+  },
+  "p50 [us/op]" : "14.704",
+  "p95 [us/op]" : "22.72",
+  "p99 [us/op]" : "1 110.016",
+  "Occupied space" : "1.3 GB",
+  "usedMemoryBytes" : "249.35 MB",
+  "cpuUsage" : "8%"
+}, {
+  "Engine" : "RocksDB",
+  "Variant" : "MultithreadRead",
+  "Threads" : "4",
+  "Throughput [ops/s]" : "230 679",
+  "Throughput Error [ops/s]" : "10 759",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "219 919", "241 438" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MjE5IDkxOSAuLiAyNDEgNDM4"
+  },
+  "Mean [us/op]" : "30.06",
+  "Latency Error [us/op]" : "0.009",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "30.05", "30.069" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MzAuMDUgLi4gMzAuMDY5"
+  },
+  "p50 [us/op]" : "32.192",
+  "p95 [us/op]" : "43.2",
+  "p99 [us/op]" : "45.696",
+  "Occupied space" : "324.24 MB",
+  "usedMemoryBytes" : "173.2 MB",
+  "cpuUsage" : "39%"
+} ]

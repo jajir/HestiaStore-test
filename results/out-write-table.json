@@ -17,6 +17,15 @@
   "usedMemoryBytes" : "25.88 MB",
   "cpuUsage" : "21%"
 }, {
+  "Engine" : "HestiaStoreCompressWrite",
+  "Variant" : "Write",
+  "Score [ops/s]" : "55 268",
+  "ScoreError" : "82 763",
+  "Confidence Interval [ops/s]" : "-27 495 .. 138 031",
+  "Occupied space" : "2.21 GB",
+  "usedMemoryBytes" : "9.65 MB",
+  "cpuUsage" : "22%"
+}, {
   "Engine" : "LevelDB",
   "Variant" : "Write",
   "Score [ops/s]" : "45 263",
