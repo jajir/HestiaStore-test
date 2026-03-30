@@ -1,3 +1,9 @@
+# Benchmark for 'Sequential read' operation
+
+## Chart
+
+![Sequential read benchmark chart](../images/out-sequential.svg)
+
 ## Test Conditions - Sequential Read Benchmarks
 
 - Each sequential scenario uses the same JVM flags, hardware, and scratch directory handling as the write/read suites. The `dir` property is cleaned before every run to guarantee a fresh start.
@@ -8,3 +14,5 @@
 - Directories remain on disk after the run so disk usage and auxiliary metrics can be collected by reporting scripts.
 - Tests for HestiaStoreStream use dedicated stream API. Without using Stream API is performance visible in line HestiaStoreBasic.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
+
+{{TABLE}}

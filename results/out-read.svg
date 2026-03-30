@@ -19,11 +19,11 @@
   <text class="value" x="274" y="150">818</text>
   <rect x="0" y="190" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="210">HestiaStoreCompress</text>
-  <rect x="250" y="197" width="8" height="26" rx="6" ry="6" fill="#76B7B2" stroke="#649B97" stroke-width="2" />
+  <rect x="250" y="197" width="8" height="26" rx="6" ry="6" fill="#E15759" stroke="#BF494B" stroke-width="2" />
   <text class="value" x="274" y="210">749</text>
   <rect x="0" y="250" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="270">LevelDB</text>
-  <rect x="250" y="257" width="58" height="26" rx="6" ry="6" fill="#EDC948" stroke="#C9AA3D" stroke-width="2" />
+  <rect x="250" y="257" width="58" height="26" rx="6" ry="6" fill="#59A14F" stroke="#4B8843" stroke-width="2" />
   <text class="value" x="324" y="270">195,086</text>
   <rect x="0" y="310" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="330">MapDB</text>
@@ -31,6 +31,6 @@
   <text class="value" x="274" y="330">1,264</text>
   <rect x="0" y="370" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="390">RocksDB</text>
-  <rect x="250" y="377" width="31" height="26" rx="6" ry="6" fill="#FF9DA7" stroke="#D8858D" stroke-width="2" />
+  <rect x="250" y="377" width="31" height="26" rx="6" ry="6" fill="#9299fb" stroke="#7C82D5" stroke-width="2" />
   <text class="value" x="297" y="390">106,795</text>
 </svg>

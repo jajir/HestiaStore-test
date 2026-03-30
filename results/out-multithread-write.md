@@ -1,6 +1,8 @@
-# HestiaStore Benchmark Results
+# Benchmark for 'Multithread Write' operation
 
-## Multithread Write Latency
+## Chart
+
+![Multithread write benchmark chart](../images/out-multithread-write.svg)
 
 ## Test Conditions - Multithread Write Benchmarks
 
@@ -12,7 +14,6 @@
 - The benchmark focuses on contention and latency under concurrent insert load. There is no preload phase for this suite; the store starts empty at the beginning of each trial.
 - After measurements complete, the storage is closed and the resulting directory remains available so the reporting scripts can capture occupied space and CPU usage.
 - Test was performed at Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
-
 
 ## Benchmark Results
 
@@ -33,4 +34,3 @@ meaning of columns:
 - Mean [us/op]: average per-operation latency in microseconds, lower is better.
 - p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.
 - CPU Usage: average CPU usage during the benchmark.
-

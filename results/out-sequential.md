@@ -1,4 +1,8 @@
-# HestiaStore Benchmark for 'Sequential Read' operations
+# Benchmark for 'Sequential read' operation
+
+## Chart
+
+![Sequential read benchmark chart](../images/out-sequential.svg)
 
 ## Test Conditions - Sequential Read Benchmarks
 
@@ -10,7 +14,6 @@
 - Directories remain on disk after the run so disk usage and auxiliary metrics can be collected by reporting scripts.
 - Tests for HestiaStoreStream use dedicated stream API. Without using Stream API is performance visible in line HestiaStoreBasic.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
-
 
 ## Benchmark Results
 
@@ -32,4 +35,3 @@ meaning of columns:
 - Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.
 - Occupied space: amount of disk space occupied by the engine data.
 - CPU Usage: average CPU usage during the benchmark.
-

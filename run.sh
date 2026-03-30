@@ -44,7 +44,6 @@ usage() {
   echo "  results/out-*.md                      Detailed Markdown reports"
   echo "  results/out-*-table.md                Compact Markdown tables"
   echo "  results/out-*.svg                     SVG charts when throughput tables exist"
-  echo "  results/benchmark-results.md          Landing page listing generated reports"
   echo
   echo "Examples:"
   echo "  ./run.sh"

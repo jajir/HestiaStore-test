@@ -2,6 +2,7 @@
 @Grab('com.fasterxml.jackson.core:jackson-databind:2.15.2')
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.transform.Field
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -19,22 +20,44 @@ Path findProjectRoot(Path start) {
     return lastPom ?: start
 }
 
+@Field final String TABLE_PLACEHOLDER = '{{TABLE}}'
+
 Path cwd = Paths.get('.')
 Path rootDir = findProjectRoot(cwd)
 Path resultsDir = rootDir.resolve('results')
 ObjectMapper mapper = new ObjectMapper()
 
-String readConditions(Path path) {
-    return Files.exists(path)
-            ? new String(Files.readAllBytes(path), StandardCharsets.UTF_8) + '\n\n'
-            : ''
+Path resolveSummaryJson(Path resultsDir, String reportName) {
+    List<Path> candidates = [
+            resultsDir.resolve("${reportName}.json"),
+            resultsDir.resolve("${reportName}-table.json")
+    ]
+    Path resolved = candidates.find { Files.exists(it) }
+    if (resolved == null) {
+        throw new FileNotFoundException(
+                "No summary JSON found for ${reportName}. Tried: " +
+                        candidates.collect { it.fileName.toString() }.join(', '))
+    }
+    return resolved
 }
 
-String buildThroughputReport(List<Map<String, Object>> rows, Path conditionsPath,
-        String titleSuffix) {
+Path resolveTemplate(Path resultsDir, String reportName) {
+    List<Path> candidates = [
+            resultsDir.resolve("${reportName}-test-template.md"),
+            resultsDir.resolve("${reportName}-template.md"),
+            resultsDir.resolve("${reportName}-templete.md")
+    ]
+    Path resolved = candidates.find { Files.exists(it) }
+    if (resolved == null) {
+        throw new FileNotFoundException(
+                "No template found for ${reportName}. Tried: " +
+                        candidates.collect { it.fileName.toString() }.join(', '))
+    }
+    return resolved
+}
+
+String buildThroughputTableSection(List<Map<String, Object>> rows) {
     StringBuilder out = new StringBuilder()
-    out.append("# HestiaStore Benchmark for '${titleSuffix}' operations\n\n")    
-    out.append(readConditions(conditionsPath))
     out.append('## Benchmark Results\n\n')
     if (rows.isEmpty()) {
         out.append('_No summary rows available._\n\n')
@@ -58,16 +81,12 @@ String buildThroughputReport(List<Map<String, Object>> rows, Path conditionsPath
     out.append('- ScoreError: error margin of the mean score.\n')
     out.append('- Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.\n')
     out.append('- Occupied space: amount of disk space occupied by the engine data.\n')
-    out.append('- CPU Usage: average CPU usage during the benchmark.\n\n')
+    out.append('- CPU Usage: average CPU usage during the benchmark.\n')
     return out.toString()
 }
 
-String buildMultithreadLatencyReport(List<Map<String, Object>> rows,
-        Path conditionsPath, String title) {
+String buildMultithreadTableSection(List<Map<String, Object>> rows) {
     StringBuilder out = new StringBuilder()
-    out.append('# HestiaStore Benchmark Results\n\n')
-    out.append("## ${title}\n\n")
-    out.append(readConditions(conditionsPath))
     out.append('## Benchmark Results\n\n')
     if (rows.isEmpty()) {
         out.append('_No summary rows available._\n\n')
@@ -93,69 +112,43 @@ String buildMultithreadLatencyReport(List<Map<String, Object>> rows,
     out.append('- Throughput [ops/s]: aggregate completed operations per second, higher is better.\n')
     out.append('- Mean [us/op]: average per-operation latency in microseconds, lower is better.\n')
     out.append('- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.\n')
-    out.append('- CPU Usage: average CPU usage during the benchmark.\n\n')
+    out.append('- CPU Usage: average CPU usage during the benchmark.\n')
     return out.toString()
 }
 
-List<Map<String, Object>> writeRows = []
-List<Map<String, Object>> readRows = []
-List<Map<String, Object>> sequentialRows = []
-List<Map<String, Object>> multithreadReadRows = []
-List<Map<String, Object>> multithreadWriteRows = []
-Path writeTable = resultsDir.resolve('out-write-table.json')
-Path readTable = resultsDir.resolve('out-read-table.json')
-Path sequentialTable = resultsDir.resolve('out-sequential-table.json')
-Path multithreadReadTable = resultsDir.resolve('out-multithread-read-table.json')
-Path multithreadWriteTable = resultsDir.resolve('out-multithread-write-table.json')
-if (Files.exists(writeTable)) {
-    writeRows = mapper.readValue(writeTable.toFile(), List)
-}
-if (Files.exists(readTable)) {
-    readRows = mapper.readValue(readTable.toFile(), List)
-}
-if (Files.exists(sequentialTable)) {
-    sequentialRows = mapper.readValue(sequentialTable.toFile(), List)
-}
-if (Files.exists(multithreadReadTable)) {
-    multithreadReadRows = mapper.readValue(multithreadReadTable.toFile(), List)
-}
-if (Files.exists(multithreadWriteTable)) {
-    multithreadWriteRows = mapper.readValue(multithreadWriteTable.toFile(), List)
+boolean isMultithreadReport(List<Map<String, Object>> rows, String reportName) {
+    return reportName.startsWith('out-multithread-') ||
+            (!rows.isEmpty() &&
+                    rows[0].containsKey('Threads') &&
+                    rows[0].containsKey('Throughput [ops/s]'))
 }
 
-Path writeOutput = resultsDir.resolve('out-write.md')
-Path readOutput = resultsDir.resolve('out-read.md')
-Path sequentialOutput = resultsDir.resolve('out-sequential.md')
-Path multithreadReadOutput = resultsDir.resolve('out-multithread-read.md')
-Path multithreadWriteOutput = resultsDir.resolve('out-multithread-write.md')
-Files.writeString(writeOutput,
-        buildThroughputReport(writeRows,
-                resultsDir.resolve('out-write-test-conditions.md'),
-                'Write'),
-        StandardCharsets.UTF_8)
-Files.writeString(readOutput,
-        buildThroughputReport(readRows,
-                resultsDir.resolve('out-read-test-conditions.md'),
-                'Read'),
-        StandardCharsets.UTF_8)
-Files.writeString(sequentialOutput,
-        buildThroughputReport(sequentialRows,
-                resultsDir.resolve('out-sequential-test-conditions.md'),
-                'Sequential Read'),
-        StandardCharsets.UTF_8)
-Files.writeString(multithreadReadOutput,
-        buildMultithreadLatencyReport(multithreadReadRows,
-                resultsDir.resolve('out-multithread-read-test-conditions.md'),
-                'Multithread Read Latency'),
-        StandardCharsets.UTF_8)
-Files.writeString(multithreadWriteOutput,
-        buildMultithreadLatencyReport(multithreadWriteRows,
-                resultsDir.resolve('out-multithread-write-test-conditions.md'),
-                'Multithread Write Latency'),
-        StandardCharsets.UTF_8)
+String renderTemplate(String template, String tableSection) {
+    if (!template.contains(TABLE_PLACEHOLDER)) {
+        throw new IllegalArgumentException(
+                "Template must contain ${TABLE_PLACEHOLDER}")
+    }
+    String rendered = template.replace(TABLE_PLACEHOLDER, tableSection.trim())
+    return rendered.endsWith('\n') ? rendered : rendered + '\n'
+}
 
-println "Wrote ${writeOutput}"
-println "Wrote ${readOutput}"
-println "Wrote ${sequentialOutput}"
-println "Wrote ${multithreadReadOutput}"
-println "Wrote ${multithreadWriteOutput}"
+if (args.length == 0) {
+    System.err.println('Usage: makeMarkDown.groovy REPORT_NAME [REPORT_NAME ...]')
+    System.exit(1)
+}
+
+args.each { String reportName ->
+    Path summaryJson = resolveSummaryJson(resultsDir, reportName)
+    Path templatePath = resolveTemplate(resultsDir, reportName)
+    Path outputPath = resultsDir.resolve("${reportName}.md")
+
+    List<Map<String, Object>> rows = mapper.readValue(summaryJson.toFile(), List)
+    String tableSection = isMultithreadReport(rows, reportName)
+            ? buildMultithreadTableSection(rows)
+            : buildThroughputTableSection(rows)
+    String template = Files.readString(templatePath, StandardCharsets.UTF_8)
+    String rendered = renderTemplate(template, tableSection)
+
+    Files.writeString(outputPath, rendered, StandardCharsets.UTF_8)
+    println "Wrote ${outputPath}"
+}

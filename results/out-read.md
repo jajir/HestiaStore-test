@@ -1,4 +1,8 @@
-# HestiaStore Benchmark for 'Read' operations
+# Benchmark for 'read' operation
+
+## Chart
+
+![Read benchmark chart](../images/out-read.svg)
 
 ## Test Conditions - Read Benchmarks
 
@@ -9,7 +13,6 @@
 - Each benchmark keeps a consistent random sequence per iteration, ensuring engines experience the same access pattern and allowing apples-to-apples comparisons.
 - After measurements finish, readers close their resources but the populated directories remain on disk so sizes can be captured by the reporting scripts.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
-
 
 ## Benchmark Results
 
@@ -31,4 +34,3 @@ meaning of columns:
 - Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.
 - Occupied space: amount of disk space occupied by the engine data.
 - CPU Usage: average CPU usage during the benchmark.
-

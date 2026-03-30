@@ -19,7 +19,7 @@
   <text class="value" x="856" y="150">423,154 ops/s</text>
   <rect x="0" y="190" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="210">HestiaStoreCompress</text>
-  <rect x="250" y="197" width="458" height="26" rx="6" ry="6" fill="#76B7B2" stroke="#649B97" stroke-width="2" />
+  <rect x="250" y="197" width="458" height="26" rx="6" ry="6" fill="#E15759" stroke="#BF494B" stroke-width="2" />
   <text class="value" x="724" y="210">329,076 ops/s</text>
   <rect x="0" y="250" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="270">MapDB</text>
@@ -27,6 +27,6 @@
   <text class="value" x="287" y="270">15,559 ops/s</text>
   <rect x="0" y="310" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="330">RocksDB</text>
-  <rect x="250" y="317" width="151" height="26" rx="6" ry="6" fill="#FF9DA7" stroke="#D8858D" stroke-width="2" />
+  <rect x="250" y="317" width="151" height="26" rx="6" ry="6" fill="#9299fb" stroke="#7C82D5" stroke-width="2" />
   <text class="value" x="417" y="330">108,818 ops/s</text>
 </svg>

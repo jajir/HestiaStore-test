@@ -1,3 +1,9 @@
+# Benchmark for 'read' operation
+
+## Chart
+
+![Read benchmark chart](../images/out-read.svg)
+
 ## Test Conditions - Read Benchmarks
 
 - Read-focused runs reuse the same controlled JVM, hardware, and JVM flag configuration as the write suite. Each trial prepares a clean directory pointed to by the `dir` system property before preloading the dataset.
@@ -7,3 +13,5 @@
 - Each benchmark keeps a consistent random sequence per iteration, ensuring engines experience the same access pattern and allowing apples-to-apples comparisons.
 - After measurements finish, readers close their resources but the populated directories remain on disk so sizes can be captured by the reporting scripts.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
+
+{{TABLE}}

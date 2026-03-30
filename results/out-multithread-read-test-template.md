@@ -1,3 +1,9 @@
+# Benchmark for 'Multithread Read' operation
+
+## Chart
+
+![Multithread read benchmark chart](../images/out-multithread-read.svg)
+
 ## Test Conditions - Multithread Read Benchmarks
 
 - Multithread read runs reuse the same controlled JVM flags, hardware, and storage directory preparation as the other benchmark suites. Each trial starts from a clean directory provided through the `dir` system property, then preloads the dataset before measurement begins.
@@ -8,3 +14,5 @@
 - Warm-up uses 10 iterations of 20 seconds, followed by 25 measurement iterations of 20 seconds, so the numbers reflect sustained concurrent lookup behavior rather than a short burst.
 - After measurements finish, resources are closed and the populated directories remain on disk so report generation can capture occupied space and CPU usage.
 - Tests executed on Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
+
+{{TABLE}}

@@ -86,15 +86,15 @@ def canonicalEngineName = { String engine ->
 }
 
 def fixedEngineColors = [
-        ChronicleMap      : '#4E79A7',
-        H2                : '#F28E2B',
-        HestiaStoreBasic  : '#E15759',
-        HestiaStoreCompress: '#76B7B2',
-        HestiaStoreStream : '#59A14F',
-        LevelDB           : '#EDC948',
-        MapDB             : '#B07AA1',
-        RocksDB           : '#FF9DA7',
-        Unknown           : '#9C755F'
+        ChronicleMap       : '#4E79A7',
+        H2                 : '#F28E2B',
+        HestiaStoreBasic   : '#E15759',
+        HestiaStoreCompress: '#E15759',
+        HestiaStoreStream  : '#E15759',
+        LevelDB            : '#59A14F',
+        MapDB              : '#B07AA1',
+        RocksDB            : '#9299fb',
+        Unknown            : '#9C755F'
 ]
 
 def fallbackColorFor = { String engine ->

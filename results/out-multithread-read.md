@@ -1,6 +1,8 @@
-# HestiaStore Benchmark Results
+# Benchmark for 'Multithread Read' operation
 
-## Multithread Read Latency
+## Chart
+
+![Multithread read benchmark chart](../images/out-multithread-read.svg)
 
 ## Test Conditions - Multithread Read Benchmarks
 
@@ -12,7 +14,6 @@
 - Warm-up uses 10 iterations of 20 seconds, followed by 25 measurement iterations of 20 seconds, so the numbers reflect sustained concurrent lookup behavior rather than a short burst.
 - After measurements finish, resources are closed and the populated directories remain on disk so report generation can capture occupied space and CPU usage.
 - Tests executed on Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
-
 
 ## Benchmark Results
 
@@ -34,4 +35,3 @@ meaning of columns:
 - Mean [us/op]: average per-operation latency in microseconds, lower is better.
 - p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.
 - CPU Usage: average CPU usage during the benchmark.
-
