@@ -1,0 +1,463 @@
+#!/usr/bin/env groovy
+
+import groovy.json.JsonSlurper
+import groovy.xml.MarkupBuilder
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.Locale
+
+Path findProjectRoot(Path start) {
+    Path cur = start
+    Path lastPom = null
+    while (cur != null) {
+        if (Files.exists(cur.resolve('pom.xml'))) {
+            lastPom = cur
+        }
+        cur = cur.parent
+    }
+    return lastPom ?: start
+}
+
+def normalizeNumber = { Object value ->
+    if (value == null) {
+        return null
+    }
+    if (value instanceof Number) {
+        double number = value.doubleValue()
+        if (Double.isNaN(number) || Double.isInfinite(number)) {
+            return null
+        }
+        return number
+    }
+    if (value instanceof CharSequence) {
+        try {
+            double number = Double.parseDouble(value.toString())
+            if (Double.isNaN(number) || Double.isInfinite(number)) {
+                return null
+            }
+            return number
+        } catch (NumberFormatException ignored) {
+            return null
+        }
+    }
+    return null
+}
+
+Path cwd = Paths.get('.').toAbsolutePath().normalize()
+Path rootDir = findProjectRoot(cwd)
+Path resultsDir = rootDir.resolve('results')
+
+if (!Files.isDirectory(resultsDir)) {
+    System.err.println("Results directory not found: ${resultsDir}")
+    System.exit(1)
+}
+
+def percentileSpecs = [
+        [label: 'p50', percentile: 50d, keys: ['50.0', '50']],
+        [label: 'p75', percentile: 75d, keys: ['75.0', '75']],
+        [label: 'p90', percentile: 90d, keys: ['90.0', '90']],
+        [label: 'p95', percentile: 95d, keys: ['95.0', '95']],
+        [label: 'p99', percentile: 99d, keys: ['99.0', '99']],
+        [label: 'p99.5', percentile: 99.5d, keys: ['99.5']],
+        [label: 'p99.9', percentile: 99.9d, keys: ['99.9']],
+        [label: 'p99.99', percentile: 99.99d, keys: ['99.99']]
+]
+
+def scenarioMeta = [
+        Write            : [stem: 'out-write-percentiles.svg',
+                            title: 'Write Latency Percentiles'],
+        Read             : [stem: 'out-read-percentiles.svg',
+                            title: 'Read Latency Percentiles'],
+        Sequential       : [stem: 'out-sequential-percentiles.svg',
+                            title: 'Sequential Read Latency Percentiles'],
+        MultithreadRead  : [stem: 'out-multithread-read-percentiles.svg',
+                            title: 'Multithread Read Latency Percentiles'],
+        MultithreadWrite : [stem: 'out-multithread-write-percentiles.svg',
+                            title: 'Multithread Write Latency Percentiles']
+]
+
+def palette = [
+        '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
+        '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC'
+]
+
+def canonicalEngineName = { String engine ->
+    String value = engine?.trim()
+    if (!value) {
+        return 'Unknown'
+    }
+    if (value.startsWith('HestiaStoreBasic')) {
+        return 'HestiaStoreBasic'
+    }
+    if (value.startsWith('HestiaStoreCompress')) {
+        return 'HestiaStoreCompress'
+    }
+    if (value.startsWith('HestiaStoreStream')) {
+        return 'HestiaStoreStream'
+    }
+    return value
+}
+
+def fixedEngineColors = [
+        ChronicleMap       : '#4E79A7',
+        H2                 : '#F28E2B',
+        HestiaStoreBasic   : '#E15759',
+        HestiaStoreCompress: '#76B7B2',
+        HestiaStoreStream  : '#59A14F',
+        LevelDB            : '#EDC948',
+        MapDB              : '#B07AA1',
+        RocksDB            : '#FF9DA7',
+        Unknown            : '#9C755F'
+]
+
+def fallbackColorFor = { String engine ->
+    int index = Math.floorMod(engine.hashCode(), palette.size())
+    palette[index]
+}
+
+def colorForEngine = { String engine ->
+    String canonical = canonicalEngineName(engine)
+    fixedEngineColors[canonical] ?: fallbackColorFor(canonical)
+}
+
+def darker = { String hex ->
+    int rgb = Integer.parseInt(hex.substring(1), 16)
+    int r = ((rgb >> 16) & 0xFF)
+    int g = ((rgb >> 8) & 0xFF)
+    int b = (rgb & 0xFF)
+    r = Math.max(0, (int) (r * 0.85))
+    g = Math.max(0, (int) (g * 0.85))
+    b = Math.max(0, (int) (b * 0.85))
+    String.format('#%02X%02X%02X', r, g, b)
+}
+
+def describeResultFile = { Path file ->
+    String rawEngine = file.fileName.toString()
+            .replace('results-', '')
+            .replace('.json', '')
+    if (rawEngine.endsWith('-my')) {
+        return null
+    }
+
+    String engineBase = rawEngine
+    String scenario = 'Write'
+
+    if (rawEngine.startsWith('multithread-read-')) {
+        scenario = 'MultithreadRead'
+        engineBase = rawEngine.substring('multithread-read-'.length())
+        def matcher = engineBase =~ /^(.*)-threads\d+$/
+        if (matcher.matches()) {
+            engineBase = matcher.group(1)
+        }
+    } else if (rawEngine.startsWith('multithread-write-')) {
+        scenario = 'MultithreadWrite'
+        engineBase = rawEngine.substring('multithread-write-'.length())
+        def matcher = engineBase =~ /^(.*)-threads\d+$/
+        if (matcher.matches()) {
+            engineBase = matcher.group(1)
+        }
+    } else if (rawEngine.startsWith('read-')) {
+        scenario = 'Read'
+        engineBase = rawEngine.substring('read-'.length())
+    } else if (rawEngine.endsWith('Read')) {
+        scenario = 'Read'
+        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
+    } else if (rawEngine.startsWith('sequential-')) {
+        scenario = 'Sequential'
+        engineBase = rawEngine.substring('sequential-'.length())
+    } else if (rawEngine.startsWith('write-')) {
+        scenario = 'Write'
+        engineBase = rawEngine.substring('write-'.length())
+    }
+
+    [scenario: scenario, engine: engineBase]
+}
+
+def collectHistogramBins
+collectHistogramBins = { Object node, Map<Double, Long> binsByValue ->
+    if (!(node instanceof List)) {
+        return
+    }
+    List values = node as List
+    if (values.size() >= 2 &&
+            !(values[0] instanceof List) &&
+            !(values[1] instanceof List)) {
+        Double latency = normalizeNumber(values[0])
+        Double countValue = normalizeNumber(values[1])
+        if (latency != null && countValue != null && latency > 0d && countValue > 0d) {
+            binsByValue[latency] = binsByValue[latency] + countValue.longValue()
+        }
+        return
+    }
+    values.each { nested ->
+        collectHistogramBins(nested, binsByValue)
+    }
+}
+
+def flattenHistogramBins = { Object rawDataHistogram ->
+    Map<Double, Long> binsByValue = [:].withDefault { 0L }
+    collectHistogramBins(rawDataHistogram, binsByValue)
+    binsByValue.entrySet()
+            .sort { a, b -> a.key <=> b.key }
+            .collect { [latency: it.key, count: it.value] }
+}
+
+def percentileFromHistogram = { List<Map<String, Object>> bins, double percentile ->
+    if (bins.isEmpty()) {
+        return null
+    }
+    long totalCount = bins.collect { (it.count as Number).longValue() }.sum() as long
+    if (totalCount <= 0L) {
+        return null
+    }
+    long threshold = Math.max(1L, (long) Math.ceil((percentile / 100d) * totalCount))
+    long cumulative = 0L
+    for (Map<String, Object> bin : bins) {
+        cumulative += (bin.count as Number).longValue()
+        if (cumulative >= threshold) {
+            return bin.latency as Double
+        }
+    }
+    return bins[-1].latency as Double
+}
+
+def percentileValue = { Map scorePercentiles, List<Map<String, Object>> bins,
+        Map spec ->
+    for (String key : spec.keys as List<String>) {
+        if (scorePercentiles?.containsKey(key)) {
+            Double value = normalizeNumber(scorePercentiles[key])
+            if (value != null && value > 0d) {
+                return value
+            }
+        }
+    }
+    percentileFromHistogram(bins, spec.percentile as double)
+}
+
+def loadLatencySeries = { Path file ->
+    byte[] bytes = Files.readAllBytes(file)
+    if (bytes.length == 0) {
+        return null
+    }
+
+    List entries
+    try {
+        entries = new JsonSlurper().parse(bytes) as List
+    } catch (Exception e) {
+        System.err.println("Skipping unreadable result file ${file.fileName}: ${e.message}")
+        return null
+    }
+
+    if (!entries) {
+        return null
+    }
+
+    Map sampleEntry = entries.find {
+        (it['mode'] ?: '').toString() == 'sample' &&
+                ((it['primaryMetric'] ?: [:])['scoreUnit'] ?: '').toString() == 'us/op'
+    } as Map
+
+    if (sampleEntry == null) {
+        return null
+    }
+
+    Map primaryMetric = sampleEntry['primaryMetric'] as Map ?: [:]
+    Map scorePercentiles = primaryMetric['scorePercentiles'] as Map ?: [:]
+    List<Map<String, Object>> bins =
+            flattenHistogramBins(primaryMetric['rawDataHistogram'])
+
+    List<Double> values = percentileSpecs.collect { spec ->
+        percentileValue(scorePercentiles, bins, spec) as Double
+    }
+
+    if (values.any { it == null || it <= 0d }) {
+        return null
+    }
+
+    values
+}
+
+def dfs = new DecimalFormatSymbols(Locale.US)
+dfs.groupingSeparator = ' ' as char
+def latencyFormat = new DecimalFormat('#,##0.###', dfs)
+
+def formatLatency = { double value ->
+    "${latencyFormat.format(value)} us"
+}
+
+def buildLogTicks = { double minValue, double maxValue ->
+    List<Double> ticks = []
+    int minExp = (int) Math.floor(Math.log10(minValue))
+    int maxExp = (int) Math.ceil(Math.log10(maxValue))
+    for (int exp = minExp; exp <= maxExp; exp++) {
+        [1d, 2d, 5d].each { factor ->
+            double tick = factor * Math.pow(10d, exp)
+            if (tick >= minValue && tick <= maxValue) {
+                ticks << tick
+            }
+        }
+    }
+    if (ticks.isEmpty()) {
+        ticks = [minValue, maxValue].unique()
+    }
+    ticks.unique().sort()
+}
+
+def renderChart = { String scenario, List<Map<String, Object>> series ->
+    if (series.isEmpty()) {
+        println "Skipping ${scenario}: no usable latency percentile data."
+        return
+    }
+
+    def meta = scenarioMeta[scenario]
+    if (meta == null) {
+        println "Skipping ${scenario}: unsupported scenario."
+        return
+    }
+
+    int width = 1280
+    int height = 760
+    int marginTop = 90
+    int marginRight = 280
+    int marginBottom = 110
+    int marginLeft = 110
+    int plotWidth = width - marginLeft - marginRight
+    int plotHeight = height - marginTop - marginBottom
+
+    List<Double> allValues = series.collectMany { it.values as List<Double> }
+    double minValue = allValues.min()
+    double maxValue = allValues.max()
+    double minLog = Math.floor(Math.log10(minValue))
+    double maxLog = Math.ceil(Math.log10(maxValue))
+    if (minLog == maxLog) {
+        maxLog = minLog + 1d
+    }
+
+    def xForIndex = { int idx ->
+        marginLeft + ((plotWidth / (double) (percentileSpecs.size() - 1)) * idx)
+    }
+    def yForValue = { double value ->
+        double valueLog = Math.log10(value)
+        marginTop + plotHeight -
+                (((valueLog - minLog) / (maxLog - minLog)) * plotHeight)
+    }
+
+    List<Double> ticks = buildLogTicks(minValue, maxValue)
+
+    StringWriter buffer = new StringWriter()
+    MarkupBuilder svg = new MarkupBuilder(buffer)
+    svg.doubleQuotes = true
+    svg.mkp.xmlDeclaration(version: '1.0', encoding: 'UTF-8')
+
+    svg.svg(xmlns: 'http://www.w3.org/2000/svg', width: width, height: height,
+            viewBox: "0 0 ${width} ${height}") {
+        style('''
+        text { fill: currentColor; dominant-baseline: middle; }
+        .title { font: 600 26px "Inter", "Helvetica Neue", Arial, sans-serif; }
+        .subtitle { font: 16px "Inter", "Helvetica Neue", Arial, sans-serif; fill: #5B667A; }
+        .axis-label { font: 500 16px "Inter", "Helvetica Neue", Arial, sans-serif; }
+        .tick { font: 14px "IBM Plex Mono", "Courier New", monospace; fill: #5B667A; }
+        .legend { font: 500 16px "Inter", "Helvetica Neue", Arial, sans-serif; }
+        .grid { stroke: #D7DCE5; stroke-width: 1; fill: none; }
+        .axis { stroke: #8A94A6; stroke-width: 1.5; fill: none; }
+    ''')
+
+        text(meta.title, class: 'title', x: marginLeft, y: 36)
+        text('X axis: percentile, Y axis: latency (log scale)', class: 'subtitle',
+                x: marginLeft, y: 66)
+
+        ticks.each { tick ->
+            double y = yForValue(tick)
+            line(class: 'grid', x1: marginLeft, y1: y, x2: marginLeft + plotWidth, y2: y)
+            text(formatLatency(tick), class: 'tick', x: marginLeft - 14, y: y,
+                    'text-anchor': 'end')
+        }
+
+        line(class: 'axis', x1: marginLeft, y1: marginTop + plotHeight,
+                x2: marginLeft + plotWidth, y2: marginTop + plotHeight)
+        line(class: 'axis', x1: marginLeft, y1: marginTop,
+                x2: marginLeft, y2: marginTop + plotHeight)
+
+        percentileSpecs.eachWithIndex { spec, idx ->
+            double x = xForIndex(idx)
+            line(class: 'grid', x1: x, y1: marginTop, x2: x, y2: marginTop + plotHeight)
+            text(spec.label as String, class: 'tick', x: x,
+                    y: marginTop + plotHeight + 28, 'text-anchor': 'middle')
+        }
+
+        text('Percentile', class: 'axis-label', x: marginLeft + (plotWidth / 2),
+                y: height - 34, 'text-anchor': 'middle')
+        text('Latency (us/op)', class: 'axis-label', x: 28,
+                y: marginTop + (plotHeight / 2),
+                transform: "rotate(-90 28 ${marginTop + (plotHeight / 2)})",
+                'text-anchor': 'middle')
+
+        series.each { item ->
+            String color = colorForEngine(item.engine as String)
+            List<Double> values = item.values as List<Double>
+            String points = values.withIndex().collect { entry ->
+                double value = (entry[0] as Number).doubleValue()
+                int idx = (entry[1] as Number).intValue()
+                String.format(Locale.US, '%.2f,%.2f', xForIndex(idx), yForValue(value))
+            }.join(' ')
+
+            polyline(points: points, fill: 'none', stroke: color,
+                    'stroke-width': 3, 'stroke-linejoin': 'round',
+                    'stroke-linecap': 'round')
+
+            values.eachWithIndex { double value, int idx ->
+                circle(cx: xForIndex(idx), cy: yForValue(value), r: 4.5,
+                        fill: color, stroke: darker(color), 'stroke-width': 1.5)
+            }
+        }
+
+        int legendStartY = marginTop + 20
+        series.eachWithIndex { item, idx ->
+            int y = legendStartY + (idx * 28)
+            String color = colorForEngine(item.engine as String)
+            line(x1: marginLeft + plotWidth + 24, y1: y, x2: marginLeft + plotWidth + 54,
+                    y2: y, stroke: color, 'stroke-width': 4,
+                    'stroke-linecap': 'round')
+            text(item.engine as String, class: 'legend', x: marginLeft + plotWidth + 66,
+                    y: y)
+        }
+    }
+
+    Path outputPath = resultsDir.resolve(meta.stem as String)
+    Files.writeString(outputPath, buffer.toString())
+    println "Graph written to ${outputPath}"
+}
+
+Map<String, List<Map<String, Object>>> seriesByScenario = [:].withDefault { [] }
+
+Files.newDirectoryStream(resultsDir, 'results-*.json').each { Path file ->
+    String fileName = file.fileName.toString()
+    if (fileName.endsWith('-my.json')) {
+        return
+    }
+
+    def description = describeResultFile(file)
+    if (description == null) {
+        return
+    }
+
+    List<Double> values = loadLatencySeries(file)
+    if (values == null) {
+        println "Skipping ${description.engine} for ${description.scenario}: not enough latency percentile data."
+        return
+    }
+
+    seriesByScenario[description.scenario] << [
+            engine: description.engine,
+            values: values
+    ]
+}
+
+scenarioMeta.keySet().each { String scenario ->
+    List<Map<String, Object>> series = (seriesByScenario[scenario] ?: [])
+            .sort { a, b -> (a.engine as String) <=> (b.engine as String) }
+    renderChart(scenario, series)
+}

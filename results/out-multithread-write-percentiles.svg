@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760">
+  <style>
+        text { fill: currentColor; dominant-baseline: middle; }
+        .title { font: 600 26px "Inter", "Helvetica Neue", Arial, sans-serif; }
+        .subtitle { font: 16px "Inter", "Helvetica Neue", Arial, sans-serif; fill: #5B667A; }
+        .axis-label { font: 500 16px "Inter", "Helvetica Neue", Arial, sans-serif; }
+        .tick { font: 14px "IBM Plex Mono", "Courier New", monospace; fill: #5B667A; }
+        .legend { font: 500 16px "Inter", "Helvetica Neue", Arial, sans-serif; }
+        .grid { stroke: #D7DCE5; stroke-width: 1; fill: none; }
+        .axis { stroke: #8A94A6; stroke-width: 1.5; fill: none; }
+    </style>
+  <text class="title" x="110" y="36">Multithread Write Latency Percentiles</text>
+  <text class="subtitle" x="110" y="66">X axis: percentile, Y axis: latency (log scale)</text>
+  <line class="grid" x1="110" y1="584.7627995953048" x2="1000" y2="584.7627995953048" />
+  <text class="tick" x="96" y="584.7627995953048" text-anchor="end">5 us</text>
+  <line class="grid" x1="110" y1="556.6666666666666" x2="1000" y2="556.6666666666666" />
+  <text class="tick" x="96" y="556.6666666666666" text-anchor="end">10 us</text>
+  <line class="grid" x1="110" y1="528.5705337380284" x2="1000" y2="528.5705337380284" />
+  <text class="tick" x="96" y="528.5705337380284" text-anchor="end">20 us</text>
+  <line class="grid" x1="110" y1="491.4294662619716" x2="1000" y2="491.4294662619716" />
+  <text class="tick" x="96" y="491.4294662619716" text-anchor="end">50 us</text>
+  <line class="grid" x1="110" y1="463.33333333333337" x2="1000" y2="463.33333333333337" />
+  <text class="tick" x="96" y="463.33333333333337" text-anchor="end">100 us</text>
+  <line class="grid" x1="110" y1="435.23720040469505" x2="1000" y2="435.23720040469505" />
+  <text class="tick" x="96" y="435.23720040469505" text-anchor="end">200 us</text>
+  <line class="grid" x1="110" y1="398.0961329286382" x2="1000" y2="398.0961329286382" />
+  <text class="tick" x="96" y="398.0961329286382" text-anchor="end">500 us</text>
+  <line class="grid" x1="110" y1="370.0" x2="1000" y2="370.0" />
+  <text class="tick" x="96" y="370.0" text-anchor="end">1 000 us</text>
+  <line class="grid" x1="110" y1="341.90386707136173" x2="1000" y2="341.90386707136173" />
+  <text class="tick" x="96" y="341.90386707136173" text-anchor="end">2 000 us</text>
+  <line class="grid" x1="110" y1="304.7627995953049" x2="1000" y2="304.7627995953049" />
+  <text class="tick" x="96" y="304.7627995953049" text-anchor="end">5 000 us</text>
+  <line class="grid" x1="110" y1="276.6666666666667" x2="1000" y2="276.6666666666667" />
+  <text class="tick" x="96" y="276.6666666666667" text-anchor="end">10 000 us</text>
+  <line class="grid" x1="110" y1="248.57053373802842" x2="1000" y2="248.57053373802842" />
+  <text class="tick" x="96" y="248.57053373802842" text-anchor="end">20 000 us</text>
+  <line class="grid" x1="110" y1="211.42946626197158" x2="1000" y2="211.42946626197158" />
+  <text class="tick" x="96" y="211.42946626197158" text-anchor="end">50 000 us</text>
+  <line class="grid" x1="110" y1="183.33333333333331" x2="1000" y2="183.33333333333331" />
+  <text class="tick" x="96" y="183.33333333333331" text-anchor="end">100 000 us</text>
+  <line class="grid" x1="110" y1="155.2372004046951" x2="1000" y2="155.2372004046951" />
+  <text class="tick" x="96" y="155.2372004046951" text-anchor="end">200 000 us</text>
+  <line class="grid" x1="110" y1="118.09613292863833" x2="1000" y2="118.09613292863833" />
+  <text class="tick" x="96" y="118.09613292863833" text-anchor="end">500 000 us</text>
+  <line class="axis" x1="110" y1="650" x2="1000" y2="650" />
+  <line class="axis" x1="110" y1="90" x2="110" y2="650" />
+  <line class="grid" x1="110.0" y1="90" x2="110.0" y2="650" />
+  <text class="tick" x="110.0" y="678" text-anchor="middle">p50</text>
+  <line class="grid" x1="237.14285714285714" y1="90" x2="237.14285714285714" y2="650" />
+  <text class="tick" x="237.14285714285714" y="678" text-anchor="middle">p75</text>
+  <line class="grid" x1="364.2857142857143" y1="90" x2="364.2857142857143" y2="650" />
+  <text class="tick" x="364.2857142857143" y="678" text-anchor="middle">p90</text>
+  <line class="grid" x1="491.42857142857144" y1="90" x2="491.42857142857144" y2="650" />
+  <text class="tick" x="491.42857142857144" y="678" text-anchor="middle">p95</text>
+  <line class="grid" x1="618.5714285714286" y1="90" x2="618.5714285714286" y2="650" />
+  <text class="tick" x="618.5714285714286" y="678" text-anchor="middle">p99</text>
+  <line class="grid" x1="745.7142857142857" y1="90" x2="745.7142857142857" y2="650" />
+  <text class="tick" x="745.7142857142857" y="678" text-anchor="middle">p99.5</text>
+  <line class="grid" x1="872.8571428571429" y1="90" x2="872.8571428571429" y2="650" />
+  <text class="tick" x="872.8571428571429" y="678" text-anchor="middle">p99.9</text>
+  <line class="grid" x1="1000.0" y1="90" x2="1000.0" y2="650" />
+  <text class="tick" x="1000.0" y="678" text-anchor="middle">p99.99</text>
+  <text class="axis-label" x="555" y="726" text-anchor="middle">Percentile</text>
+  <text class="axis-label" x="28" y="370" transform="rotate(-90 28 370)" text-anchor="middle">Latency (us/op)</text>
+  <polyline points="110.00,609.03 237.14,363.73 364.29,335.70 491.43,320.20 618.57,295.50 745.71,285.73 872.86,139.32 1000.00,112.67" fill="none" stroke="#4E79A7" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="110.0" cy="609.0251053504988" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="237.14285714285714" cy="363.7275512555468" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="364.2857142857143" cy="335.7025933261344" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="491.42857142857144" cy="320.20424013015213" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="618.5714285714286" cy="295.5027046257979" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="745.7142857142857" cy="285.7349556121449" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="872.8571428571429" cy="139.31561922605903" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <circle cx="1000.0" cy="112.67213186080517" r="4.5" fill="#4E79A7" stroke="#42668D" stroke-width="1.5" />
+  <polyline points="110.00,491.55 237.14,467.50 364.29,441.16 491.43,418.52 618.57,352.82 745.71,350.14 872.86,324.18 1000.00,303.54" fill="none" stroke="#F28E2B" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="110.0" cy="491.5463730453979" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="237.14285714285714" cy="467.4960852470017" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="364.2857142857143" cy="441.16258443999834" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="491.42857142857144" cy="418.5219492223223" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="618.5714285714286" cy="352.82024722086356" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="745.7142857142857" cy="350.13976112134213" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="872.8571428571429" cy="324.18437060956177" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <circle cx="1000.0" cy="303.54287835281104" r="4.5" fill="#F28E2B" stroke="#CD7824" stroke-width="1.5" />
+  <polyline points="110.00,609.62 237.14,599.22 364.29,581.23 491.43,572.11 618.57,556.34 745.71,546.97 872.86,511.47 1000.00,317.77" fill="none" stroke="#E15759" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="110.0" cy="609.6194583987767" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="237.14285714285714" cy="599.220315860641" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="364.2857142857143" cy="581.2250595794806" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="491.42857142857144" cy="572.1088666164447" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="618.5714285714286" cy="556.3436836697794" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="745.7142857142857" cy="546.9655547255848" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="872.8571428571429" cy="511.47066463056495" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <circle cx="1000.0" cy="317.76565443123945" r="4.5" fill="#E15759" stroke="#BF494B" stroke-width="1.5" />
+  <polyline points="110.00,613.58 237.14,603.31 364.29,589.43 491.43,577.97 618.57,545.41 745.71,519.54 872.86,401.95 1000.00,226.97" fill="none" stroke="#76B7B2" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="110.0" cy="613.5786861695478" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="237.14285714285714" cy="603.311262349607" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="364.2857142857143" cy="589.4317829978705" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="491.42857142857144" cy="577.9714536305682" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="618.5714285714286" cy="545.4130997541207" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="745.7142857142857" cy="519.5385721949274" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="872.8571428571429" cy="401.9495935029197" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <circle cx="1000.0" cy="226.96822773587348" r="4.5" fill="#76B7B2" stroke="#649B97" stroke-width="1.5" />
+  <polyline points="110.00,467.32 237.14,452.13 364.29,416.45 491.43,406.18 618.57,381.52 745.71,370.23 872.86,299.56 1000.00,260.75" fill="none" stroke="#B07AA1" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="110.0" cy="467.3239654484872" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="237.14285714285714" cy="452.12892852704954" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="364.2857142857143" cy="416.4462542924416" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="491.42857142857144" cy="406.17973818967437" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="618.5714285714286" cy="381.5185190657594" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="745.7142857142857" cy="370.2315425888704" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="872.8571428571429" cy="299.55672135191634" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <circle cx="1000.0" cy="260.7450854880306" r="4.5" fill="#B07AA1" stroke="#956788" stroke-width="1.5" />
+  <polyline points="110.00,565.51 237.14,551.16 364.29,545.91 491.43,542.20 618.57,511.81 745.71,502.67 872.86,460.15 1000.00,351.69" fill="none" stroke="#FF9DA7" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+  <circle cx="110.0" cy="565.5094354501446" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="237.14285714285714" cy="551.1569195367139" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="364.2857142857143" cy="545.9074248030493" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="491.42857142857144" cy="542.2026654558493" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="618.5714285714286" cy="511.8123665626109" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="745.7142857142857" cy="502.67317646736467" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="872.8571428571429" cy="460.1537766642277" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <circle cx="1000.0" cy="351.6949704830744" r="4.5" fill="#FF9DA7" stroke="#D8858D" stroke-width="1.5" />
+  <line x1="1024" y1="110" x2="1054" y2="110" stroke="#4E79A7" stroke-width="4" stroke-linecap="round" />
+  <text class="legend" x="1066" y="110">ChronicleMap</text>
+  <line x1="1024" y1="138" x2="1054" y2="138" stroke="#F28E2B" stroke-width="4" stroke-linecap="round" />
+  <text class="legend" x="1066" y="138">H2</text>
+  <line x1="1024" y1="166" x2="1054" y2="166" stroke="#E15759" stroke-width="4" stroke-linecap="round" />
+  <text class="legend" x="1066" y="166">HestiaStoreBasic</text>
+  <line x1="1024" y1="194" x2="1054" y2="194" stroke="#76B7B2" stroke-width="4" stroke-linecap="round" />
+  <text class="legend" x="1066" y="194">HestiaStoreCompress</text>
+  <line x1="1024" y1="222" x2="1054" y2="222" stroke="#B07AA1" stroke-width="4" stroke-linecap="round" />
+  <text class="legend" x="1066" y="222">MapDB</text>
+  <line x1="1024" y1="250" x2="1054" y2="250" stroke="#FF9DA7" stroke-width="4" stroke-linecap="round" />
+  <text class="legend" x="1066" y="250">RocksDB</text>
+</svg>
