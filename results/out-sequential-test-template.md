@@ -4,6 +4,12 @@
 
 ![Sequential read benchmark chart](../images/out-sequential.svg)
 
+## Percentile Chart
+
+This chart shows the latency percentile curve for the benchmarked engines. The X axis runs from p50 to p99.99, and the Y axis uses a logarithmic latency scale so tail-latency differences are easier to compare.
+
+![Sequential read latency percentile chart](../images/out-sequential-percentiles.svg)
+
 ## Test Conditions - Sequential Read Benchmarks
 
 - Each sequential scenario uses the same JVM flags, hardware, and scratch directory handling as the write/read suites. The `dir` property is cleaned before every run to guarantee a fresh start.

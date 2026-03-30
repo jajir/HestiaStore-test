@@ -4,6 +4,12 @@
 
 ![Multithread read benchmark chart](../images/out-multithread-read.svg)
 
+## Percentile Chart
+
+This chart shows the latency percentile curve for the benchmarked engines. The X axis runs from p50 to p99.99, and the Y axis uses a logarithmic latency scale so tail-latency differences are easier to compare.
+
+![Multithread read latency percentile chart](../images/out-multithread-read-percentiles.svg)
+
 ## Test Conditions - Multithread Read Benchmarks
 
 - Multithread read runs reuse the same controlled JVM flags, hardware, and storage directory preparation as the other benchmark suites. Each trial starts from a clean directory provided through the `dir` system property, then preloads the dataset before measurement begins.

@@ -4,6 +4,12 @@
 
 ![Read benchmark chart](../images/out-read.svg)
 
+## Percentile Chart
+
+This chart shows the latency percentile curve for the benchmarked engines. The X axis runs from p50 to p99.99, and the Y axis uses a logarithmic latency scale so tail-latency differences are easier to compare.
+
+![Read latency percentile chart](../images/out-read-percentiles.svg)
+
 ## Test Conditions - Read Benchmarks
 
 - Read-focused runs reuse the same controlled JVM, hardware, and JVM flag configuration as the write suite. Each trial prepares a clean directory pointed to by the `dir` system property before preloading the dataset.
