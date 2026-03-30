@@ -153,12 +153,21 @@ files.each { Path file ->
     boolean isReadVariant = false
     boolean isSequentialVariant = false
     boolean isMultithreadReadVariant = false
+    boolean isMultithreadWriteVariant = false
     String engineBase = rawEngine
     String threads = ''
 
     if (rawEngine.startsWith('multithread-read-')) {
         isMultithreadReadVariant = true
         engineBase = rawEngine.substring('multithread-read-'.length())
+        def matcher = engineBase =~ /^(.*)-threads(\d+)$/
+        if (matcher.matches()) {
+            engineBase = matcher.group(1)
+            threads = matcher.group(2)
+        }
+    } else if (rawEngine.startsWith('multithread-write-')) {
+        isMultithreadWriteVariant = true
+        engineBase = rawEngine.substring('multithread-write-'.length())
         def matcher = engineBase =~ /^(.*)-threads(\d+)$/
         if (matcher.matches()) {
             engineBase = matcher.group(1)
@@ -177,8 +186,12 @@ files.each { Path file ->
         engineBase = rawEngine.substring('write-'.length())
     }
 
+    boolean isMultithreadVariant = isMultithreadReadVariant || isMultithreadWriteVariant
     String scenario = isMultithreadReadVariant ? 'MultithreadRead'
-            : (isReadVariant ? 'Read' : (isSequentialVariant ? 'Sequential' : 'Write'))
+            : (isMultithreadWriteVariant ? 'MultithreadWrite'
+                    : (isReadVariant ? 'Read'
+                            : (isSequentialVariant ? 'Sequential'
+                                    : 'Write')))
     String engine = engineBase
 
     def data = mapper.readValue(Files.readAllBytes(file), List)
@@ -189,8 +202,7 @@ files.each { Path file ->
     def primary = entry?.get('primaryMetric') as Map
     Double score = normalizeNumber(primary?.get('score'))
     Double scoreError = normalizeNumber(primary?.get('scoreError'))
-    String confidenceInterval = buildConfidenceInterval(primary,
-            isMultithreadReadVariant)
+    String confidenceInterval = buildConfidenceInterval(primary, isMultithreadVariant)
 
     Path myVariant = file.parent.resolve(file.fileName.toString().replace('.json', '-my.json'))
     String occupied = ''
@@ -215,7 +227,7 @@ files.each { Path file ->
         }
     }
 
-    if (isMultithreadReadVariant) {
+    if (isMultithreadVariant) {
         def latencyEntry = findBenchmarkEntry(data, ['sample', 'avgt'])
         def throughputEntry = findBenchmarkEntry(data, ['thrpt'], false)
         Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
@@ -262,15 +274,18 @@ def writeRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Write' }
 def readRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Read' }
 def sequentialRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Sequential' }
 def multithreadReadRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadRead' }
+def multithreadWriteRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadWrite' }
 
 Path writeOutput = resultsDir.resolve('out-write-table.json')
 Path readOutput = resultsDir.resolve('out-read-table.json')
 Path sequentialOutput = resultsDir.resolve('out-sequential-table.json')
 Path multithreadReadOutput = resultsDir.resolve('out-multithread-read-table.json')
+Path multithreadWriteOutput = resultsDir.resolve('out-multithread-write-table.json')
 
 mapper.writeValue(writeOutput.toFile(), writeRows)
 mapper.writeValue(readOutput.toFile(), readRows)
 mapper.writeValue(sequentialOutput.toFile(), sequentialRows)
 mapper.writeValue(multithreadReadOutput.toFile(), multithreadReadRows)
+mapper.writeValue(multithreadWriteOutput.toFile(), multithreadWriteRows)
 
-println "Written summaries to ${writeOutput}, ${readOutput}, ${sequentialOutput} and ${multithreadReadOutput}"
+println "Written summaries to ${writeOutput}, ${readOutput}, ${sequentialOutput}, ${multithreadReadOutput} and ${multithreadWriteOutput}"

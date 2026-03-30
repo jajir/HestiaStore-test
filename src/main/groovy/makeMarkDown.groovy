@@ -89,10 +89,10 @@ String buildThroughputReport(List<Map<String, Object>> rows, Path conditionsPath
 }
 
 String buildMultithreadLatencyReport(List<Map<String, Object>> rows,
-        Path conditionsPath, List<Path> rawFiles) {
+        Path conditionsPath, List<Path> rawFiles, String title) {
     StringBuilder out = new StringBuilder()
     out.append('# HestiaStore Benchmark Results\n\n')
-    out.append('## Multithread Read Latency\n\n')
+    out.append("## ${title}\n\n")
     out.append(readConditions(conditionsPath))
     out.append('## Benchmark Results\n\n')
     if (rows.isEmpty()) {
@@ -129,16 +129,19 @@ List<Path> readRaw = jsonFiles.findAll {
             !it.fileName.toString().contains('results-multithread-read-')
 }
 List<Path> sequentialRaw = jsonFiles.findAll { it.fileName.toString().contains('results-sequential-') }
-List<Path> multithreadRaw = jsonFiles.findAll { it.fileName.toString().contains('results-multithread-read-') }
+List<Path> multithreadReadRaw = jsonFiles.findAll { it.fileName.toString().contains('results-multithread-read-') }
+List<Path> multithreadWriteRaw = jsonFiles.findAll { it.fileName.toString().contains('results-multithread-write-') }
 
 List<Map<String, Object>> writeRows = []
 List<Map<String, Object>> readRows = []
 List<Map<String, Object>> sequentialRows = []
-List<Map<String, Object>> multithreadRows = []
+List<Map<String, Object>> multithreadReadRows = []
+List<Map<String, Object>> multithreadWriteRows = []
 Path writeTable = resultsDir.resolve('out-write-table.json')
 Path readTable = resultsDir.resolve('out-read-table.json')
 Path sequentialTable = resultsDir.resolve('out-sequential-table.json')
-Path multithreadTable = resultsDir.resolve('out-multithread-read-table.json')
+Path multithreadReadTable = resultsDir.resolve('out-multithread-read-table.json')
+Path multithreadWriteTable = resultsDir.resolve('out-multithread-write-table.json')
 if (Files.exists(writeTable)) {
     writeRows = mapper.readValue(writeTable.toFile(), List)
 }
@@ -148,14 +151,18 @@ if (Files.exists(readTable)) {
 if (Files.exists(sequentialTable)) {
     sequentialRows = mapper.readValue(sequentialTable.toFile(), List)
 }
-if (Files.exists(multithreadTable)) {
-    multithreadRows = mapper.readValue(multithreadTable.toFile(), List)
+if (Files.exists(multithreadReadTable)) {
+    multithreadReadRows = mapper.readValue(multithreadReadTable.toFile(), List)
+}
+if (Files.exists(multithreadWriteTable)) {
+    multithreadWriteRows = mapper.readValue(multithreadWriteTable.toFile(), List)
 }
 
 Path writeOutput = resultsDir.resolve('out-write.md')
 Path readOutput = resultsDir.resolve('out-read.md')
 Path sequentialOutput = resultsDir.resolve('out-sequential.md')
-Path multithreadOutput = resultsDir.resolve('out-multithread-read.md')
+Path multithreadReadOutput = resultsDir.resolve('out-multithread-read.md')
+Path multithreadWriteOutput = resultsDir.resolve('out-multithread-write.md')
 Files.writeString(writeOutput,
         buildThroughputReport(writeRows,
                 resultsDir.resolve('out-write-test-conditions.md'), writeRaw,
@@ -171,13 +178,19 @@ Files.writeString(sequentialOutput,
                 resultsDir.resolve('out-sequential-test-conditions.md'),
                 sequentialRaw, 'Sequential Read'),
         StandardCharsets.UTF_8)
-Files.writeString(multithreadOutput,
-        buildMultithreadLatencyReport(multithreadRows,
+Files.writeString(multithreadReadOutput,
+        buildMultithreadLatencyReport(multithreadReadRows,
                 resultsDir.resolve('out-multithread-read-test-conditions.md'),
-                multithreadRaw),
+                multithreadReadRaw, 'Multithread Read Latency'),
+        StandardCharsets.UTF_8)
+Files.writeString(multithreadWriteOutput,
+        buildMultithreadLatencyReport(multithreadWriteRows,
+                resultsDir.resolve('out-multithread-write-test-conditions.md'),
+                multithreadWriteRaw, 'Multithread Write Latency'),
         StandardCharsets.UTF_8)
 
 println "Wrote ${writeOutput}"
 println "Wrote ${readOutput}"
 println "Wrote ${sequentialOutput}"
-println "Wrote ${multithreadOutput}"
+println "Wrote ${multithreadReadOutput}"
+println "Wrote ${multithreadWriteOutput}"

@@ -19,6 +19,10 @@ inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchm
 inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.readThroughput
 inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.setupBenchmark
 inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadReadBenchmark.tearDownBenchmark
+inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadWriteBenchmark.setupBenchmark
+inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadWriteBenchmark.tearDownBenchmark
+inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadWriteBenchmark.write
+inline,org/hestiastore/index/benchmark/multithread/AbstractMultithreadWriteBenchmark.writeThroughput
 inline,org/hestiastore/index/benchmark/plainload/TestChronicleMapRead.read
 inline,org/hestiastore/index/benchmark/plainload/TestChronicleMapRead.setup
 inline,org/hestiastore/index/benchmark/plainload/TestChronicleMapRead.tearDown

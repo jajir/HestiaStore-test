@@ -92,6 +92,22 @@ run() {
   local threads="${2:-1}"
 
   java \
+    --add-opens=java.base/java.lang=ALL-UNNAMED \
+    --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+    --add-opens=java.base/java.io=ALL-UNNAMED \
+    --add-opens=java.base/java.nio=ALL-UNNAMED \
+    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED \
+    --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+    -Xmx10000m \
     -Ddir="${BENCHMARK_DIR}" \
     -Dengine="${engine}" \
     -DbenchmarkThreads="${threads}" \
@@ -105,8 +121,8 @@ run() {
 # Write benchmarks
 #run H2
 #run MapDB
-run HestiaStoreBasic
-run HestiaStoreCompressWrite
+#run HestiaStoreBasic
+#run HestiaStoreCompressWrite
 #run ChronicleMap
 #run RocksDB
 #run LevelDB
@@ -139,3 +155,13 @@ run HestiaStoreCompressWrite
 #run ChronicleMapMultithreadRead 4
 #run RocksDBMultithreadRead 4
 #run LevelDBMultithreadRead 4
+
+# Multithread write latency benchmarks with percentile output in JMH JSON.
+# Default thread count is 4 for this section.
+#run HestiaStoreBasicMultithreadWrite 4
+#run HestiaStoreCompressMultithreadWrite 4
+run H2MultithreadWrite 4
+run MapDBMultithreadWrite 4
+run ChronicleMapMultithreadWrite 4
+run RocksDBMultithreadWrite 4
+run LevelDBMultithreadWrite 4
