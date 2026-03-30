@@ -26,10 +26,8 @@ public class TestMapDBSequential extends AbstractSequentialReadTest {
     private DB db;
     private HTreeMap<String, String> storage;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String readSequential() {
+    @Override
+    protected String performOperation() {
         final String key = nextSequentialKey();
         final String value = storage.get(key);
         return value != null ? value : key;
@@ -65,4 +63,3 @@ public class TestMapDBSequential extends AbstractSequentialReadTest {
         }
     }
 }
-

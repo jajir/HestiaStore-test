@@ -25,10 +25,8 @@ public class TestChronicleMapSequential extends AbstractSequentialReadTest {
 
     private ChronicleMap<String, String> map;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String readSequential() {
+    @Override
+    protected String performOperation() {
         final String key = nextSequentialKey();
         final String value = map.get(key);
         return value != null ? value : key;
@@ -61,4 +59,3 @@ public class TestChronicleMapSequential extends AbstractSequentialReadTest {
         }
     }
 }
-

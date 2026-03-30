@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#  mvn -Dmaven.compiler.useIncrementalCompilation=false clean package
+#  mvn clean package
 #
 set -euo pipefail
 

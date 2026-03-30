@@ -28,10 +28,8 @@ public class TestH2Read extends AbstractReadTest {
     private MVStore store;
     private MVMap<String, String> map;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String read() {
+    @Override
+    protected String performOperation() {
         final String key = pickReadKey();
         final String value = map.get(key);
         return value != null ? value : key;

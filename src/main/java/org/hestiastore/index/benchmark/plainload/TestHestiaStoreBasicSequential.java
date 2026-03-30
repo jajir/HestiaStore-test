@@ -30,10 +30,8 @@ public class TestHestiaStoreBasicSequential extends AbstractSequentialReadTest {
 
     private SegmentIndex<String, String> index;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String readSequential() {
+    @Override
+    protected String performOperation() {
         final String key = nextSequentialKey();
         final String value = index.get(key);
         return value != null ? value : key;

@@ -282,16 +282,46 @@ files.each { Path file ->
                 'cpuUsage': cpuUsageStr
         ]
     } else {
-        rows << [
-                'Engine': engine,
-                'Variant': scenario,
-                'Score [ops/s]': formatOpsScore(score),
-                'ScoreError': formatOpsScore(scoreError),
-                'Confidence Interval [ops/s]': confidenceInterval,
-                'Occupied space': occupied,
-                'usedMemoryBytes': usedMemoryStr,
-                'cpuUsage': cpuUsageStr
-        ]
+        def latencyEntry = findBenchmarkEntry(data, ['sample', 'avgt'], false)
+        def throughputEntry = findBenchmarkEntry(data, ['thrpt'], false)
+        if (latencyEntry != null && throughputEntry != null) {
+            Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
+            Map throughputPrimary = throughputEntry?.get('primaryMetric') as Map ?: [:]
+            Map percentiles = latencyPrimary?.get('scorePercentiles') as Map ?: [:]
+            rows << [
+                    'Engine': engine,
+                    'Variant': scenario,
+                    'Score [ops/s]': formatOpsScore(
+                            normalizeNumber(throughputPrimary?.get('score'))),
+                    'ScoreError': formatOpsScore(
+                            normalizeNumber(throughputPrimary?.get('scoreError'))),
+                    'Confidence Interval [ops/s]': buildConfidenceInterval(
+                            throughputPrimary, false),
+                    'Mean [us/op]': formatLatency(
+                            normalizeNumber(latencyPrimary?.get('score'))),
+                    'Latency Error [us/op]': formatLatency(
+                            normalizeNumber(latencyPrimary?.get('scoreError'))),
+                    'Confidence Interval [us/op]': buildConfidenceInterval(
+                            latencyPrimary, true),
+                    'p50 [us/op]': formatLatency(percentileValue(percentiles, '50.0', '50')),
+                    'p95 [us/op]': formatLatency(percentileValue(percentiles, '95.0', '95')),
+                    'p99 [us/op]': formatLatency(percentileValue(percentiles, '99.0', '99')),
+                    'Occupied space': occupied,
+                    'usedMemoryBytes': usedMemoryStr,
+                    'cpuUsage': cpuUsageStr
+            ]
+        } else {
+            rows << [
+                    'Engine': engine,
+                    'Variant': scenario,
+                    'Score [ops/s]': formatOpsScore(score),
+                    'ScoreError': formatOpsScore(scoreError),
+                    'Confidence Interval [ops/s]': confidenceInterval,
+                    'Occupied space': occupied,
+                    'usedMemoryBytes': usedMemoryStr,
+                    'cpuUsage': cpuUsageStr
+            ]
+        }
     }
 }
 

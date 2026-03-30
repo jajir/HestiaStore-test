@@ -27,10 +27,8 @@ public class TestLevelDBRead extends AbstractReadTest {
 
     private DB storage;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String read() {
+    @Override
+    protected String performOperation() {
         final String key = pickReadKey();
         final byte[] value = storage.get(key.getBytes(StandardCharsets.UTF_8));
         return value != null ? VALUE : key;

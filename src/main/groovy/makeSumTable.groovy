@@ -66,14 +66,32 @@ if (writeRows.isEmpty() && readRows.isEmpty() && sequentialRows.isEmpty()
 
 def buildMarkdown = { List<Map<String, Object>> rows ->
     StringBuilder markdown = new StringBuilder()
-    markdown.append("| Engine | Score [ops/s] | Occupied space | CPU Usage |\n")
-    markdown.append("|:-------|--------------:|---------------:|----------:|\n")
-    rows.each { row ->
-        String engine = (row["Engine"] ?: "").toString()
-        String score = (row["Score [ops/s]"] ?: "").toString()
-        String occupied = (row["Occupied space"] ?: "").toString()
-        String cpuUsage = (row["cpuUsage"] ?: "").toString()
-        markdown.append("| ${engine} | ${score.padLeft(13)} | ${occupied} | ${cpuUsage} |\n")
+    boolean includeLatency = !rows.isEmpty() &&
+            rows[0].containsKey("Mean [us/op]")
+    if (includeLatency) {
+        markdown.append("| Engine | Score [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | Occupied space | CPU Usage |\n")
+        markdown.append("|:-------|--------------:|-------------:|------------:|------------:|------------:|---------------:|----------:|\n")
+        rows.each { row ->
+            String engine = (row["Engine"] ?: "").toString()
+            String score = (row["Score [ops/s]"] ?: "").toString()
+            String mean = (row["Mean [us/op]"] ?: "").toString()
+            String p50 = (row["p50 [us/op]"] ?: "").toString()
+            String p95 = (row["p95 [us/op]"] ?: "").toString()
+            String p99 = (row["p99 [us/op]"] ?: "").toString()
+            String occupied = (row["Occupied space"] ?: "").toString()
+            String cpuUsage = (row["cpuUsage"] ?: "").toString()
+            markdown.append("| ${engine} | ${score.padLeft(13)} | ${mean} | ${p50} | ${p95} | ${p99} | ${occupied} | ${cpuUsage} |\n")
+        }
+    } else {
+        markdown.append("| Engine | Score [ops/s] | Occupied space | CPU Usage |\n")
+        markdown.append("|:-------|--------------:|---------------:|----------:|\n")
+        rows.each { row ->
+            String engine = (row["Engine"] ?: "").toString()
+            String score = (row["Score [ops/s]"] ?: "").toString()
+            String occupied = (row["Occupied space"] ?: "").toString()
+            String cpuUsage = (row["cpuUsage"] ?: "").toString()
+            markdown.append("| ${engine} | ${score.padLeft(13)} | ${occupied} | ${cpuUsage} |\n")
+        }
     }
     return markdown.toString()
 }

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.benchmark.plainload.AbstractWriteTest;
+import org.hestiastore.index.benchmark.plainload.AbstractBenchmarkSupport;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -23,7 +23,7 @@ import org.openjdk.jmh.annotations.Warmup;
  * distributions and aggregate ops/s in the same run.
  */
 public abstract class AbstractMultithreadReadBenchmark
-        extends AbstractWriteTest {
+        extends AbstractBenchmarkSupport {
 
     public static final String PROPERTY_PRELOAD_ENTRY_COUNT = "benchmarkPreloadEntryCount";
     public static final String PROPERTY_MISS_PROBABILITY = "benchmarkMissProbability";
@@ -39,6 +39,15 @@ public abstract class AbstractMultithreadReadBenchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
     public final String read() throws Exception {
+        return performRead();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
+    public final String readThroughput() throws Exception {
         return performRead();
     }
 

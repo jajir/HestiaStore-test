@@ -31,16 +31,14 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class TestHestiaStoreStreamSequential extends AbstractReadTest {
+public class TestHestiaStoreStreamSequential extends AbstractSequentialReadTest {
 
     private SegmentIndex<String, String> index;
     private Stream<Entry<String, String>> currentStream;
     private Iterator<Entry<String, String>> streamIterator;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String readSequentialStream() {
+    @Override
+    protected String performOperation() {
         ensureIterator();
         if (!streamIterator.hasNext()) {
             resetStream();

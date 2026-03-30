@@ -2,6 +2,10 @@
 
 This repository contains JMH-based storage benchmarks plus helper scripts that turn raw benchmark JSON files into final Markdown, JSON, and SVG reports.
 
+The plain-load write, read, and sequential suites emit both `SampleTime`
+latency and `Throughput` results in the same raw JMH JSON files so reports can
+combine sustained ops/s with percentile latency data.
+
 Raw benchmark files are written into `./results/` with names like:
 
 - `results-*.json` for the JMH output
@@ -17,7 +21,7 @@ Raw benchmark files are written into `./results/` with names like:
 Build the project from the repository root before running benchmarks:
 
 ```bash
-mvn clean package -Dmaven.compiler.useIncrementalCompilation=false -DskipTests=true
+mvn clean package -DskipTests=true
 ```
 
 ## Run Benchmarks

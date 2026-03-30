@@ -28,10 +28,8 @@ public class TestRocksDBRead extends AbstractReadTest {
     private Options options;
     private RocksDB storage;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String read() throws RocksDBException {
+    @Override
+    protected String performOperation() throws RocksDBException {
         final String key = pickReadKey();
         final byte[] value = storage.get(key.getBytes(StandardCharsets.UTF_8));
         return value != null ? VALUE : key;

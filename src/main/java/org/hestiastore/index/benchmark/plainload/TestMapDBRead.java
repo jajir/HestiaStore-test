@@ -26,10 +26,8 @@ public class TestMapDBRead extends AbstractReadTest {
     private DB db;
     private HTreeMap<String, String> storage;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String read() {
+    @Override
+    protected String performOperation() {
         final String key = pickReadKey();
         final String value = storage.get(key);
         return value != null ? value : key;

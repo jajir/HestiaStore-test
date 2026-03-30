@@ -62,24 +62,46 @@ String buildThroughputTableSection(List<Map<String, Object>> rows) {
     if (rows.isEmpty()) {
         out.append('_No summary rows available._\n\n')
     } else {
-        out.append('| Engine       | Score [ops/s]     | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |\n')
-        out.append('|:-------------|------------------:|-----------:|-----------------------------:|---------------:|---------:|\n')
-        rows.each { row ->
-            def engine = (row['Engine'] ?: '').toString()
-            def score = (row['Score [ops/s]'] ?: '').toString()
-            def error = (row['ScoreError'] ?: '').toString()
-            def ci = (row['Confidence Interval [ops/s]'] ?: '').toString()
-            def occupied = (row['Occupied space'] ?: '').toString()
-            def cpuUsage = (row['cpuUsage'] ?: '').toString()
-            out.append("| ${engine.padRight(12)} | ${score.padLeft(16)} | ${error.padLeft(9)} | ${ci.padRight(27)} | ${occupied.padRight(14)} | ${cpuUsage.padRight(10)} |\n")
+        boolean includeLatency = rows[0].containsKey('Mean [us/op]')
+        if (includeLatency) {
+            out.append('| Engine       | Score [ops/s]     | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | Occupied space | CPU Usage |\n')
+            out.append('|:-------------|------------------:|-------------:|------------:|------------:|------------:|---------------:|---------:|\n')
+            rows.each { row ->
+                def engine = (row['Engine'] ?: '').toString()
+                def score = (row['Score [ops/s]'] ?: '').toString()
+                def mean = (row['Mean [us/op]'] ?: '').toString()
+                def p50 = (row['p50 [us/op]'] ?: '').toString()
+                def p95 = (row['p95 [us/op]'] ?: '').toString()
+                def p99 = (row['p99 [us/op]'] ?: '').toString()
+                def occupied = (row['Occupied space'] ?: '').toString()
+                def cpuUsage = (row['cpuUsage'] ?: '').toString()
+                out.append("| ${engine.padRight(12)} | ${score.padLeft(16)} | ${mean.padLeft(12)} | ${p50.padLeft(11)} | ${p95.padLeft(11)} | ${p99.padLeft(11)} | ${occupied.padRight(14)} | ${cpuUsage.padRight(10)} |\n")
+            }
+        } else {
+            out.append('| Engine       | Score [ops/s]     | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |\n')
+            out.append('|:-------------|------------------:|-----------:|-----------------------------:|---------------:|---------:|\n')
+            rows.each { row ->
+                def engine = (row['Engine'] ?: '').toString()
+                def score = (row['Score [ops/s]'] ?: '').toString()
+                def error = (row['ScoreError'] ?: '').toString()
+                def ci = (row['Confidence Interval [ops/s]'] ?: '').toString()
+                def occupied = (row['Occupied space'] ?: '').toString()
+                def cpuUsage = (row['cpuUsage'] ?: '').toString()
+                out.append("| ${engine.padRight(12)} | ${score.padLeft(16)} | ${error.padLeft(9)} | ${ci.padRight(27)} | ${occupied.padRight(14)} | ${cpuUsage.padRight(10)} |\n")
+            }
         }
         out.append('\n')
     }
     out.append('meaning of columns:\n\n')
     out.append('- Engine: name of the benchmarked engine.\n')
     out.append('- Score [ops/s]: number of operations per second, higher is better.\n')
-    out.append('- ScoreError: error margin of the mean score.\n')
-    out.append('- Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.\n')
+    if (!rows.isEmpty() && rows[0].containsKey('Mean [us/op]')) {
+        out.append('- Mean [us/op]: average per-operation latency in microseconds, lower is better.\n')
+        out.append('- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.\n')
+    } else {
+        out.append('- ScoreError: error margin of the mean score.\n')
+        out.append('- Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.\n')
+    }
     out.append('- Occupied space: amount of disk space occupied by the engine data.\n')
     out.append('- CPU Usage: average CPU usage during the benchmark.\n')
     return out.toString()

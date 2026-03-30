@@ -28,10 +28,8 @@ public class TestRocksDBSequential extends AbstractSequentialReadTest {
     private Options options;
     private RocksDB storage;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String readSequential() throws RocksDBException {
+    @Override
+    protected String performOperation() throws RocksDBException {
         final String key = nextSequentialKey();
         final byte[] value = storage
                 .get(key.getBytes(StandardCharsets.UTF_8));
@@ -69,4 +67,3 @@ public class TestRocksDBSequential extends AbstractSequentialReadTest {
         }
     }
 }
-

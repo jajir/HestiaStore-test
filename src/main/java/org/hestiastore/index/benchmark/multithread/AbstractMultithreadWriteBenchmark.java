@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-import org.hestiastore.index.benchmark.plainload.AbstractWriteTest;
+import org.hestiastore.index.benchmark.plainload.AbstractBenchmarkSupport;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Level;
@@ -23,7 +23,7 @@ import org.openjdk.jmh.annotations.Warmup;
  * percentile latency data together with aggregate ops/s.
  */
 public abstract class AbstractMultithreadWriteBenchmark
-        extends AbstractWriteTest {
+        extends AbstractBenchmarkSupport {
 
     @Benchmark
     @BenchmarkMode(Mode.SampleTime)
@@ -31,6 +31,15 @@ public abstract class AbstractMultithreadWriteBenchmark
     @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
     @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
     public final String write() throws Exception {
+        return performWrite();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
+    public final String writeThroughput() throws Exception {
         return performWrite();
     }
 

@@ -30,10 +30,8 @@ import org.openjdk.jmh.annotations.Warmup;
 public class TestHestiaStoreBasicWrite extends AbstractWriteTest {
     private SegmentIndex<String, String> index;
 
-    @Benchmark
-    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
-    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
-    public String write() {
+    @Override
+    protected String performOperation() {
         final long rnd = RANDOM.nextLong();
         final String hash = HASH_DATA_PROVIDER.makeHash(rnd);
         final Entry<String, String> entry = Entry.of(hash, VALUE);

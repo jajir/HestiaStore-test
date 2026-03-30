@@ -1,13 +1,40 @@
 package org.hestiastore.index.benchmark.plainload;
 
+import java.util.concurrent.TimeUnit;
+
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Warmup;
+
 /**
  * Base class for sequential read benchmarks. Sequential variants reuse the
- * preloaded dataset from {@link AbstractReadTest} but iterate over keys in a
- * deterministic order instead of random access.
+ * preloaded dataset but iterate over keys in a deterministic order instead of
+ * random access.
  */
-abstract class AbstractSequentialReadTest extends AbstractReadTest {
+abstract class AbstractSequentialReadTest extends AbstractReadBenchmarkSupport {
 
     private long sequentialCursor = 0L;
+
+    @Benchmark
+    @BenchmarkMode(Mode.SampleTime)
+    @OutputTimeUnit(TimeUnit.MICROSECONDS)
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
+    public String readSequential() throws Exception {
+        return runSingleThreadOperation();
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    @OutputTimeUnit(TimeUnit.SECONDS)
+    @Warmup(iterations = WARM_UP_ITERACTIONS, time = WARM_UP_TIME, timeUnit = TimeUnit.SECONDS)
+    @Measurement(iterations = MEASUREMENT_ITERACTIONS, time = MEASUREMENT_TIME, timeUnit = TimeUnit.SECONDS)
+    public String readSequentialThroughput() throws Exception {
+        return runSingleThreadOperation();
+    }
 
     protected String nextSequentialKey() {
         final long idx = sequentialCursor;
@@ -19,4 +46,3 @@ abstract class AbstractSequentialReadTest extends AbstractReadTest {
         sequentialCursor = 0L;
     }
 }
-
