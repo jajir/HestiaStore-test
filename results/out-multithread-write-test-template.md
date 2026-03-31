@@ -4,6 +4,12 @@
 
 ![Multithread write benchmark chart](../images/out-multithread-write.svg)
 
+## Percentile Chart
+
+This chart shows the latency percentile curve for the benchmarked engines. The X axis runs from p50 to p99.99, and the Y axis uses a logarithmic latency scale so tail-latency differences are easier to compare.
+
+![Multithread write latency percentile chart](../images/out-multithread-write-percentiles.svg)
+
 ## Test Conditions - Multithread Write Benchmarks
 
 - Multithread write runs reuse the same controlled JVM flags and hardware as the other benchmark suites. Each trial wipes the working directory supplied through the `dir` system property and creates a fresh storage instance before any benchmark thread starts.

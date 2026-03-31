@@ -4,6 +4,12 @@
 
 ![Write benchmark chart](../images/out-write.svg)
 
+## Percentile Chart
+
+This chart shows the latency percentile curve for the benchmarked engines. The X axis runs from p50 to p99.99, and the Y axis uses a logarithmic latency scale so tail-latency differences are easier to compare.
+
+![Write latency percentile chart](../images/out-write-percentiles.svg)
+
 ## Test Conditions
 
 - Every benchmark in the plain-load suite runs inside the same controlled JVM environment with identical JVM flags and hardware resources. Runs start by wiping the working directory supplied through the `dir` system property, so each trial writes into a fresh, empty location.
