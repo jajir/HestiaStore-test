@@ -82,28 +82,35 @@
   "usedMemoryBytes" : "101.83 MB",
   "cpuUsage" : "21%"
 }, {
-  "Engine" : "HestiaStoreCompress",
+  "Engine" : "LevelDB",
   "Variant" : "MultithreadWrite",
   "Threads" : "4",
-  "Throughput [ops/s]" : "329 076",
-  "Throughput Error [ops/s]" : "",
-  "Throughput Confidence Interval [ops/s]" : "",
-  "Mean [us/op]" : "250.942",
-  "Latency Error [us/op]" : "48.347",
-  "Confidence Interval [us/op]" : {
-    "values" : [ "202.595", "299.289" ],
+  "Throughput [ops/s]" : "47 190",
+  "Throughput Error [ops/s]" : "14 213",
+  "Throughput Confidence Interval [ops/s]" : {
+    "values" : [ "32 977", "61 403" ],
     "strings" : [ "", " .. ", "" ],
     "empty" : false,
     "blank" : false,
     "valueCount" : 2,
-    "bytes" : "MjAyLjU5NSAuLiAyOTkuMjg5"
+    "bytes" : "MzIgOTc3IC4uIDYxIDQwMw=="
   },
-  "p50 [us/op]" : "2.456",
-  "p95 [us/op]" : "5.912",
-  "p99 [us/op]" : "13.2",
-  "Occupied space" : "2.22 GB",
-  "usedMemoryBytes" : "81.51 MB",
-  "cpuUsage" : "14%"
+  "Mean [us/op]" : "80.601",
+  "Latency Error [us/op]" : "7.635",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "72.966", "88.236" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "NzIuOTY2IC4uIDg4LjIzNg=="
+  },
+  "p50 [us/op]" : "1.54",
+  "p95 [us/op]" : "59.584",
+  "p99 [us/op]" : "1 282.048",
+  "Occupied space" : "1.66 GB",
+  "usedMemoryBytes" : "86.77 MB",
+  "cpuUsage" : "17%"
 }, {
   "Engine" : "MapDB",
   "Variant" : "MultithreadWrite",

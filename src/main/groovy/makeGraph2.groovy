@@ -49,6 +49,8 @@ def normalizeNumber = { Object value ->
 Path cwd = Paths.get('.').toAbsolutePath().normalize()
 Path rootDir = findProjectRoot(cwd)
 Path resultsDir = rootDir.resolve('results')
+def graphShared = new GroovyShell().evaluate(
+        rootDir.resolve('src/main/groovy/graphShared.groovy').toFile())
 
 if (!Files.isDirectory(resultsDir)) {
     System.err.println("Results directory not found: ${resultsDir}")
@@ -79,60 +81,11 @@ def scenarioMeta = [
                             title: 'Multithread Write Latency Percentiles']
 ]
 
-def palette = [
-        '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
-        '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC'
-]
-
-def canonicalEngineName = { String engine ->
-    String value = engine?.trim()
-    if (!value) {
-        return 'Unknown'
-    }
-    if (value.startsWith('HestiaStoreBasic')) {
-        return 'HestiaStoreBasic'
-    }
-    if (value.startsWith('HestiaStoreCompress')) {
-        return 'HestiaStoreCompress'
-    }
-    if (value.startsWith('HestiaStoreStream')) {
-        return 'HestiaStoreStream'
-    }
-    return value
-}
-
-def fixedEngineColors = [
-        ChronicleMap       : '#4E79A7',
-        H2                 : '#F28E2B',
-        HestiaStoreBasic   : '#E15759',
-        HestiaStoreCompress: '#76B7B2',
-        HestiaStoreStream  : '#59A14F',
-        LevelDB            : '#EDC948',
-        MapDB              : '#B07AA1',
-        RocksDB            : '#FF9DA7',
-        Unknown            : '#9C755F'
-]
-
-def fallbackColorFor = { String engine ->
-    int index = Math.floorMod(engine.hashCode(), palette.size())
-    palette[index]
-}
-
 def colorForEngine = { String engine ->
-    String canonical = canonicalEngineName(engine)
-    fixedEngineColors[canonical] ?: fallbackColorFor(canonical)
+    graphShared.colorForEngine.call(engine) as String
 }
 
-def darker = { String hex ->
-    int rgb = Integer.parseInt(hex.substring(1), 16)
-    int r = ((rgb >> 16) & 0xFF)
-    int g = ((rgb >> 8) & 0xFF)
-    int b = (rgb & 0xFF)
-    r = Math.max(0, (int) (r * 0.85))
-    g = Math.max(0, (int) (g * 0.85))
-    b = Math.max(0, (int) (b * 0.85))
-    String.format('#%02X%02X%02X', r, g, b)
-}
+def darker = graphShared.darker
 
 def describeResultFile = { Path file ->
     String rawEngine = file.fileName.toString()
@@ -318,11 +271,18 @@ def renderChart = { String scenario, List<Map<String, Object>> series ->
         return
     }
 
-    int width = 1280
-    int height = 760
+    int legendColumns = Math.min(4, Math.max(1, series.size()))
+    int legendRows = (int) Math.ceil(series.size() / (double) legendColumns)
+    int width = 1120
+    int xTickLabelOffset = 28
+    int axisTitleOffset = 62
+    int legendTopOffset = 104
+    int legendRowHeight = 34
+    int legendBottomPadding = 24
+    int height = 760 + Math.max(0, legendRows - 1) * legendRowHeight
     int marginTop = 90
-    int marginRight = 280
-    int marginBottom = 110
+    int marginRight = 60
+    int marginBottom = legendTopOffset + (legendRows * legendRowHeight) + legendBottomPadding
     int marginLeft = 110
     int plotWidth = width - marginLeft - marginRight
     int plotHeight = height - marginTop - marginBottom
@@ -385,11 +345,11 @@ def renderChart = { String scenario, List<Map<String, Object>> series ->
             double x = xForIndex(idx)
             line(class: 'grid', x1: x, y1: marginTop, x2: x, y2: marginTop + plotHeight)
             text(spec.label as String, class: 'tick', x: x,
-                    y: marginTop + plotHeight + 28, 'text-anchor': 'middle')
+                    y: marginTop + plotHeight + xTickLabelOffset, 'text-anchor': 'middle')
         }
 
         text('Percentile', class: 'axis-label', x: marginLeft + (plotWidth / 2),
-                y: height - 34, 'text-anchor': 'middle')
+                y: marginTop + plotHeight + axisTitleOffset, 'text-anchor': 'middle')
         text('Latency (us/op)', class: 'axis-label', x: 28,
                 y: marginTop + (plotHeight / 2),
                 transform: "rotate(-90 28 ${marginTop + (plotHeight / 2)})",
@@ -414,14 +374,18 @@ def renderChart = { String scenario, List<Map<String, Object>> series ->
             }
         }
 
-        int legendStartY = marginTop + 20
+        double legendStartY = marginTop + plotHeight + legendTopOffset
+        double legendColumnWidth = plotWidth / (double) legendColumns
         series.eachWithIndex { item, idx ->
-            int y = legendStartY + (idx * 28)
+            int row = (int) (idx / legendColumns)
+            int col = idx % legendColumns
+            double cellX = marginLeft + (legendColumnWidth * col)
+            double y = legendStartY + (row * legendRowHeight)
             String color = colorForEngine(item.engine as String)
-            line(x1: marginLeft + plotWidth + 24, y1: y, x2: marginLeft + plotWidth + 54,
+            line(x1: cellX + 10, y1: y, x2: cellX + 40,
                     y2: y, stroke: color, 'stroke-width': 4,
                     'stroke-linecap': 'round')
-            text(item.engine as String, class: 'legend', x: marginLeft + plotWidth + 66,
+            text(item.engine as String, class: 'legend', x: cellX + 52,
                     y: y)
         }
     }

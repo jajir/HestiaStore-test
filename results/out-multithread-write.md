@@ -21,22 +21,24 @@ This chart shows the latency percentile curve for the benchmarked engines. The X
 - After measurements complete, the storage is closed and the resulting directory remains available so the reporting scripts can capture occupied space and CPU usage.
 - Test was performed at Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
 
-## Benchmark Results
+## Data for Throughtput Chart
 
-| Engine       | Threads | Throughput [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | CPU Usage |
-|:-------------|--------:|-------------------:|-------------:|------------:|------------:|------------:|---------:|
-| ChronicleMap |       4 |              2 454 |     1 329.18 |       2.748 |   3 416.064 |   6 283.264 | 10%        |
-| H2           |       4 |             39 736 |       115.12 |      49.856 |      302.08 |   1 527.808 | 30%        |
-| HestiaStoreBasic |       4 |            423 154 |       45.544 |       2.708 |       6.832 |       10.08 | 21%        |
-| HestiaStoreCompress |       4 |            329 076 |      250.942 |       2.456 |       5.912 |        13.2 | 14%        |
-| MapDB        |       4 |             15 559 |      218.487 |      90.624 |       409.6 |      752.64 | 19%        |
-| RocksDB      |       4 |            108 818 |       42.966 |        8.04 |      14.288 |       30.24 | 15%        |
+| Engine | Threads | Throughput [ops/s] | CPU Usage |
+|:-------|--------:|-------------------:|----------:|
+| ChronicleMap | 4 | 2 454 | 10% |
+| H2 | 4 | 39 736 | 30% |
+| HestiaStoreBasic | 4 | 423 154 | 21% |
+| LevelDB | 4 | 47 190 | 17% |
+| MapDB | 4 | 15 559 | 19% |
+| RocksDB | 4 | 108 818 | 15% |
 
-meaning of columns:
+## Source Data for Percentile Chart
 
-- Engine: name of the benchmarked engine.
-- Threads: number of concurrent JMH benchmark threads.
-- Throughput [ops/s]: aggregate completed operations per second, higher is better.
-- Mean [us/op]: average per-operation latency in microseconds, lower is better.
-- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.
-- CPU Usage: average CPU usage during the benchmark.
+| Engine | p50 [us/op] | p75 [us/op] | p90 [us/op] | p95 [us/op] | p99 [us/op] | p99.5 [us/op] | p99.9 [us/op] | p99.99 [us/op] |
+|:-------|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|
+| ChronicleMap | 2.748 | 1 167.36 | 2 330.624 | 3 416.064 | 6 283.264 | 7 995.392 | 296 222.72 | 571 589.578 |
+| H2 | 49.856 | 90.24 | 172.8 | 302.08 | 1 527.808 | 1 632.256 | 3 096.576 | 5 152.768 |
+| HestiaStoreBasic | 2.708 | 3.5 | 5.456 | 6.832 | 10.08 | 12.704 | 30.496 | 3 627.887 |
+| LevelDB | 1.54 | 2.292 | 32.832 | 59.584 | 1 282.048 | 1 505.28 | 1 540.096 | 4 165.632 |
+| MapDB | 90.624 | 131.84 | 317.952 | 409.6 | 752.64 | 994.304 | 5 685.248 | 14 811.136 |
+| RocksDB | 8.04 | 11.456 | 13.04 | 14.288 | 30.24 | 37.888 | 108.16 | 1 570.816 |

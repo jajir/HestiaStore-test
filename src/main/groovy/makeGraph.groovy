@@ -7,6 +7,8 @@ import java.util.Locale
 File baseDir = new File(System.getProperty('user.dir'))
 def datasets = []
 def slurper = new JsonSlurper()
+def graphShared = new GroovyShell().evaluate(
+        new File(baseDir, 'src/main/groovy/graphShared.groovy'))
 
 def datasetConfigs = [
         [
@@ -63,60 +65,11 @@ if (datasets.isEmpty()) {
     System.exit(0)
 }
 
-def palette = [
-        '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#59A14F',
-        '#EDC948', '#B07AA1', '#FF9DA7', '#9C755F', '#BAB0AC'
-]
-
-def canonicalEngineName = { String engine ->
-    String value = engine?.trim()
-    if (!value) {
-        return 'Unknown'
-    }
-    if (value.startsWith('HestiaStoreBasic')) {
-        return 'HestiaStoreBasic'
-    }
-    if (value.startsWith('HestiaStoreCompress')) {
-        return 'HestiaStoreCompress'
-    }
-    if (value.startsWith('HestiaStoreStream')) {
-        return 'HestiaStoreStream'
-    }
-    return value
-}
-
-def fixedEngineColors = [
-        ChronicleMap       : '#4E79A7',
-        H2                 : '#F28E2B',
-        HestiaStoreBasic   : '#E15759',
-        HestiaStoreCompress: '#E15759',
-        HestiaStoreStream  : '#E15759',
-        LevelDB            : '#59A14F',
-        MapDB              : '#B07AA1',
-        RocksDB            : '#9299fb',
-        Unknown            : '#9C755F'
-]
-
-def fallbackColorFor = { String engine ->
-    int index = Math.floorMod(engine.hashCode(), palette.size())
-    palette[index]
-}
-
 def colorForEngine = { String engine ->
-    String canonical = canonicalEngineName(engine)
-    fixedEngineColors[canonical] ?: fallbackColorFor(canonical)
+    graphShared.colorForEngine.call(engine) as String
 }
 
-def darker = { String hex ->
-    int rgb = Integer.parseInt(hex.substring(1), 16)
-    int r = ((rgb >> 16) & 0xFF)
-    int g = ((rgb >> 8) & 0xFF)
-    int b = (rgb & 0xFF)
-    r = Math.max(0, (int) (r * 0.85))
-    g = Math.max(0, (int) (g * 0.85))
-    b = Math.max(0, (int) (b * 0.85))
-    String.format('#%02X%02X%02X', r, g, b)
-}
+def darker = graphShared.darker
 
 def renderChart = { List data, File outputFile, String valueKey,
         String labelSuffix ->

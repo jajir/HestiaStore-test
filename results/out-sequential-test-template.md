@@ -21,4 +21,10 @@ This chart shows the latency percentile curve for the benchmarked engines. The X
 - Tests for HestiaStoreStream use dedicated stream API. Without using Stream API is performance visible in line HestiaStoreBasic.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
 
+## Data for Throughtput Chart
+
 {{TABLE}}
+
+## Source Data for Percentile Chart
+
+{{TABLE1}}

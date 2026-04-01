@@ -42,7 +42,8 @@ usage() {
   echo "Report outputs:"
   echo "  results/out-*-table.json              Normalized summary data"
   echo "  results/out-*.md                      Detailed Markdown reports"
-  echo "  results/out-*-table.md                Compact Markdown tables"
+  echo "  results/out-*-table.md                Primary Markdown tables for {{TABLE}}"
+  echo "  results/out-*-table2.md               Secondary Markdown tables for {{TABLE1}}"
   echo "  results/out-*.svg                     SVG charts when throughput tables exist"
   echo
   echo "Examples:"
@@ -242,4 +243,3 @@ read_benchmarks
 sequential_benchmarks
 #multithread_read_benchmarks
 #multithread_write_benchmarks
-

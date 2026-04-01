@@ -62,32 +62,25 @@
   "Engine" : "HestiaStoreBasic",
   "Variant" : "MultithreadRead",
   "Threads" : "4",
-  "Throughput [ops/s]" : "18 406",
-  "Throughput Error [ops/s]" : "1 389",
-  "Throughput Confidence Interval [ops/s]" : {
-    "values" : [ "17 017", "19 795" ],
-    "strings" : [ "", " .. ", "" ],
-    "empty" : false,
-    "blank" : false,
-    "valueCount" : 2,
-    "bytes" : "MTcgMDE3IC4uIDE5IDc5NQ=="
-  },
-  "Mean [us/op]" : "223.809",
-  "Latency Error [us/op]" : "1.788",
+  "Throughput [ops/s]" : "",
+  "Throughput Error [ops/s]" : "",
+  "Throughput Confidence Interval [ops/s]" : "",
+  "Mean [us/op]" : "215.748",
+  "Latency Error [us/op]" : "0.219",
   "Confidence Interval [us/op]" : {
-    "values" : [ "222.02", "225.597" ],
+    "values" : [ "215.529", "215.968" ],
     "strings" : [ "", " .. ", "" ],
     "empty" : false,
     "blank" : false,
     "valueCount" : 2,
-    "bytes" : "MjIyLjAyIC4uIDIyNS41OTc="
+    "bytes" : "MjE1LjUyOSAuLiAyMTUuOTY4"
   },
-  "p50 [us/op]" : "252.928",
-  "p95 [us/op]" : "522.24",
-  "p99 [us/op]" : "850.944",
+  "p50 [us/op]" : "261.12",
+  "p95 [us/op]" : "499.2",
+  "p99 [us/op]" : "689.152",
   "Occupied space" : "542.14 MB",
-  "usedMemoryBytes" : "158.61 MB",
-  "cpuUsage" : "20%"
+  "usedMemoryBytes" : "124.94 MB",
+  "cpuUsage" : "32%"
 }, {
   "Engine" : "HestiaStoreCompress",
   "Variant" : "MultithreadRead",

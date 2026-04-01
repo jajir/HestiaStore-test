@@ -11,10 +11,15 @@ Generated from raw benchmark files in `results/`.
 
 ## Compact Summary Tables
 - `out-multithread-read-table.md`
+- `out-multithread-read-table2.md`
 - `out-multithread-write-table.md`
+- `out-multithread-write-table2.md`
 - `out-read-table.md`
+- `out-read-table2.md`
 - `out-sequential-table.md`
+- `out-sequential-table2.md`
 - `out-write-table.md`
+- `out-write-table2.md`
 
 ## Machine-Readable Summaries
 - `out-multithread-read-table.json`

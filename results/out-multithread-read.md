@@ -21,23 +21,26 @@ This chart shows the latency percentile curve for the benchmarked engines. The X
 - After measurements finish, resources are closed and the populated directories remain on disk so report generation can capture occupied space and CPU usage.
 - Tests executed on Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
 
-## Benchmark Results
+## Data for Throughtput Chart
 
-| Engine       | Threads | Throughput [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | CPU Usage |
-|:-------------|--------:|-------------------:|-------------:|------------:|------------:|------------:|---------:|
-| ChronicleMap |       4 |          3 576 111 |         1.23 |       0.791 |       1.832 |      11.152 | 13%        |
-| H2           |       4 |          2 697 310 |        1.588 |       1.334 |           2 |       3.208 | 13%        |
-| HestiaStoreBasic |       4 |             18 406 |      223.809 |     252.928 |      522.24 |     850.944 | 20%        |
-| HestiaStoreCompress |       4 |             19 082 |      203.459 |     248.576 |     438.272 |      660.48 | 18%        |
-| LevelDB      |       4 |            158 000 |       19.925 |      11.744 |       56.64 |      80.512 | 26%        |
-| MapDB        |       4 |              3 141 |       38.502 |      14.704 |       22.72 |   1 110.016 | 8%         |
-| RocksDB      |       4 |            230 679 |        30.06 |      32.192 |        43.2 |      45.696 | 39%        |
+| Engine | Threads | Throughput [ops/s] | CPU Usage |
+|:-------|--------:|-------------------:|----------:|
+| ChronicleMap | 4 | 3 576 111 | 13% |
+| H2 | 4 | 2 697 310 | 13% |
+| HestiaStoreBasic | 4 |  | 32% |
+| HestiaStoreCompress | 4 | 19 082 | 18% |
+| LevelDB | 4 | 158 000 | 26% |
+| MapDB | 4 | 3 141 | 8% |
+| RocksDB | 4 | 230 679 | 39% |
 
-meaning of columns:
+## Source Data for Percentile Chart
 
-- Engine: name of the benchmarked engine.
-- Threads: number of concurrent JMH benchmark threads.
-- Throughput [ops/s]: aggregate completed operations per second, higher is better.
-- Mean [us/op]: average per-operation latency in microseconds, lower is better.
-- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.
-- CPU Usage: average CPU usage during the benchmark.
+| Engine | p50 [us/op] | p75 [us/op] | p90 [us/op] | p95 [us/op] | p99 [us/op] | p99.5 [us/op] | p99.9 [us/op] | p99.99 [us/op] |
+|:-------|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|-------------:|
+| ChronicleMap | 0.791 | 0.958 | 1.292 | 1.832 | 11.152 | 15.28 | 30.08 | 89.344 |
+| H2 | 1.334 | 1.542 | 1.79 | 2 | 3.208 | 4.248 | 14.496 | 39.104 |
+| HestiaStoreBasic | 261.12 | 288.256 | 336.384 | 499.2 | 689.152 | 830.464 | 1 257.472 | 3 174.529 |
+| HestiaStoreCompress | 248.576 | 271.872 | 302.08 | 438.272 | 660.48 | 922.624 | 1 269.76 | 3 637.248 |
+| LevelDB | 11.744 | 26.688 | 40.512 | 56.64 | 80.512 | 90.496 | 136.192 | 499.2 |
+| MapDB | 14.704 | 17.664 | 20.48 | 22.72 | 1 110.016 | 1 169.408 | 2 052.096 | 2 478.08 |
+| RocksDB | 32.192 | 34.304 | 41.664 | 43.2 | 45.696 | 47.68 | 64.896 | 131.84 |

@@ -10,12 +10,32 @@
 }, {
   "Engine" : "H2",
   "Variant" : "Sequential",
-  "Score [ops/s]" : "364 687",
-  "ScoreError" : "43 577",
-  "Confidence Interval [ops/s]" : "321 110 .. 408 264",
+  "Score [ops/s]" : "922 733",
+  "ScoreError" : "21 154",
+  "Confidence Interval [ops/s]" : {
+    "values" : [ "901 579", "943 887" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "OTAxIDU3OSAuLiA5NDMgODg3"
+  },
+  "Mean [us/op]" : "1.136",
+  "Latency Error [us/op]" : "0.011",
+  "Confidence Interval [us/op]" : {
+    "values" : [ "1.125", "1.147" ],
+    "strings" : [ "", " .. ", "" ],
+    "empty" : false,
+    "blank" : false,
+    "valueCount" : 2,
+    "bytes" : "MS4xMjUgLi4gMS4xNDc="
+  },
+  "p50 [us/op]" : "1.082",
+  "p95 [us/op]" : "1.5",
+  "p99 [us/op]" : "1.874",
   "Occupied space" : "8 KB",
-  "usedMemoryBytes" : "30.1 MB",
-  "cpuUsage" : "14%"
+  "usedMemoryBytes" : "78.36 MB",
+  "cpuUsage" : "10%"
 }, {
   "Engine" : "HestiaStoreBasic",
   "Variant" : "Sequential",
