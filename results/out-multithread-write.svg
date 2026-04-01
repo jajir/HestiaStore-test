@@ -18,9 +18,9 @@
   <rect x="250" y="137" width="590" height="26" rx="6" ry="6" fill="#e64d4f" stroke="#C34143" stroke-width="2" />
   <text class="value" x="856" y="150">423,154 ops/s</text>
   <rect x="0" y="190" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
-  <text class="label" x="20" y="210">HestiaStoreCompress</text>
-  <rect x="250" y="197" width="458" height="26" rx="6" ry="6" fill="#e64d4f" stroke="#C34143" stroke-width="2" />
-  <text class="value" x="724" y="210">329,076 ops/s</text>
+  <text class="label" x="20" y="210">LevelDB</text>
+  <rect x="250" y="197" width="65" height="26" rx="6" ry="6" fill="#EDC948" stroke="#C9AA3D" stroke-width="2" />
+  <text class="value" x="331" y="210">47,190 ops/s</text>
   <rect x="0" y="250" width="1000" height="40" fill="rgba(255,255,255,0.15)" />
   <text class="label" x="20" y="270">MapDB</text>
   <rect x="250" y="257" width="21" height="26" rx="6" ry="6" fill="#ea54c0" stroke="#C647A3" stroke-width="2" />
