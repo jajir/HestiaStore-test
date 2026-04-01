@@ -23,12 +23,35 @@ Path findProjectRoot(Path start) {
     return lastPom ?: start
 }
 
+Path resolveDirectoryFromEnv(String envName, Path fallback) {
+    String raw = System.getenv(envName)
+    if (raw == null || raw.trim().isEmpty()) {
+        return fallback
+    }
+    return Paths.get(raw).toAbsolutePath().normalize()
+}
+
 @Field final String TABLE_PLACEHOLDER = '{{TABLE}}'
 @Field final String TABLE1_PLACEHOLDER = '{{TABLE1}}'
 
 Path cwd = Paths.get('.')
 Path rootDir = findProjectRoot(cwd)
-Path resultsDir = rootDir.resolve('results')
+Path rawResultsDir = resolveDirectoryFromEnv('BENCHMARK_RESULTS_DIR',
+        rootDir.resolve('results'))
+Path templatesDir = resolveDirectoryFromEnv('BENCHMARK_TEMPLATES_DIR',
+        rawResultsDir)
+Path buildDir = resolveDirectoryFromEnv('REPORT_BUILD_DIR', rawResultsDir)
+Path docsDir = resolveDirectoryFromEnv('REPORT_DOCS_DIR', rawResultsDir)
+
+if (!Files.isDirectory(rawResultsDir)) {
+    System.err.println("Results directory not found: ${rawResultsDir}")
+    System.exit(1)
+}
+if (!Files.isDirectory(templatesDir)) {
+    System.err.println("Template directory not found: ${templatesDir}")
+    System.exit(1)
+}
+Files.createDirectories(docsDir)
 ObjectMapper mapper = new ObjectMapper()
 
 def dfs = new DecimalFormatSymbols(Locale.US)
@@ -398,17 +421,17 @@ if (args.length == 0) {
 Map<String, List<Map<String, Object>>> percentileRowsByReportCache = null
 
 args.each { String reportName ->
-    Path templatePath = resolveTemplate(resultsDir, reportName)
+    Path templatePath = resolveTemplate(templatesDir, reportName)
     String template = Files.readString(templatePath, StandardCharsets.UTF_8)
-    Path outputPath = resultsDir.resolve("${reportName}.md")
+    Path outputPath = docsDir.resolve("${reportName}.md")
 
-    Path tablePath = resolveMarkdownTable(resultsDir, reportName, '-table.md')
+    Path tablePath = resolveMarkdownTable(buildDir, reportName, '-table.md')
     Path table1Path = template.contains(TABLE1_PLACEHOLDER)
-            ? resolveMarkdownTable(resultsDir, reportName, '-table2.md')
+            ? resolveMarkdownTable(buildDir, reportName, '-table2.md')
             : null
 
     List<Map<String, Object>> rows = tablePath == null
-            ? mapper.readValue(resolveSummaryJson(resultsDir, reportName).toFile(), List)
+            ? mapper.readValue(resolveSummaryJson(buildDir, reportName).toFile(), List)
             : []
     boolean multithreadReport = isMultithreadReport(rows, reportName)
 
@@ -424,7 +447,7 @@ args.each { String reportName ->
             table1Section = Files.readString(table1Path, StandardCharsets.UTF_8).trim()
         } else {
             if (percentileRowsByReportCache == null) {
-                percentileRowsByReportCache = collectPercentileRowsByReport(resultsDir)
+                percentileRowsByReportCache = collectPercentileRowsByReport(rawResultsDir)
             }
             table1Section = buildPercentileTableMarkdown(
                     percentileRowsByReportCache[reportName] ?: [],

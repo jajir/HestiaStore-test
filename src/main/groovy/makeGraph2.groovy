@@ -21,6 +21,14 @@ Path findProjectRoot(Path start) {
     return lastPom ?: start
 }
 
+Path resolveDirectoryFromEnv(String envName, Path fallback) {
+    String raw = System.getenv(envName)
+    if (raw == null || raw.trim().isEmpty()) {
+        return fallback
+    }
+    return Paths.get(raw).toAbsolutePath().normalize()
+}
+
 def normalizeNumber = { Object value ->
     if (value == null) {
         return null
@@ -48,14 +56,17 @@ def normalizeNumber = { Object value ->
 
 Path cwd = Paths.get('.').toAbsolutePath().normalize()
 Path rootDir = findProjectRoot(cwd)
-Path resultsDir = rootDir.resolve('results')
+Path rawResultsDir = resolveDirectoryFromEnv('BENCHMARK_RESULTS_DIR',
+        rootDir.resolve('results'))
+Path imagesDir = resolveDirectoryFromEnv('REPORT_IMAGES_DIR', rawResultsDir)
 def graphShared = new GroovyShell().evaluate(
         rootDir.resolve('src/main/groovy/graphShared.groovy').toFile())
 
-if (!Files.isDirectory(resultsDir)) {
-    System.err.println("Results directory not found: ${resultsDir}")
+if (!Files.isDirectory(rawResultsDir)) {
+    System.err.println("Results directory not found: ${rawResultsDir}")
     System.exit(1)
 }
+Files.createDirectories(imagesDir)
 
 def percentileSpecs = [
         [label: 'p50', percentile: 50d, keys: ['50.0', '50']],
@@ -390,14 +401,14 @@ def renderChart = { String scenario, List<Map<String, Object>> series ->
         }
     }
 
-    Path outputPath = resultsDir.resolve(meta.stem as String)
+    Path outputPath = imagesDir.resolve(meta.stem as String)
     Files.writeString(outputPath, buffer.toString())
     println "Graph written to ${outputPath}"
 }
 
 Map<String, List<Map<String, Object>>> seriesByScenario = [:].withDefault { [] }
 
-Files.newDirectoryStream(resultsDir, 'results-*.json').each { Path file ->
+Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
     String fileName = file.fileName.toString()
     if (fileName.endsWith('-my.json')) {
         return

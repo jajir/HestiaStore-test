@@ -22,18 +22,25 @@ Path findProjectRoot(Path start) {
     return lastPom ?: start
 }
 
+Path resolveDirectoryFromEnv(String envName, Path fallback) {
+    String raw = System.getenv(envName)
+    if (raw == null || raw.trim().isEmpty()) {
+        return fallback
+    }
+    return Paths.get(raw).toAbsolutePath().normalize()
+}
+
 Path cwd = Paths.get('.').toAbsolutePath().normalize()
 Path rootDir = findProjectRoot(cwd)
-List<Path> candidateResultsDirs = [
-        rootDir.resolve('results'),
-        cwd.resolve('results')
-]
-Path resultsDir = candidateResultsDirs.find { Files.exists(it) && Files.isDirectory(it) }
+Path rawResultsDir = resolveDirectoryFromEnv('BENCHMARK_RESULTS_DIR',
+        rootDir.resolve('results'))
+Path outputDir = resolveDirectoryFromEnv('REPORT_BUILD_DIR', rawResultsDir)
 
-if (resultsDir == null) {
-    System.err.println("Results directory not found. Checked: ${candidateResultsDirs*.toString().join(', ')}")
+if (!Files.isDirectory(rawResultsDir)) {
+    System.err.println("Results directory not found: ${rawResultsDir}")
     System.exit(1)
 }
+Files.createDirectories(outputDir)
 
 def mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 
@@ -129,13 +136,20 @@ def buildConfidenceInterval = { Map primary, boolean latency ->
     if (lo == null || hi == null) {
         return ''
     }
-    return latency
-            ? "${formatLatency(lo)} .. ${formatLatency(hi)}"
-            : "${formatOpsScore(lo)} .. ${formatOpsScore(hi)}"
+    String lowerBound = latency
+            ? formatLatency(lo)
+            : formatOpsScore(lo)
+    String upperBound = latency
+            ? formatLatency(hi)
+            : formatOpsScore(hi)
+    if (lowerBound.isEmpty() || upperBound.isEmpty()) {
+        return ''
+    }
+    return "${lowerBound} .. ${upperBound}".toString()
 }
 
 def files = []
-Files.newDirectoryStream(resultsDir, 'results-*.json').each { Path file ->
+Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
     def name = file.fileName.toString()
     if (!name.endsWith('-my.json')) {
         files << file
@@ -331,11 +345,11 @@ def sequentialRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Sequential' }
 def multithreadReadRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadRead' }
 def multithreadWriteRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadWrite' }
 
-Path writeOutput = resultsDir.resolve('out-write-table.json')
-Path readOutput = resultsDir.resolve('out-read-table.json')
-Path sequentialOutput = resultsDir.resolve('out-sequential-table.json')
-Path multithreadReadOutput = resultsDir.resolve('out-multithread-read-table.json')
-Path multithreadWriteOutput = resultsDir.resolve('out-multithread-write-table.json')
+Path writeOutput = outputDir.resolve('out-write-table.json')
+Path readOutput = outputDir.resolve('out-read-table.json')
+Path sequentialOutput = outputDir.resolve('out-sequential-table.json')
+Path multithreadReadOutput = outputDir.resolve('out-multithread-read-table.json')
+Path multithreadWriteOutput = outputDir.resolve('out-multithread-write-table.json')
 
 mapper.writeValue(writeOutput.toFile(), writeRows)
 mapper.writeValue(readOutput.toFile(), readRows)

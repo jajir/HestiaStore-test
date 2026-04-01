@@ -12,10 +12,11 @@ BENCHMARK_MISS_PROBABILITY="${BENCHMARK_MISS_PROBABILITY:-0.2}"
 YOURKIT_AGENT="${YOURKIT_AGENT:-}"
 PROFILE="${PROFILE:-}"
 GENERATE_REPORTS="${GENERATE_REPORTS:-}"
+REPORT_TARGET_DIR="${REPORT_TARGET_DIR:-}"
 
 usage() {
   echo "Usage: ./run.sh [--profile] [--yourkit-agent PATH]"
-  echo "       ./run.sh --reports"
+  echo "       ./run.sh --reports --target HESTIASTORE_PROJECT_ROOT"
   echo
   echo "This script runs the benchmarks enabled near the bottom of run.sh."
   echo "Raw JMH output is written into ./results/results-*.json and ./results/results-*-my.json."
@@ -35,23 +36,34 @@ usage() {
   echo "  ./makeSumTable.sh"
   echo "  ./makeGraph.sh"
   echo "  ./makeMarkDown.sh"
+  echo "  ./copyReportsToHestiaStore.sh HESTIASTORE_PROJECT_ROOT"
+  echo "  ./makeAll.sh HESTIASTORE_PROJECT_ROOT"
   echo
   echo "Shortcut:"
-  echo "  ./run.sh --reports"
+  echo "  ./run.sh --reports --target /Users/jan/projects/HestiaStore"
   echo
   echo "Report outputs:"
-  echo "  results/out-*-table.json              Normalized summary data"
-  echo "  results/out-*.md                      Detailed Markdown reports"
-  echo "  results/out-*-table.md                Primary Markdown tables for {{TABLE}}"
-  echo "  results/out-*-table2.md               Secondary Markdown tables for {{TABLE1}}"
-  echo "  results/out-*.svg                     SVG charts when throughput tables exist"
+  echo "  ./target/benchmark-report-build/out-*-table.json"
+  echo "                                       Normalized summary data"
+  echo "  ./target/benchmark-report-build/out-*-table.md"
+  echo "                                       Primary Markdown tables for {{TABLE}}"
+  echo "  ./target/benchmark-report-build/out-*-table2.md"
+  echo "                                       Secondary Markdown tables for {{TABLE1}}"
+  echo "  ./target/docs/why-hestiastore/out-*.md"
+  echo "                                       Detailed Markdown reports"
+  echo "  ./target/docs/images/out-*.svg"
+  echo "                                       SVG charts"
+  echo "  <target>/docs/why-hestiastore/out-*.md"
+  echo "                                       Published Markdown reports after copy"
+  echo "  <target>/docs/images/out-*.svg"
+  echo "                                       Published SVG charts after copy"
   echo
   echo "Examples:"
   echo "  ./run.sh"
   echo "  ./run.sh --profile"
   echo "  ./run.sh --profile --yourkit-agent /Applications/YourKit-Java-Profiler-2024.9.app/Contents/Resources/bin/mac/libyjpagent.dylib"
   echo "  BENCHMARK_DIR=/tmp/hestia-bench ./run.sh"
-  echo "  ./run.sh --reports"
+  echo "  ./run.sh --reports --target /Users/jan/projects/HestiaStore"
   echo "  PROFILE=1 ./run.sh"
 }
 
@@ -64,12 +76,13 @@ require_groovy() {
 
 generate_reports() {
   require_groovy
+  if [[ -z "${REPORT_TARGET_DIR}" ]]; then
+    echo "Missing report target. Use --target HESTIASTORE_PROJECT_ROOT or set REPORT_TARGET_DIR." >&2
+    exit 1
+  fi
   (
     cd "${PROJECT_ROOT}"
-    ./makeJsonTable.sh
-    ./makeSumTable.sh
-    ./makeGraph.sh
-    ./makeMarkDown.sh
+    ./makeAll.sh "${REPORT_TARGET_DIR}"
   )
 }
 
@@ -108,6 +121,15 @@ while [[ $# -gt 0 ]]; do
     --reports)
       GENERATE_REPORTS=1
       shift
+      ;;
+    --target)
+      if [[ $# -lt 2 ]]; then
+        echo "Missing value for --target" >&2
+        usage >&2
+        exit 1
+      fi
+      REPORT_TARGET_DIR="$2"
+      shift 2
       ;;
     --help|-h)
       usage

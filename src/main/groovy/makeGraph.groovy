@@ -2,44 +2,70 @@
 
 import groovy.json.JsonSlurper
 import groovy.xml.MarkupBuilder
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.Locale
 
-File baseDir = new File(System.getProperty('user.dir'))
+Path findProjectRoot(Path start) {
+    Path cur = start
+    Path lastPom = null
+    while (cur != null) {
+        if (Files.exists(cur.resolve('pom.xml'))) {
+            lastPom = cur
+        }
+        cur = cur.parent
+    }
+    return lastPom ?: start
+}
+
+Path resolveDirectoryFromEnv(String envName, Path fallback) {
+    String raw = System.getenv(envName)
+    if (raw == null || raw.trim().isEmpty()) {
+        return fallback
+    }
+    return Paths.get(raw).toAbsolutePath().normalize()
+}
+
+Path cwd = Paths.get('.').toAbsolutePath().normalize()
+Path rootDir = findProjectRoot(cwd)
+Path buildDir = resolveDirectoryFromEnv('REPORT_BUILD_DIR', rootDir.resolve('results'))
+Path imagesDir = resolveDirectoryFromEnv('REPORT_IMAGES_DIR', rootDir.resolve('results'))
+Files.createDirectories(imagesDir)
+
 def datasets = []
 def slurper = new JsonSlurper()
 def graphShared = new GroovyShell().evaluate(
-        new File(baseDir, 'src/main/groovy/graphShared.groovy'))
+        rootDir.resolve('src/main/groovy/graphShared.groovy').toFile())
 
 def datasetConfigs = [
         [
-                input: new File(baseDir, 'results/out-write-table.json'),
-                output: new File(baseDir, 'results/out-write.svg'),
+                input: buildDir.resolve('out-write-table.json').toFile(),
+                output: imagesDir.resolve('out-write.svg').toFile(),
                 valueKey: 'Score [ops/s]',
                 labelSuffix: ''
         ],
         [
-                input: new File(baseDir, 'results/out-read-table.json'),
-                output: new File(baseDir, 'results/out-read.svg'),
+                input: buildDir.resolve('out-read-table.json').toFile(),
+                output: imagesDir.resolve('out-read.svg').toFile(),
                 valueKey: 'Score [ops/s]',
                 labelSuffix: ''
         ],
         [
-                input: new File(baseDir, 'results/out-sequential-table.json'),
-                output: new File(baseDir, 'results/out-sequential.svg'),
+                input: buildDir.resolve('out-sequential-table.json').toFile(),
+                output: imagesDir.resolve('out-sequential.svg').toFile(),
                 valueKey: 'Score [ops/s]',
                 labelSuffix: ''
         ],
         [
-                input: new File(baseDir,
-                        'results/out-multithread-read-table.json'),
-                output: new File(baseDir, 'results/out-multithread-read.svg'),
+                input: buildDir.resolve('out-multithread-read-table.json').toFile(),
+                output: imagesDir.resolve('out-multithread-read.svg').toFile(),
                 valueKey: 'Throughput [ops/s]',
                 labelSuffix: ' ops/s'
         ],
         [
-                input: new File(baseDir,
-                        'results/out-multithread-write-table.json'),
-                output: new File(baseDir, 'results/out-multithread-write.svg'),
+                input: buildDir.resolve('out-multithread-write-table.json').toFile(),
+                output: imagesDir.resolve('out-multithread-write.svg').toFile(),
                 valueKey: 'Throughput [ops/s]',
                 labelSuffix: ' ops/s'
         ]
@@ -61,7 +87,7 @@ datasetConfigs.each { config ->
 }
 
 if (datasets.isEmpty()) {
-    println "No benchmark summary files found in results/. Skipping SVG generation."
+    println "No benchmark summary files found in ${buildDir}. Skipping SVG generation."
     System.exit(0)
 }
 

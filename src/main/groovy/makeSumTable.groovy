@@ -22,26 +22,31 @@ Path findProjectRoot(Path start) {
     return lastPom ?: start
 }
 
-Path cwd = Paths.get(".").toAbsolutePath().normalize()
-Path rootDir = findProjectRoot(cwd)
-
-List<Path> candidateDirs = [
-        rootDir.resolve("results"),
-        cwd.resolve("results")
-]
-
-Path resultsDir = candidateDirs.find { Files.exists(it) && Files.isDirectory(it) }
-
-if (resultsDir == null) {
-    System.err.println("Results directory not found. Checked: ${candidateDirs*.toString().join(', ')}")
-    System.exit(1)
+Path resolveDirectoryFromEnv(String envName, Path fallback) {
+    String raw = System.getenv(envName)
+    if (raw == null || raw.trim().isEmpty()) {
+        return fallback
+    }
+    return Paths.get(raw).toAbsolutePath().normalize()
 }
 
-Path writeTable = resultsDir.resolve("out-write-table.json")
-Path readTable = resultsDir.resolve("out-read-table.json")
-Path sequentialTable = resultsDir.resolve("out-sequential-table.json")
-Path multithreadReadTable = resultsDir.resolve("out-multithread-read-table.json")
-Path multithreadWriteTable = resultsDir.resolve("out-multithread-write-table.json")
+Path cwd = Paths.get(".").toAbsolutePath().normalize()
+Path rootDir = findProjectRoot(cwd)
+Path rawResultsDir = resolveDirectoryFromEnv("BENCHMARK_RESULTS_DIR",
+        rootDir.resolve("results"))
+Path outputDir = resolveDirectoryFromEnv("REPORT_BUILD_DIR", rawResultsDir)
+
+if (!Files.isDirectory(rawResultsDir)) {
+    System.err.println("Results directory not found: ${rawResultsDir}")
+    System.exit(1)
+}
+Files.createDirectories(outputDir)
+
+Path writeTable = outputDir.resolve("out-write-table.json")
+Path readTable = outputDir.resolve("out-read-table.json")
+Path sequentialTable = outputDir.resolve("out-sequential-table.json")
+Path multithreadReadTable = outputDir.resolve("out-multithread-read-table.json")
+Path multithreadWriteTable = outputDir.resolve("out-multithread-write-table.json")
 
 ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 
@@ -83,6 +88,26 @@ def normalizeNumber = { Object value ->
         }
     }
     return null
+}
+
+def stringifyCellValue = { Object value ->
+    if (value == null) {
+        return ""
+    }
+    if (value instanceof Map) {
+        List values = value["values"] instanceof List ? value["values"] as List : null
+        List strings = value["strings"] instanceof List ? value["strings"] as List : null
+        if (values != null && strings != null && strings.size() == values.size() + 1) {
+            StringBuilder rebuilt = new StringBuilder()
+            for (int i = 0; i < values.size(); i++) {
+                rebuilt.append(strings[i] == null ? "" : strings[i].toString())
+                rebuilt.append(values[i] == null ? "" : values[i].toString())
+            }
+            rebuilt.append(strings[values.size()] == null ? "" : strings[values.size()].toString())
+            return rebuilt.toString()
+        }
+    }
+    return value.toString()
 }
 
 def reportNameForScenario = { String scenario ->
@@ -222,14 +247,14 @@ List<Map<String, Object>> multithreadWriteRows = Files.exists(multithreadWriteTa
 
 if (writeRows.isEmpty() && readRows.isEmpty() && sequentialRows.isEmpty()
         && multithreadReadRows.isEmpty() && multithreadWriteRows.isEmpty()) {
-    System.err.println("No summary JSON files found in ${resultsDir}")
+    System.err.println("No summary JSON files found in ${outputDir}")
     System.exit(1)
 }
 
 def collectPercentileRowsByReport = {
     Map<String, List<Map<String, Object>>> rowsByReport = [:].withDefault { [] }
 
-    Files.newDirectoryStream(resultsDir, 'results-*.json').each { Path file ->
+    Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
         if (file.fileName.toString().endsWith('-my.json')) {
             return
         }
@@ -313,12 +338,12 @@ def buildDetailedThroughputMarkdown = { List<Map<String, Object>> rows ->
         markdown.append("| Engine | Score [ops/s] | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |\n")
         markdown.append("|:-------|--------------:|-----------:|-----------------------------:|---------------:|----------:|\n")
         rows.each { row ->
-            String engine = (row["Engine"] ?: "").toString()
-            String score = (row["Score [ops/s]"] ?: "").toString()
-            String error = (row["ScoreError"] ?: "").toString()
-            String confidenceInterval = (row["Confidence Interval [ops/s]"] ?: "").toString()
-            String occupied = (row["Occupied space"] ?: "").toString()
-            String cpuUsage = (row["cpuUsage"] ?: "").toString()
+            String engine = stringifyCellValue(row["Engine"])
+            String score = stringifyCellValue(row["Score [ops/s]"])
+            String error = stringifyCellValue(row["ScoreError"])
+            String confidenceInterval = stringifyCellValue(row["Confidence Interval [ops/s]"])
+            String occupied = stringifyCellValue(row["Occupied space"])
+            String cpuUsage = stringifyCellValue(row["cpuUsage"])
             markdown.append("| ${engine} | ${score.padLeft(13)} | ${error.padLeft(9)} | ${confidenceInterval} | ${occupied} | ${cpuUsage} |\n")
         }
     }
@@ -368,16 +393,16 @@ def buildDetailedMultithreadMarkdown = { List<Map<String, Object>> rows ->
 
 Map<String, List<Map<String, Object>>> percentileRowsByReport = collectPercentileRowsByReport()
 
-Path writeOutput = resultsDir.resolve("out-write-table.md")
-Path readOutput = resultsDir.resolve("out-read-table.md")
-Path sequentialOutput = resultsDir.resolve("out-sequential-table.md")
-Path multithreadReadOutput = resultsDir.resolve("out-multithread-read-table.md")
-Path multithreadWriteOutput = resultsDir.resolve("out-multithread-write-table.md")
-Path writeOutput2 = resultsDir.resolve("out-write-table2.md")
-Path readOutput2 = resultsDir.resolve("out-read-table2.md")
-Path sequentialOutput2 = resultsDir.resolve("out-sequential-table2.md")
-Path multithreadReadOutput2 = resultsDir.resolve("out-multithread-read-table2.md")
-Path multithreadWriteOutput2 = resultsDir.resolve("out-multithread-write-table2.md")
+Path writeOutput = outputDir.resolve("out-write-table.md")
+Path readOutput = outputDir.resolve("out-read-table.md")
+Path sequentialOutput = outputDir.resolve("out-sequential-table.md")
+Path multithreadReadOutput = outputDir.resolve("out-multithread-read-table.md")
+Path multithreadWriteOutput = outputDir.resolve("out-multithread-write-table.md")
+Path writeOutput2 = outputDir.resolve("out-write-table2.md")
+Path readOutput2 = outputDir.resolve("out-read-table2.md")
+Path sequentialOutput2 = outputDir.resolve("out-sequential-table2.md")
+Path multithreadReadOutput2 = outputDir.resolve("out-multithread-read-table2.md")
+Path multithreadWriteOutput2 = outputDir.resolve("out-multithread-write-table2.md")
 
 def deleteIfExists = { Path output ->
     if (Files.exists(output)) {

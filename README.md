@@ -1,6 +1,6 @@
 # HestiaStore-test
 
-This repository contains JMH-based storage benchmarks plus helper scripts that turn raw benchmark JSON files into final Markdown, JSON, and SVG reports.
+This repository contains JMH-based storage benchmarks plus helper scripts that turn raw benchmark JSON files into final Markdown, JSON, and SVG reports published into a target HestiaStore project.
 
 The plain-load write, read, and sequential suites emit both `SampleTime`
 latency and `Throughput` results in the same raw JMH JSON files so reports can
@@ -58,40 +58,55 @@ To see the full runner help:
 
 ## Generate Final Reports
 
-If you already have raw benchmark results in `./results/`, you do not need to rerun the benchmarks. Generate the final reports directly with:
+If you already have raw benchmark results in `./results/`, you do not need to rerun the benchmarks. Generate the final reports with:
 
 ```bash
-./run.sh --reports
+./makeAll.sh /Users/jan/projects/HestiaStore
+```
+
+Or, if you prefer the existing runner entrypoint:
+
+```bash
+./run.sh --reports --target /Users/jan/projects/HestiaStore
 ```
 
 That shortcut runs the full reporting pipeline:
 
 ```bash
+./makeAll.sh /Users/jan/projects/HestiaStore
+
+# equivalent manual steps:
 ./makeJsonTable.sh
 ./makeSumTable.sh
 ./makeGraph.sh
 ./makeMarkDown.sh
-./copyReportsToHestiaStore.sh ../HestiaStore
+./copyReportsToHestiaStore.sh /Users/jan/projects/HestiaStore
 ```
 
 What each step does:
 
-- `makeJsonTable.sh` normalizes `results-*.json` files into summary JSON tables.
-- `makeSumTable.sh` creates compact Markdown summary tables.
-- `makeGraph.sh` creates SVG bar charts for write, read, sequential, multithread read, and multithread write reports when those summary tables exist.
-- `makeMarkDown.sh` creates the detailed Markdown reports from the matching templates in `results/`.
-- `copyReportsToHestiaStore.sh HESTIASTORE_PROJECT_ROOT` copies the generated Markdown benchmark pages into `docs/why-hestiastore/` and the SVG charts into `docs/images/` inside the target HestiaStore repository.
+- `makeJsonTable.sh` normalizes `results-*.json` files into summary JSON tables in `./target/benchmark-report-build/`.
+- `makeSumTable.sh` creates compact Markdown summary tables in `./target/benchmark-report-build/`.
+- `makeGraph.sh` creates SVG charts in `./target/docs/images/`.
+- `makeMarkDown.sh` creates the detailed Markdown reports in `./target/docs/why-hestiastore/` from the matching templates in `results/`.
+- `copyReportsToHestiaStore.sh HESTIASTORE_PROJECT_ROOT` copies the generated Markdown pages and SVG charts from local `./target/` into the target HestiaStore repository; when run standalone, it can still execute the local generation steps first.
+- `makeAll.sh HESTIASTORE_PROJECT_ROOT` runs all five report steps in order and prints what each step produces.
 
 ## Generated Files
 
-After report generation, look in `./results/` for:
+After local generation, look in `./target/` in this repository for:
 
-- `out-*-table.json` for machine-readable summary tables
-- `out-*.md` for detailed Markdown reports
-- `out-*-table.md` for primary Markdown tables used by `{{TABLE}}`
-- `out-*-table2.md` for secondary Markdown tables used by `{{TABLE1}}`
-- `out-*.svg` for charts when the corresponding summary data is available
-- `out-*-test-template.md` in `results/` for detailed report templates
+- `target/benchmark-report-build/out-*-table.json` for machine-readable summary tables
+- `target/benchmark-report-build/out-*-table.md` for primary Markdown tables used by `{{TABLE}}`
+- `target/benchmark-report-build/out-*-table2.md` for secondary Markdown tables used by `{{TABLE1}}`
+- `target/docs/why-hestiastore/out-*.md` for detailed Markdown reports
+- `target/docs/images/out-*.svg` for charts when the corresponding summary data is available
+- `results/out-*-test-template.md` in this repository for detailed report templates
+
+After the copy step, the published files are also available in the target HestiaStore project under:
+
+- `docs/why-hestiastore/out-*.md`
+- `docs/images/out-*.svg`
 
 Typical detailed report files are:
 
@@ -101,7 +116,7 @@ Typical detailed report files are:
 - `out-multithread-read.md`
 - `out-multithread-write.md`
 
-Detailed Markdown reports are rendered from matching templates such as `results/out-write-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `results/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `results/out-*-table2.md`.
+Detailed Markdown reports are rendered from matching templates such as `results/out-write-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `target/benchmark-report-build/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `target/benchmark-report-build/out-*-table2.md`.
 
 ## Typical Workflow
 
@@ -110,13 +125,13 @@ Run benchmarks and then generate reports:
 ```bash
 mvn clean package -DskipTests=true
 BENCHMARK_DIR=/tmp/hestia-bench ./run.sh
-./run.sh --reports
-./copyReportsToHestiaStore.sh /Users/jan/projects/HestiaStore
+./makeAll.sh /Users/jan/projects/HestiaStore
+./run.sh --reports --target /Users/jan/projects/HestiaStore
 ```
 
 If you already finished the benchmark run and only want the final reports:
 
 ```bash
-./run.sh --reports
-./copyReportsToHestiaStore.sh /Users/jan/projects/HestiaStore
+./makeAll.sh /Users/jan/projects/HestiaStore
+./run.sh --reports --target /Users/jan/projects/HestiaStore
 ```

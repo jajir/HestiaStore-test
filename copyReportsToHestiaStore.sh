@@ -3,13 +3,13 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="${PROJECT_ROOT}/results"
+source "${PROJECT_ROOT}/report-env.sh"
 
 usage() {
   echo "Usage: ./copyReportsToHestiaStore.sh HESTIASTORE_PROJECT_ROOT"
   echo
-  echo "Copies generated benchmark Markdown pages into docs/why-hestiastore/"
-  echo "and SVG charts into docs/images/ in the target HestiaStore repository."
+  echo "Copies locally generated report assets from ./target/ into"
+  echo "docs/why-hestiastore/ and docs/images/ in the target HestiaStore repository."
   echo
   echo "Example:"
   echo "  ./copyReportsToHestiaStore.sh /Users/jan/projects/HestiaStore"
@@ -20,66 +20,53 @@ if [[ $# -ne 1 ]]; then
   exit 1
 fi
 
-INPUT_PATH="${1%/}"
-HESTIASTORE_ROOT="${INPUT_PATH}"
-DOCS_ROOT="${HESTIASTORE_ROOT}/docs"
+resolve_publish_environment "${PROJECT_ROOT}" "${1}"
 
-if [[ ! -d "${DOCS_ROOT}" ]] && [[ -d "${INPUT_PATH}/why-hestiastore" ]] && [[ -d "${INPUT_PATH}/images" ]]; then
-  DOCS_ROOT="${INPUT_PATH}"
-  HESTIASTORE_ROOT="$(cd "${INPUT_PATH}/.." && pwd)"
+if [[ -z "${SKIP_REPORT_GENERATION:-}" ]]; then
+  (
+    cd "${PROJECT_ROOT}"
+    ./makeJsonTable.sh
+    ./makeSumTable.sh
+    ./makeGraph.sh
+    ./makeMarkDown.sh
+  )
 fi
 
-WHY_DIR="${DOCS_ROOT}/why-hestiastore"
-IMAGES_DIR="${DOCS_ROOT}/images"
+markdown_count=0
+svg_count=0
+build_count=0
+copied_count=0
 
-if [[ ! -d "${WHY_DIR}" || ! -d "${IMAGES_DIR}" ]]; then
-  echo "Target does not look like a HestiaStore project root or docs directory: ${INPUT_PATH}" >&2
-  echo "Expected either <root>/docs/why-hestiastore and <root>/docs/images," >&2
-  echo "or a docs directory containing why-hestiastore/ and images/." >&2
-  exit 1
-fi
-
-mkdir -p "${WHY_DIR}" "${IMAGES_DIR}"
-
-markdown_files=(
-  "out-write.md"
-  "out-read.md"
-  "out-sequential.md"
-  "out-multithread-read.md"
-  "out-multithread-write.md"
-)
-
-copied=0
-
-copy_if_present() {
-  local source_file="$1"
-  local target_dir="$2"
-  local source_path="${RESULTS_DIR}/${source_file}"
-
-  if [[ -f "${source_path}" ]]; then
-    install -m 0644 "${source_path}" "${target_dir}/${source_file}"
-    echo "Copied ${source_file} -> ${target_dir}/${source_file}"
-    copied=$((copied + 1))
-  fi
-}
-
-for file in "${markdown_files[@]}"; do
-  copy_if_present "${file}" "${WHY_DIR}"
-done
-
-for source_path in "${RESULTS_DIR}"/out-*.svg; do
-  if [[ -f "${source_path}" ]]; then
-    file="$(basename "${source_path}")"
-    install -m 0644 "${source_path}" "${IMAGES_DIR}/${file}"
-    echo "Copied ${file} -> ${IMAGES_DIR}/${file}"
-    copied=$((copied + 1))
+for path in "${REPORT_DOCS_DIR}"/out-*.md; do
+  if [[ -f "${path}" ]]; then
+    markdown_count=$((markdown_count + 1))
+    install -m 0644 "${path}" "${PUBLISH_DOCS_DIR}/$(basename "${path}")"
+    copied_count=$((copied_count + 1))
   fi
 done
 
-if [[ "${copied}" -eq 0 ]]; then
-  echo "No generated report files were found in ${RESULTS_DIR}." >&2
-  echo "Run ./run.sh --reports first." >&2
+for path in "${REPORT_IMAGES_DIR}"/out-*.svg; do
+  if [[ -f "${path}" ]]; then
+    svg_count=$((svg_count + 1))
+    install -m 0644 "${path}" "${PUBLISH_IMAGES_DIR}/$(basename "${path}")"
+    copied_count=$((copied_count + 1))
+  fi
+done
+
+for path in "${REPORT_BUILD_DIR}"/out-*; do
+  if [[ -f "${path}" ]]; then
+    build_count=$((build_count + 1))
+  fi
+done
+
+if [[ "${markdown_count}" -eq 0 && "${svg_count}" -eq 0 ]]; then
+  echo "No generated report assets were found in ${REPORT_DOCS_DIR} or ${REPORT_IMAGES_DIR}." >&2
   exit 1
 fi
 
-echo "Copied ${copied} file(s) into ${HESTIASTORE_ROOT}/docs."
+echo "Copied ${copied_count} file(s) into ${HESTIASTORE_ROOT}/docs."
+echo "Local build artifacts: ${REPORT_BUILD_DIR}"
+echo "Local Markdown reports: ${REPORT_DOCS_DIR}"
+echo "Local charts: ${REPORT_IMAGES_DIR}"
+echo "Published Markdown reports: ${PUBLISH_DOCS_DIR}"
+echo "Published charts: ${PUBLISH_IMAGES_DIR}"

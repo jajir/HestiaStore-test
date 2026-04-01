@@ -3,9 +3,9 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="${PROJECT_ROOT}/results"
+source "${PROJECT_ROOT}/report-env.sh"
 
-mkdir -p "${RESULTS_DIR}"
+resolve_local_report_environment "${PROJECT_ROOT}"
 
 groovy "${PROJECT_ROOT}/src/main/groovy/makeMarkDown.groovy" out-write
 groovy "${PROJECT_ROOT}/src/main/groovy/makeMarkDown.groovy" out-read
