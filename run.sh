@@ -237,8 +237,8 @@ multithread_write_benchmarks(){
     run LevelDBMultithreadWrite 4
 }
 
-read_benchmarks
 write_benchmarks
+read_benchmarks
 sequential_benchmarks
 #multithread_read_benchmarks
 #multithread_write_benchmarks
