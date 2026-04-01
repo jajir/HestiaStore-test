@@ -20,4 +20,10 @@ This chart shows the latency percentile curve for the benchmarked engines. The X
 - After measurements complete, the map is closed and the directory remains available for inspection. The log records how many keys were created, providing a quick sanity check that the run processed the expected volume.
 - Test was performed at Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
 
+## Data for Throughtput Chart
+
 {{TABLE}}
+
+## Source Data for Percentile Chart
+
+{{TABLE1}}

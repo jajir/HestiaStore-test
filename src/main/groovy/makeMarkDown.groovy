@@ -7,6 +7,9 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 Path findProjectRoot(Path start) {
     Path cur = start
@@ -21,11 +24,27 @@ Path findProjectRoot(Path start) {
 }
 
 @Field final String TABLE_PLACEHOLDER = '{{TABLE}}'
+@Field final String TABLE1_PLACEHOLDER = '{{TABLE1}}'
 
 Path cwd = Paths.get('.')
 Path rootDir = findProjectRoot(cwd)
 Path resultsDir = rootDir.resolve('results')
 ObjectMapper mapper = new ObjectMapper()
+
+def dfs = new DecimalFormatSymbols(Locale.US)
+dfs.groupingSeparator = ' ' as char
+def latencyFormat = new DecimalFormat('#,##0.###', dfs)
+
+def percentileSpecs = [
+        [label: 'p50 [us/op]', percentile: 50d, keys: ['50.0', '50']],
+        [label: 'p75 [us/op]', percentile: 75d, keys: ['75.0', '75']],
+        [label: 'p90 [us/op]', percentile: 90d, keys: ['90.0', '90']],
+        [label: 'p95 [us/op]', percentile: 95d, keys: ['95.0', '95']],
+        [label: 'p99 [us/op]', percentile: 99d, keys: ['99.0', '99']],
+        [label: 'p99.5 [us/op]', percentile: 99.5d, keys: ['99.5']],
+        [label: 'p99.9 [us/op]', percentile: 99.9d, keys: ['99.9']],
+        [label: 'p99.99 [us/op]', percentile: 99.99d, keys: ['99.99']]
+]
 
 Path resolveSummaryJson(Path resultsDir, String reportName) {
     List<Path> candidates = [
@@ -56,16 +75,229 @@ Path resolveTemplate(Path resultsDir, String reportName) {
     return resolved
 }
 
-String buildThroughputTableSection(List<Map<String, Object>> rows) {
+Path resolveMarkdownTable(Path resultsDir, String reportName, String suffix) {
+    Path candidate = resultsDir.resolve("${reportName}${suffix}")
+    return Files.exists(candidate) ? candidate : null
+}
+
+def normalizeNumber = { Object value ->
+    if (value == null) {
+        return null
+    }
+    if (value instanceof Number) {
+        double number = value.doubleValue()
+        if (Double.isNaN(number) || Double.isInfinite(number)) {
+            return null
+        }
+        return number
+    }
+    if (value instanceof CharSequence) {
+        try {
+            double number = Double.parseDouble(value.toString())
+            if (Double.isNaN(number) || Double.isInfinite(number)) {
+                return null
+            }
+            return number
+        } catch (NumberFormatException ignored) {
+            return null
+        }
+    }
+    return null
+}
+
+def reportNameForScenario = { String scenario ->
+    switch (scenario) {
+        case 'Write':
+            return 'out-write'
+        case 'Read':
+            return 'out-read'
+        case 'Sequential':
+            return 'out-sequential'
+        case 'MultithreadRead':
+            return 'out-multithread-read'
+        case 'MultithreadWrite':
+            return 'out-multithread-write'
+        default:
+            return null
+    }
+}
+
+def describeResultFile = { Path file ->
+    String rawEngine = file.fileName.toString()
+            .replace('results-', '')
+            .replace('.json', '')
+    if (rawEngine.endsWith('-my')) {
+        return null
+    }
+
+    String engineBase = rawEngine
+    String scenario = 'Write'
+
+    if (rawEngine.startsWith('multithread-read-')) {
+        scenario = 'MultithreadRead'
+        engineBase = rawEngine.substring('multithread-read-'.length())
+        def matcher = engineBase =~ /^(.*)-threads\d+$/
+        if (matcher.matches()) {
+            engineBase = matcher.group(1)
+        }
+    } else if (rawEngine.startsWith('multithread-write-')) {
+        scenario = 'MultithreadWrite'
+        engineBase = rawEngine.substring('multithread-write-'.length())
+        def matcher = engineBase =~ /^(.*)-threads\d+$/
+        if (matcher.matches()) {
+            engineBase = matcher.group(1)
+        }
+    } else if (rawEngine.startsWith('read-')) {
+        scenario = 'Read'
+        engineBase = rawEngine.substring('read-'.length())
+    } else if (rawEngine.endsWith('Read')) {
+        scenario = 'Read'
+        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
+    } else if (rawEngine.startsWith('sequential-')) {
+        scenario = 'Sequential'
+        engineBase = rawEngine.substring('sequential-'.length())
+    } else if (rawEngine.startsWith('write-')) {
+        scenario = 'Write'
+        engineBase = rawEngine.substring('write-'.length())
+    }
+
+    [scenario: scenario, engine: engineBase]
+}
+
+def collectHistogramBins
+collectHistogramBins = { Object node, Map<Double, Long> binsByValue ->
+    if (!(node instanceof List)) {
+        return
+    }
+    List values = node as List
+    if (values.size() >= 2 &&
+            !(values[0] instanceof List) &&
+            !(values[1] instanceof List)) {
+        Double latency = normalizeNumber(values[0])
+        Double countValue = normalizeNumber(values[1])
+        if (latency != null && countValue != null && latency > 0d && countValue > 0d) {
+            binsByValue[latency] = binsByValue[latency] + countValue.longValue()
+        }
+        return
+    }
+    values.each { nested ->
+        collectHistogramBins(nested, binsByValue)
+    }
+}
+
+def flattenHistogramBins = { Object rawDataHistogram ->
+    Map<Double, Long> binsByValue = [:].withDefault { 0L }
+    collectHistogramBins(rawDataHistogram, binsByValue)
+    binsByValue.entrySet()
+            .sort { a, b -> a.key <=> b.key }
+            .collect { [latency: it.key, count: it.value] }
+}
+
+def percentileFromHistogram = { List<Map<String, Object>> bins, double percentile ->
+    if (bins.isEmpty()) {
+        return null
+    }
+    long totalCount = bins.collect { (it.count as Number).longValue() }.sum() as long
+    if (totalCount <= 0L) {
+        return null
+    }
+    long threshold = Math.max(1L, (long) Math.ceil((percentile / 100d) * totalCount))
+    long cumulative = 0L
+    for (Map<String, Object> bin : bins) {
+        cumulative += (bin.count as Number).longValue()
+        if (cumulative >= threshold) {
+            return bin.latency as Double
+        }
+    }
+    return bins[-1].latency as Double
+}
+
+def percentileMetricValue = { Map scorePercentiles, List<Map<String, Object>> bins, Map spec ->
+    for (String key : spec.keys as List<String>) {
+        if (scorePercentiles?.containsKey(key)) {
+            Double value = normalizeNumber(scorePercentiles[key])
+            if (value != null && value > 0d) {
+                return value
+            }
+        }
+    }
+    percentileFromHistogram(bins, spec.percentile as double)
+}
+
+def collectPercentileRowsByReport = { Path targetResultsDir ->
+    Map<String, List<Map<String, Object>>> rowsByReport = [:].withDefault { [] }
+
+    Files.newDirectoryStream(targetResultsDir, 'results-*.json').each { Path file ->
+        if (file.fileName.toString().endsWith('-my.json')) {
+            return
+        }
+
+        Map description = describeResultFile(file) as Map
+        String reportName = reportNameForScenario(description?.scenario as String)
+        if (description == null || reportName == null) {
+            return
+        }
+
+        byte[] bytes = Files.readAllBytes(file)
+        if (bytes.length == 0) {
+            return
+        }
+
+        List entries
+        try {
+            entries = mapper.readValue(bytes, List)
+        } catch (Exception ignored) {
+            return
+        }
+        if (!entries) {
+            return
+        }
+
+        Map sampleEntry = entries.find {
+            (it['mode'] ?: '').toString() == 'sample' &&
+                    ((it['primaryMetric'] ?: [:])['scoreUnit'] ?: '').toString() == 'us/op'
+        } as Map
+        if (sampleEntry == null) {
+            return
+        }
+
+        Map primaryMetric = sampleEntry['primaryMetric'] as Map ?: [:]
+        Map scorePercentiles = primaryMetric['scorePercentiles'] as Map ?: [:]
+        List<Map<String, Object>> bins = flattenHistogramBins(primaryMetric['rawDataHistogram'])
+
+        Map<String, Object> row = ['Engine': description.engine]
+        boolean complete = true
+        percentileSpecs.each { spec ->
+            Double value = percentileMetricValue(scorePercentiles, bins, spec)
+            if (value == null || value <= 0d) {
+                complete = false
+                return
+            }
+            row[spec.label as String] = latencyFormat.format(value)
+        }
+
+        if (complete) {
+            rowsByReport[reportName] << row
+        }
+    }
+
+    rowsByReport.values().each { List<Map<String, Object>> rowsForReport ->
+        rowsForReport.sort { a, b ->
+            (a['Engine'] ?: '').toString() <=> (b['Engine'] ?: '').toString()
+        }
+    }
+    return rowsByReport
+}
+
+String buildThroughputTableMarkdown(List<Map<String, Object>> rows) {
     StringBuilder out = new StringBuilder()
-    out.append('## Benchmark Results\n\n')
     if (rows.isEmpty()) {
-        out.append('_No summary rows available._\n\n')
+        out.append('_No summary rows available._\n')
     } else {
         boolean includeLatency = rows[0].containsKey('Mean [us/op]')
         if (includeLatency) {
-            out.append('| Engine       | Score [ops/s]     | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | Occupied space | CPU Usage |\n')
-            out.append('|:-------------|------------------:|-------------:|------------:|------------:|------------:|---------------:|---------:|\n')
+            out.append('| Engine | Score [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | Occupied space | CPU Usage |\n')
+            out.append('|:-------|--------------:|-------------:|------------:|------------:|------------:|---------------:|----------:|\n')
             rows.each { row ->
                 def engine = (row['Engine'] ?: '').toString()
                 def score = (row['Score [ops/s]'] ?: '').toString()
@@ -75,11 +307,11 @@ String buildThroughputTableSection(List<Map<String, Object>> rows) {
                 def p99 = (row['p99 [us/op]'] ?: '').toString()
                 def occupied = (row['Occupied space'] ?: '').toString()
                 def cpuUsage = (row['cpuUsage'] ?: '').toString()
-                out.append("| ${engine.padRight(12)} | ${score.padLeft(16)} | ${mean.padLeft(12)} | ${p50.padLeft(11)} | ${p95.padLeft(11)} | ${p99.padLeft(11)} | ${occupied.padRight(14)} | ${cpuUsage.padRight(10)} |\n")
+                out.append("| ${engine} | ${score.padLeft(13)} | ${mean} | ${p50} | ${p95} | ${p99} | ${occupied} | ${cpuUsage} |\n")
             }
         } else {
-            out.append('| Engine       | Score [ops/s]     | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |\n')
-            out.append('|:-------------|------------------:|-----------:|-----------------------------:|---------------:|---------:|\n')
+            out.append('| Engine | Score [ops/s] | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |\n')
+            out.append('|:-------|--------------:|-----------:|-----------------------------:|---------------:|----------:|\n')
             rows.each { row ->
                 def engine = (row['Engine'] ?: '').toString()
                 def score = (row['Score [ops/s]'] ?: '').toString()
@@ -87,54 +319,55 @@ String buildThroughputTableSection(List<Map<String, Object>> rows) {
                 def ci = (row['Confidence Interval [ops/s]'] ?: '').toString()
                 def occupied = (row['Occupied space'] ?: '').toString()
                 def cpuUsage = (row['cpuUsage'] ?: '').toString()
-                out.append("| ${engine.padRight(12)} | ${score.padLeft(16)} | ${error.padLeft(9)} | ${ci.padRight(27)} | ${occupied.padRight(14)} | ${cpuUsage.padRight(10)} |\n")
+                out.append("| ${engine} | ${score.padLeft(13)} | ${error.padLeft(9)} | ${ci} | ${occupied} | ${cpuUsage} |\n")
             }
         }
-        out.append('\n')
     }
-    out.append('meaning of columns:\n\n')
-    out.append('- Engine: name of the benchmarked engine.\n')
-    out.append('- Score [ops/s]: number of operations per second, higher is better.\n')
-    if (!rows.isEmpty() && rows[0].containsKey('Mean [us/op]')) {
-        out.append('- Mean [us/op]: average per-operation latency in microseconds, lower is better.\n')
-        out.append('- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.\n')
-    } else {
-        out.append('- ScoreError: error margin of the mean score.\n')
-        out.append('- Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.\n')
-    }
-    out.append('- Occupied space: amount of disk space occupied by the engine data.\n')
-    out.append('- CPU Usage: average CPU usage during the benchmark.\n')
     return out.toString()
 }
 
-String buildMultithreadTableSection(List<Map<String, Object>> rows) {
+String buildMultithreadTableMarkdown(List<Map<String, Object>> rows) {
     StringBuilder out = new StringBuilder()
-    out.append('## Benchmark Results\n\n')
     if (rows.isEmpty()) {
-        out.append('_No summary rows available._\n\n')
+        out.append('_No summary rows available._\n')
     } else {
-        out.append('| Engine       | Threads | Throughput [ops/s] | Mean [us/op] | p50 [us/op] | p95 [us/op] | p99 [us/op] | CPU Usage |\n')
-        out.append('|:-------------|--------:|-------------------:|-------------:|------------:|------------:|------------:|---------:|\n')
+        out.append('| Engine | Threads | Throughput [ops/s] | CPU Usage |\n')
+        out.append('|:-------|--------:|-------------------:|----------:|\n')
         rows.each { row ->
             def engine = (row['Engine'] ?: '').toString()
             def threads = (row['Threads'] ?: '').toString()
             def throughput = (row['Throughput [ops/s]'] ?: '').toString()
-            def mean = (row['Mean [us/op]'] ?: '').toString()
-            def p50 = (row['p50 [us/op]'] ?: '').toString()
-            def p95 = (row['p95 [us/op]'] ?: '').toString()
-            def p99 = (row['p99 [us/op]'] ?: '').toString()
             def cpuUsage = (row['cpuUsage'] ?: '').toString()
-            out.append("| ${engine.padRight(12)} | ${threads.padLeft(7)} | ${throughput.padLeft(18)} | ${mean.padLeft(12)} | ${p50.padLeft(11)} | ${p95.padLeft(11)} | ${p99.padLeft(11)} | ${cpuUsage.padRight(10)} |\n")
+            out.append("| ${engine} | ${threads} | ${throughput} | ${cpuUsage} |\n")
         }
-        out.append('\n')
     }
-    out.append('meaning of columns:\n\n')
-    out.append('- Engine: name of the benchmarked engine.\n')
-    out.append('- Threads: number of concurrent JMH benchmark threads.\n')
-    out.append('- Throughput [ops/s]: aggregate completed operations per second, higher is better.\n')
-    out.append('- Mean [us/op]: average per-operation latency in microseconds, lower is better.\n')
-    out.append('- p50/p95/p99 [us/op]: latency percentiles from JMH SampleTime results.\n')
-    out.append('- CPU Usage: average CPU usage during the benchmark.\n')
+    return out.toString()
+}
+
+String buildPercentileTableMarkdown(List<Map<String, Object>> rows, List<Map<String, Object>> specs) {
+    StringBuilder out = new StringBuilder()
+    if (rows.isEmpty()) {
+        out.append('_No latency percentile data available._\n')
+        return out.toString()
+    }
+
+    out.append('| Engine')
+    specs.each { spec ->
+        out.append(" | ${spec.label}")
+    }
+    out.append(' |\n')
+    out.append('|:-------')
+    specs.each {
+        out.append('|-------------:')
+    }
+    out.append('|\n')
+    rows.each { row ->
+        out.append("| ${(row['Engine'] ?: '').toString()}")
+        specs.each { spec ->
+            out.append(" | ${(row[spec.label as String] ?: '').toString()}")
+        }
+        out.append(' |\n')
+    }
     return out.toString()
 }
 
@@ -145,12 +378,15 @@ boolean isMultithreadReport(List<Map<String, Object>> rows, String reportName) {
                     rows[0].containsKey('Throughput [ops/s]'))
 }
 
-String renderTemplate(String template, String tableSection) {
+String renderTemplate(String template, String tableSection, String table1Section) {
     if (!template.contains(TABLE_PLACEHOLDER)) {
         throw new IllegalArgumentException(
                 "Template must contain ${TABLE_PLACEHOLDER}")
     }
     String rendered = template.replace(TABLE_PLACEHOLDER, tableSection.trim())
+    if (template.contains(TABLE1_PLACEHOLDER)) {
+        rendered = rendered.replace(TABLE1_PLACEHOLDER, table1Section.trim())
+    }
     return rendered.endsWith('\n') ? rendered : rendered + '\n'
 }
 
@@ -159,18 +395,44 @@ if (args.length == 0) {
     System.exit(1)
 }
 
+Map<String, List<Map<String, Object>>> percentileRowsByReportCache = null
+
 args.each { String reportName ->
-    Path summaryJson = resolveSummaryJson(resultsDir, reportName)
     Path templatePath = resolveTemplate(resultsDir, reportName)
+    String template = Files.readString(templatePath, StandardCharsets.UTF_8)
     Path outputPath = resultsDir.resolve("${reportName}.md")
 
-    List<Map<String, Object>> rows = mapper.readValue(summaryJson.toFile(), List)
-    String tableSection = isMultithreadReport(rows, reportName)
-            ? buildMultithreadTableSection(rows)
-            : buildThroughputTableSection(rows)
-    String template = Files.readString(templatePath, StandardCharsets.UTF_8)
-    String rendered = renderTemplate(template, tableSection)
+    Path tablePath = resolveMarkdownTable(resultsDir, reportName, '-table.md')
+    Path table1Path = template.contains(TABLE1_PLACEHOLDER)
+            ? resolveMarkdownTable(resultsDir, reportName, '-table2.md')
+            : null
 
+    List<Map<String, Object>> rows = tablePath == null
+            ? mapper.readValue(resolveSummaryJson(resultsDir, reportName).toFile(), List)
+            : []
+    boolean multithreadReport = isMultithreadReport(rows, reportName)
+
+    String tableSection = tablePath != null
+            ? Files.readString(tablePath, StandardCharsets.UTF_8).trim()
+            : (multithreadReport
+                    ? buildMultithreadTableMarkdown(rows)
+                    : buildThroughputTableMarkdown(rows)).trim()
+
+    String table1Section = ''
+    if (template.contains(TABLE1_PLACEHOLDER)) {
+        if (table1Path != null) {
+            table1Section = Files.readString(table1Path, StandardCharsets.UTF_8).trim()
+        } else {
+            if (percentileRowsByReportCache == null) {
+                percentileRowsByReportCache = collectPercentileRowsByReport(resultsDir)
+            }
+            table1Section = buildPercentileTableMarkdown(
+                    percentileRowsByReportCache[reportName] ?: [],
+                    percentileSpecs).trim()
+        }
+    }
+
+    String rendered = renderTemplate(template, tableSection, table1Section)
     Files.writeString(outputPath, rendered, StandardCharsets.UTF_8)
     println "Wrote ${outputPath}"
 }

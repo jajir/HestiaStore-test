@@ -1,9 +1,9 @@
-| Engine | Score [ops/s] | Occupied space | CPU Usage |
-|:-------|--------------:|---------------:|----------:|
-| ChronicleMap |     1 707 702 | 2.03 GB | 13% |
-| H2 |       364 687 | 8 KB | 14% |
-| HestiaStoreBasic |           592 | 507.94 MB | 15% |
-| HestiaStoreStream |     4 792 777 | 283.94 MB | 12% |
-| LevelDB |       190 698 | 363.32 MB | 10% |
-| MapDB |         1 528 | 1.3 GB | 5% |
-| RocksDB |       109 551 | 324.23 MB | 10% |
+| Engine | Score [ops/s] | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |
+|:-------|--------------:|-----------:|-----------------------------:|---------------:|----------:|
+| ChronicleMap |     1 707 702 |    82 988 | 1 624 713 .. 1 790 690 | 2.03 GB | 13% |
+| H2 |       364 687 |    43 577 | 321 110 .. 408 264 | 8 KB | 14% |
+| HestiaStoreBasic |           592 |        68 | 524 .. 660 | 507.94 MB | 15% |
+| HestiaStoreStream |     4 792 777 |   144 132 | 4 648 646 .. 4 936 909 | 283.94 MB | 12% |
+| LevelDB |       190 698 |     6 694 | 184 004 .. 197 391 | 363.32 MB | 10% |
+| MapDB |         1 528 |       228 | 1 300 .. 1 756 | 1.3 GB | 5% |
+| RocksDB |       109 551 |    10 513 | 99 038 .. 120 064 | 324.23 MB | 10% |

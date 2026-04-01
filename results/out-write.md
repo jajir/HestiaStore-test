@@ -20,22 +20,17 @@ This chart shows the latency percentile curve for the benchmarked engines. The X
 - After measurements complete, the map is closed and the directory remains available for inspection. The log records how many keys were created, providing a quick sanity check that the run processed the expected volume.
 - Test was performed at Mac mini 2024, 16 GB, macOS 15.6.1 (24G90).
 
-## Benchmark Results
+## Data for Throughtput Chart
 
-| Engine       | Score [ops/s]     | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |
-|:-------------|------------------:|-----------:|-----------------------------:|---------------:|---------:|
-| ChronicleMap |            5 954 |     1 765 | 4 189 .. 7 719              | 20.54 GB       | 7%         |
-| H2           |           13 458 |     5 144 | 8 314 .. 18 601             | 8 KB           | 21%        |
-| HestiaStoreCompressWrite |           55 268 |    82 763 | -27 495 .. 138 031          | 2.21 GB        | 22%        |
-| LevelDB      |           45 263 |    10 913 | 34 350 .. 56 176            | 1.4 GB         | 17%        |
-| MapDB        |            2 946 |       326 | 2 620 .. 3 272              | 496 MB         | 14%        |
-| RocksDB      |          305 712 |    78 929 | 226 783 .. 384 641          | 7.74 GB        | 6%         |
+| Engine | Score [ops/s] | ScoreError | Confidence Interval [ops/s] | Occupied space | CPU Usage |
+|:-------|--------------:|-----------:|-----------------------------:|---------------:|----------:|
+| ChronicleMap |         5 954 |     1 765 | 4 189 .. 7 719 | 20.54 GB | 7% |
+| H2 |        13 458 |     5 144 | 8 314 .. 18 601 | 8 KB | 21% |
+| HestiaStoreCompressWrite |        55 268 |    82 763 | -27 495 .. 138 031 | 2.21 GB | 22% |
+| LevelDB |        45 263 |    10 913 | 34 350 .. 56 176 | 1.4 GB | 17% |
+| MapDB |         2 946 |       326 | 2 620 .. 3 272 | 496 MB | 14% |
+| RocksDB |       305 712 |    78 929 | 226 783 .. 384 641 | 7.74 GB | 6% |
 
-meaning of columns:
+## Source Data for Percentile Chart
 
-- Engine: name of the benchmarked engine.
-- Score [ops/s]: number of operations per second, higher is better.
-- ScoreError: error margin of the mean score.
-- Confidence Interval [ops/s]: 95% confidence interval of the mean throughput.
-- Occupied space: amount of disk space occupied by the engine data.
-- CPU Usage: average CPU usage during the benchmark.
+_No latency percentile data available._

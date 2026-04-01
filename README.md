@@ -88,7 +88,8 @@ After report generation, look in `./results/` for:
 
 - `out-*-table.json` for machine-readable summary tables
 - `out-*.md` for detailed Markdown reports
-- `out-*-table.md` for compact Markdown tables
+- `out-*-table.md` for primary Markdown tables used by `{{TABLE}}`
+- `out-*-table2.md` for secondary Markdown tables used by `{{TABLE1}}`
 - `out-*.svg` for charts when the corresponding summary data is available
 - `out-*-test-template.md` in `results/` for detailed report templates
 
@@ -100,7 +101,7 @@ Typical detailed report files are:
 - `out-multithread-read.md`
 - `out-multithread-write.md`
 
-Detailed Markdown reports are rendered from matching templates such as `results/out-write-test-template.md`. The template must contain `{{TABLE}}`.
+Detailed Markdown reports are rendered from matching templates such as `results/out-write-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `results/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `results/out-*-table2.md`.
 
 ## Typical Workflow
 

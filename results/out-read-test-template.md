@@ -20,4 +20,10 @@ This chart shows the latency percentile curve for the benchmarked engines. The X
 - After measurements finish, readers close their resources but the populated directories remain on disk so sizes can be captured by the reporting scripts.
 - Tests executed on Mac mini 2024, 16 GB RAM, macOS 15.6.1 (24G90).
 
+## Data for Throughtput Chart
+
 {{TABLE}}
+
+## Source Data for Percentile Chart
+
+{{TABLE1}}
