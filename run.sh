@@ -19,7 +19,8 @@ usage() {
   echo "       ./run.sh --reports --target HESTIASTORE_PROJECT_ROOT"
   echo
   echo "This script runs the benchmarks enabled near the bottom of run.sh."
-  echo "Raw JMH output is written into ./results/results-*.json and ./results/results-*-my.json."
+  echo "Raw JMH output is written into ./results/results-*-latency.json, ./results/results-*-throughput.json,"
+  echo "and matching ./results/results-*-latency-my.json / ./results/results-*-throughput-my.json files."
   echo
   echo "Environment:"
   echo "  BENCHMARK_DIR                  Working directory used by the benchmark engines."

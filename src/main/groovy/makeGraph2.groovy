@@ -106,7 +106,7 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads\d+)?$/
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?(?:-(latency|throughput))?$/
     if (!matcher.matches()) {
         return null
     }
@@ -118,7 +118,45 @@ def describeResultFile = { Path file ->
             'write-multi-thread' : 'WriteMultiThread',
             'read-multi-thread'  : 'ReadMultiThread'
     ]
-    [scenario: scenarioNames[matcher.group(1)], engine: matcher.group(2)]
+    String scenarioToken = matcher.group(1)
+    String threads = matcher.group(3) ?: ''
+    String metric = matcher.group(4) ?: 'combined'
+    [
+            scenario: scenarioNames[scenarioToken],
+            engine  : matcher.group(2),
+            threads : threads,
+            metric  : metric,
+            key     : "${scenarioToken}|${matcher.group(2)}|${threads}".toString()
+    ]
+}
+
+def selectLatencyResultFiles = { Path targetResultsDir ->
+    Map<String, Map<String, Object>> grouped = [:]
+
+    Files.newDirectoryStream(targetResultsDir, 'results-*.json').each { Path file ->
+        if (file.fileName.toString().endsWith('-my.json')) {
+            return
+        }
+
+        Map description = describeResultFile(file) as Map
+        if (description == null) {
+            return
+        }
+
+        Map<String, Object> group = grouped[description.key as String]
+                ?: [latencyFile: null, combinedFile: null]
+        if ((description.metric ?: '').toString() == 'latency') {
+            group.latencyFile = file
+        } else if ((description.metric ?: '').toString() == 'combined') {
+            group.combinedFile = file
+        }
+        grouped[description.key as String] = group
+    }
+
+    grouped.values()
+            .collect { (it.latencyFile ?: it.combinedFile) as Path }
+            .findAll { it != null }
+            .sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
 }
 
 def collectHistogramBins
@@ -389,12 +427,7 @@ def renderChart = { String scenario, List<Map<String, Object>> series ->
 
 Map<String, List<Map<String, Object>>> seriesByScenario = [:].withDefault { [] }
 
-Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
-    String fileName = file.fileName.toString()
-    if (fileName.endsWith('-my.json')) {
-        return
-    }
-
+selectLatencyResultFiles(rawResultsDir).each { Path file ->
     def description = describeResultFile(file)
     if (description == null) {
         return

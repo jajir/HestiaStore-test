@@ -148,112 +148,232 @@ def buildConfidenceInterval = { Map primary, boolean latency ->
     return "${lowerBound} .. ${upperBound}".toString()
 }
 
-def files = []
-Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
-    def name = file.fileName.toString()
-    if (!name.endsWith('-my.json')) {
-        files << file
-    }
-}
-files.sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
+Map<String, String> scenarioNames = [
+        'write-single-thread': 'WriteSingleThread',
+        'read-single-thread' : 'ReadSingleThread',
+        'sequential-read'    : 'SequentialRead',
+        'write-multi-thread' : 'WriteMultiThread',
+        'read-multi-thread'  : 'ReadMultiThread'
+]
 
-def rows = []
-
-files.each { Path file ->
+def describeResultFile = { Path file ->
     String rawEngine = file.fileName.toString()
             .replace('results-', '')
             .replace('.json', '')
+    if (rawEngine.endsWith('-my')) {
+        return null
+    }
 
-    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?$/
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?(?:-(latency|throughput))?$/
     if (!matcher.matches()) {
-        System.err.println("Skipping result file with unsupported name: ${file.fileName}")
-        return
+        return null
     }
 
     String scenarioToken = matcher.group(1)
-    String engine = matcher.group(2)
-    String threads = matcher.group(3) ?: ''
-    boolean isMultithreadVariant = scenarioToken in [
-            'write-multi-thread',
-            'read-multi-thread'
-    ]
-    Map<String, String> scenarioNames = [
-            'write-single-thread': 'WriteSingleThread',
-            'read-single-thread' : 'ReadSingleThread',
-            'sequential-read'    : 'SequentialRead',
-            'write-multi-thread' : 'WriteMultiThread',
-            'read-multi-thread'  : 'ReadMultiThread'
-    ]
     String scenario = scenarioNames[scenarioToken]
     if (scenario == null) {
-        throw new IllegalStateException(
-                "Unsupported scenario token ${scenarioToken}")
+        return null
+    }
+    String engine = matcher.group(2)
+    String threads = matcher.group(3) ?: ''
+    String metric = matcher.group(4) ?: 'combined'
+    [
+            scenarioToken: scenarioToken,
+            scenario     : scenario,
+            engine       : engine,
+            threads      : threads,
+            metric       : metric,
+            key          : "${scenarioToken}|${engine}|${threads}".toString()
+    ]
+}
+
+def resultDataCache = [:]
+def loadResultEntries = { Path file ->
+    if (file == null) {
+        return null
+    }
+    if (resultDataCache.containsKey(file)) {
+        return resultDataCache[file]
     }
 
     byte[] rawBytes = Files.readAllBytes(file)
     if (rawBytes.length == 0) {
         System.err.println("Skipping empty result file: ${file.fileName}")
-        return
+        resultDataCache[file] = null
+        return null
     }
 
-    List data
     try {
-        data = mapper.readValue(rawBytes, List)
+        List data = mapper.readValue(rawBytes, List)
+        resultDataCache[file] = data
+        return data
     } catch (Exception e) {
         System.err.println("Skipping unreadable result file ${file.fileName}: ${e.message}")
-        return
+        resultDataCache[file] = null
+        return null
     }
-    if (data.isEmpty()) {
-        return
-    }
-    def entry = findBenchmarkEntry(data, ['thrpt', 'sample', 'avgt'])
-    if (entry == null) {
-        System.err.println("Skipping result file without a usable benchmark entry: ${file.fileName}")
-        return
-    }
-    def primary = entry?.get('primaryMetric') as Map
-    Double score = normalizeNumber(primary?.get('score'))
-    Double scoreError = normalizeNumber(primary?.get('scoreError'))
-    String confidenceInterval = buildConfidenceInterval(primary, isMultithreadVariant)
+}
 
-    Path myVariant = file.parent.resolve(file.fileName.toString().replace('.json', '-my.json'))
-    String occupied = ''
-    String usedMemoryStr = ''
+def metadataPathFor = { Path file ->
+    file == null
+            ? null
+            : file.parent.resolve(file.fileName.toString().replace('.json', '-my.json'))
+}
+
+def metadataCache = [:]
+def loadMetadata = { Path metadataFile ->
+    if (metadataFile == null || !Files.exists(metadataFile)) {
+        return null
+    }
+    if (metadataCache.containsKey(metadataFile)) {
+        return metadataCache[metadataFile]
+    }
+
+    byte[] extraBytes = Files.readAllBytes(metadataFile)
+    if (extraBytes.length == 0) {
+        System.err.println("Skipping empty metadata file: ${metadataFile.fileName}")
+        metadataCache[metadataFile] = null
+        return null
+    }
+
+    try {
+        Map extra = mapper.readValue(extraBytes, Map)
+        metadataCache[metadataFile] = extra
+        return extra
+    } catch (Exception e) {
+        System.err.println("Skipping unreadable metadata file ${metadataFile.fileName}: ${e.message}")
+        metadataCache[metadataFile] = null
+        return null
+    }
+}
+
+def mergeMetadata = { List<Path> resultFiles ->
+    List<Map> extras = resultFiles.findAll { it != null }
+            .collect { metadataPathFor(it) }
+            .findAll { it != null && Files.exists(it) }
+            .unique()
+            .collect { loadMetadata(it) }
+            .findAll { it != null }
+
+    List<Double> totalSizes = extras.collect {
+        normalizeNumber(it?.get('totalDirectorySize') ?: it?.get('totalSize'))
+    }.findAll { it != null }
+    List<Double> usedMemories = extras.collect {
+        normalizeNumber(it?.get('usedMemoryBytes'))
+    }.findAll { it != null }
+    List<Double> cpuUsages = extras.collect {
+        normalizeNumber(it?.get('cpuUsage'))
+    }.findAll { it != null }
+
+    String occupied = totalSizes.isEmpty()
+            ? ''
+            : humanReadableSize(totalSizes.max().longValue())
+    String usedMemoryStr = usedMemories.isEmpty()
+            ? ''
+            : humanReadableSize(usedMemories.max().longValue())
     String cpuUsageStr = ''
-    if (Files.exists(myVariant)) {
-        byte[] extraBytes = Files.readAllBytes(myVariant)
-        if (extraBytes.length == 0) {
-            System.err.println("Skipping empty metadata file: ${myVariant.fileName}")
-        } else {
-            try {
-                def extra = mapper.readValue(extraBytes, Map)
-                Double totalSize = normalizeNumber(extra?.get('totalDirectorySize') ?: extra?.get('totalSize'))
-                if (totalSize != null) {
-                    occupied = humanReadableSize(totalSize.longValue())
-                }
-                Double usedMemory = normalizeNumber(extra?.get('usedMemoryBytes'))
-                if (usedMemory != null) {
-                    usedMemoryStr = humanReadableSize(usedMemory.longValue())
-                }
-                Double cpuUsage = normalizeNumber(extra?.get('cpuUsage'))
-                if (cpuUsage != null) {
-                    cpuUsageStr = percentFormat.format(cpuUsage * 100d)
-                    if (!cpuUsageStr.isEmpty()) {
-                        cpuUsageStr = cpuUsageStr + '%'
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Skipping unreadable metadata file ${myVariant.fileName}: ${e.message}")
-            }
+    if (!cpuUsages.isEmpty()) {
+        double averageCpuUsage = cpuUsages.sum(0d) / cpuUsages.size()
+        cpuUsageStr = percentFormat.format(averageCpuUsage * 100d)
+        if (!cpuUsageStr.isEmpty()) {
+            cpuUsageStr = cpuUsageStr + '%'
         }
     }
 
+    [
+            occupied     : occupied,
+            usedMemoryStr: usedMemoryStr,
+            cpuUsageStr  : cpuUsageStr
+    ]
+}
+
+def groupedFiles = [:]
+Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
+    String fileName = file.fileName.toString()
+    if (fileName.endsWith('-my.json')) {
+        return
+    }
+
+    Map description = describeResultFile(file) as Map
+    if (description == null) {
+        System.err.println("Skipping result file with unsupported name: ${file.fileName}")
+        return
+    }
+
+    Map group = groupedFiles[description.key] ?: [
+            description   : description,
+            combinedFile  : null,
+            latencyFile   : null,
+            throughputFile: null
+    ]
+    switch (description.metric) {
+        case 'latency':
+            group.latencyFile = file
+            break
+        case 'throughput':
+            group.throughputFile = file
+            break
+        default:
+            group.combinedFile = file
+            break
+    }
+    groupedFiles[description.key] = group
+}
+
+def groups = groupedFiles.values().sort { a, b ->
+    String left = [
+            a.description.scenarioToken,
+            a.description.engine,
+            a.description.threads
+    ].join('|')
+    String right = [
+            b.description.scenarioToken,
+            b.description.engine,
+            b.description.threads
+    ].join('|')
+    left <=> right
+}
+
+def rows = []
+
+groups.each { Map group ->
+    Map description = group.description as Map
+    String scenarioToken = description.scenarioToken as String
+    String engine = description.engine as String
+    String threads = description.threads as String
+    boolean isMultithreadVariant = scenarioToken in [
+            'write-multi-thread',
+            'read-multi-thread'
+    ]
+    String scenario = description.scenario as String
+
+    Path combinedFile = group.combinedFile as Path
+    Path latencyFile = group.latencyFile as Path ?: combinedFile
+    Path throughputFile = group.throughputFile as Path ?: combinedFile
+
+    List latencyData = loadResultEntries(latencyFile)
+    List throughputData = throughputFile == latencyFile
+            ? latencyData
+            : loadResultEntries(throughputFile)
+
+    def latencyEntry = findBenchmarkEntry(latencyData ?: [], ['sample', 'avgt'],
+            false)
+    def throughputEntry = findBenchmarkEntry(throughputData ?: [], ['thrpt'],
+            false)
+    if (latencyEntry == null && throughputEntry == null) {
+        System.err.println("Skipping result group without a usable benchmark entry: ${engine} / ${scenario}")
+        return
+    }
+
+    Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
+    Map throughputPrimary = throughputEntry?.get('primaryMetric') as Map ?: [:]
+    Map percentiles = latencyPrimary?.get('scorePercentiles') as Map ?: [:]
+    Map metadata = mergeMetadata([latencyFile, throughputFile, combinedFile])
+    String occupied = metadata.occupied as String
+    String usedMemoryStr = metadata.usedMemoryStr as String
+    String cpuUsageStr = metadata.cpuUsageStr as String
+
     if (isMultithreadVariant) {
-        def latencyEntry = findBenchmarkEntry(data, ['sample', 'avgt'])
-        def throughputEntry = findBenchmarkEntry(data, ['thrpt'], false)
-        Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
-        Map throughputPrimary = throughputEntry?.get('primaryMetric') as Map ?: [:]
-        Map percentiles = latencyPrimary?.get('scorePercentiles') as Map ?: [:]
         rows << [
                 'Engine': engine,
                 'Variant': scenario,
@@ -278,46 +398,28 @@ files.each { Path file ->
                 'cpuUsage': cpuUsageStr
         ]
     } else {
-        def latencyEntry = findBenchmarkEntry(data, ['sample', 'avgt'], false)
-        def throughputEntry = findBenchmarkEntry(data, ['thrpt'], false)
-        if (latencyEntry != null && throughputEntry != null) {
-            Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
-            Map throughputPrimary = throughputEntry?.get('primaryMetric') as Map ?: [:]
-            Map percentiles = latencyPrimary?.get('scorePercentiles') as Map ?: [:]
-            rows << [
-                    'Engine': engine,
-                    'Variant': scenario,
-                    'Score [ops/s]': formatOpsScore(
-                            normalizeNumber(throughputPrimary?.get('score'))),
-                    'ScoreError': formatOpsScore(
-                            normalizeNumber(throughputPrimary?.get('scoreError'))),
-                    'Confidence Interval [ops/s]': buildConfidenceInterval(
-                            throughputPrimary, false),
-                    'Mean [us/op]': formatLatency(
-                            normalizeNumber(latencyPrimary?.get('score'))),
-                    'Latency Error [us/op]': formatLatency(
-                            normalizeNumber(latencyPrimary?.get('scoreError'))),
-                    'Confidence Interval [us/op]': buildConfidenceInterval(
-                            latencyPrimary, true),
-                    'p50 [us/op]': formatLatency(percentileValue(percentiles, '50.0', '50')),
-                    'p95 [us/op]': formatLatency(percentileValue(percentiles, '95.0', '95')),
-                    'p99 [us/op]': formatLatency(percentileValue(percentiles, '99.0', '99')),
-                    'Occupied space': occupied,
-                    'usedMemoryBytes': usedMemoryStr,
-                    'cpuUsage': cpuUsageStr
-            ]
-        } else {
-            rows << [
-                    'Engine': engine,
-                    'Variant': scenario,
-                    'Score [ops/s]': formatOpsScore(score),
-                    'ScoreError': formatOpsScore(scoreError),
-                    'Confidence Interval [ops/s]': confidenceInterval,
-                    'Occupied space': occupied,
-                    'usedMemoryBytes': usedMemoryStr,
-                    'cpuUsage': cpuUsageStr
-            ]
-        }
+        rows << [
+                'Engine': engine,
+                'Variant': scenario,
+                'Score [ops/s]': formatOpsScore(
+                        normalizeNumber(throughputPrimary?.get('score'))),
+                'ScoreError': formatOpsScore(
+                        normalizeNumber(throughputPrimary?.get('scoreError'))),
+                'Confidence Interval [ops/s]': buildConfidenceInterval(
+                        throughputPrimary, false),
+                'Mean [us/op]': formatLatency(
+                        normalizeNumber(latencyPrimary?.get('score'))),
+                'Latency Error [us/op]': formatLatency(
+                        normalizeNumber(latencyPrimary?.get('scoreError'))),
+                'Confidence Interval [us/op]': buildConfidenceInterval(
+                        latencyPrimary, true),
+                'p50 [us/op]': formatLatency(percentileValue(percentiles, '50.0', '50')),
+                'p95 [us/op]': formatLatency(percentileValue(percentiles, '95.0', '95')),
+                'p99 [us/op]': formatLatency(percentileValue(percentiles, '99.0', '99')),
+                'Occupied space': occupied,
+                'usedMemoryBytes': usedMemoryStr,
+                'cpuUsage': cpuUsageStr
+        ]
     }
 }
 

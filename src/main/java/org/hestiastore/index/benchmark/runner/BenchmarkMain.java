@@ -1,8 +1,12 @@
 package org.hestiastore.index.benchmark.runner;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.hestiastore.index.benchmark.common.DiskInfoMaker;
 import org.hestiastore.index.benchmark.common.SystemState;
@@ -59,9 +63,12 @@ public class BenchmarkMain {
             .getLogger(BenchmarkMain.class);
     private static final String PROPERTY_ENGINE = "engine";
     private static final String PROPERTY_BENCHMARK_THREADS = "benchmarkThreads";
+    private static final String LATENCY_RESULT_SUFFIX = "latency";
+    private static final String THROUGHPUT_RESULT_SUFFIX = "throughput";
 
     private record EngineDefinition(Class<?> benchmarkClass, String resultStem,
-            boolean multithread) {
+            boolean multithread, String latencyBenchmarkMethod,
+            String throughputBenchmarkMethod) {
     }
 
     private static final Map<String, EngineDefinition> ENGINE_TO_BENCHMARK = Map
@@ -154,9 +161,6 @@ public class BenchmarkMain {
                             LevelDBWriteMultiThreadBenchmark.class, "LevelDB"));
 
     public static void main(final String[] args) throws Exception {
-        final SystemState state = new SystemState();
-        setBeforeCpu(state);
-
         final String engine = System.getProperty(PROPERTY_ENGINE);
         LOGGER.debug("Property 'engine' is '{}'", engine);
         if (engine == null || engine.isEmpty()) {
@@ -168,76 +172,122 @@ public class BenchmarkMain {
             throw new IllegalStateException("Unknown engine '" + engine + "'");
         }
 
-        final String resultPrefix = buildResultPrefix(definition,
-                resolveThreadCount());
-        final ChainedOptionsBuilder builder = new OptionsBuilder()
-                .include(".*" + definition.benchmarkClass().getSimpleName())
-                .forks(1)
-                .resultFormat(ResultFormatType.JSON)
-                .result(resultPrefix + ".json");
-
-        if (definition.multithread()) {
-            final int threadCount = resolveThreadCount();
-            builder.threads(threadCount);
-            LOGGER.info("Running {} with {} benchmark threads", engine,
-                    threadCount);
-        }
-
-        final Options options = builder.build();
-        for (RunResult result : new Runner(options).run()) {
-            LOGGER.debug("JMH result: {}",
-                    result.getPrimaryResult().getScore());
-        }
-
-        DiskInfoMaker diskInfoMaker = new DiskInfoMaker();
-        diskInfoMaker.setState(state);
-        setAfterCpu(state);
-        setMemUsage(state);
-        writeAsJson(state, resultPrefix + "-my.json");
+        final int threadCount = resolveThreadCount();
+        runBenchmarkVariant(engine, definition, threadCount,
+                definition.latencyBenchmarkMethod(), LATENCY_RESULT_SUFFIX);
+        runBenchmarkVariant(engine, definition, threadCount,
+                definition.throughputBenchmarkMethod(),
+                THROUGHPUT_RESULT_SUFFIX);
     }
 
     private static Map.Entry<String, EngineDefinition> singleThreadWrite(
             final String engine, final Class<?> benchmarkClass,
             final String engineBase) {
         return Map.entry(engine, new EngineDefinition(benchmarkClass,
-                "write-single-thread-" + engineBase, false));
+                "write-single-thread-" + engineBase, false, "write",
+                "writeThroughput"));
     }
 
     private static Map.Entry<String, EngineDefinition> singleThreadRead(
             final String engine, final Class<?> benchmarkClass,
             final String engineBase) {
         return Map.entry(engine, new EngineDefinition(benchmarkClass,
-                "read-single-thread-" + engineBase, false));
+                "read-single-thread-" + engineBase, false, "read",
+                "readThroughput"));
     }
 
     private static Map.Entry<String, EngineDefinition> sequentialRead(
             final String engine, final Class<?> benchmarkClass,
             final String engineBase) {
         return Map.entry(engine, new EngineDefinition(benchmarkClass,
-                "sequential-read-" + engineBase, false));
+                "sequential-read-" + engineBase, false, "sequentialRead",
+                "sequentialReadThroughput"));
     }
 
     private static Map.Entry<String, EngineDefinition> multiThreadRead(
             final String engine, final Class<?> benchmarkClass,
             final String engineBase) {
         return Map.entry(engine, new EngineDefinition(benchmarkClass,
-                "read-multi-thread-" + engineBase, true));
+                "read-multi-thread-" + engineBase, true, "read",
+                "readThroughput"));
     }
 
     private static Map.Entry<String, EngineDefinition> multiThreadWrite(
             final String engine, final Class<?> benchmarkClass,
             final String engineBase) {
         return Map.entry(engine, new EngineDefinition(benchmarkClass,
-                "write-multi-thread-" + engineBase, true));
+                "write-multi-thread-" + engineBase, true, "write",
+                "writeThroughput"));
     }
 
     private static String buildResultPrefix(final EngineDefinition definition,
-            final int threadCount) {
+            final int threadCount, final String resultSuffix) {
         String prefix = "./results/results-" + definition.resultStem();
         if (definition.multithread()) {
             prefix = prefix + "-threads" + threadCount;
         }
-        return prefix;
+        return prefix + "-" + resultSuffix;
+    }
+
+    private static void runBenchmarkVariant(final String engine,
+            final EngineDefinition definition, final int threadCount,
+            final String benchmarkMethod, final String resultSuffix)
+            throws Exception {
+        final SystemState state = new SystemState();
+        setBeforeCpu(state);
+
+        final String resultPrefix = buildResultPrefix(definition, threadCount,
+                resultSuffix);
+        final Path resultPath = Path.of(resultPrefix + ".json");
+        final Path metadataPath = Path.of(resultPrefix + "-my.json");
+        Path tempResultPath = createTempFile(resultPath);
+        Path tempMetadataPath = null;
+        try {
+            final ChainedOptionsBuilder builder = new OptionsBuilder()
+                    .include(buildBenchmarkInclude(definition.benchmarkClass(),
+                            benchmarkMethod))
+                    .forks(1)
+                    .resultFormat(ResultFormatType.JSON)
+                    .result(tempResultPath.toString());
+
+            if (definition.multithread()) {
+                builder.threads(threadCount);
+                LOGGER.info("Running {} ({}) with {} benchmark threads",
+                        engine, resultSuffix, threadCount);
+            } else {
+                LOGGER.info("Running {} ({})", engine, resultSuffix);
+            }
+
+            final Options options = builder.build();
+            for (RunResult result : new Runner(options).run()) {
+                LOGGER.debug("JMH result ({}): {}", resultSuffix,
+                        result.getPrimaryResult().getScore());
+            }
+
+            DiskInfoMaker diskInfoMaker = new DiskInfoMaker();
+            diskInfoMaker.setState(state);
+            setAfterCpu(state);
+            setMemUsage(state);
+
+            tempMetadataPath = createTempFile(metadataPath);
+            writeAsJson(state, tempMetadataPath);
+            promoteTempFile(tempMetadataPath, metadataPath);
+            tempMetadataPath = null;
+
+            // Keep the primary JMH result move last so failed runs do not
+            // replace the last valid benchmark output with an empty file.
+            promoteTempFile(tempResultPath, resultPath);
+            tempResultPath = null;
+        } finally {
+            deleteTempFile(tempMetadataPath);
+            deleteTempFile(tempResultPath);
+        }
+    }
+
+    private static String buildBenchmarkInclude(final Class<?> benchmarkClass,
+            final String benchmarkMethod) {
+        return ".*" + Pattern.quote(benchmarkClass.getSimpleName()) + "\\."
+                + Pattern.quote(benchmarkMethod) + "$";
     }
 
     private static void setBeforeCpu(final SystemState state) {
@@ -281,12 +331,47 @@ public class BenchmarkMain {
         }
     }
 
-    public static void writeAsJson(final Object results,
-            final String fileName) {
+    private static Path createTempFile(final Path target) throws Exception {
+        final Path absoluteTarget = target.toAbsolutePath().normalize();
+        final Path parent = absoluteTarget.getParent();
+        if (parent == null) {
+            return Files.createTempFile(
+                    absoluteTarget.getFileName().toString() + ".", ".tmp");
+        }
+        Files.createDirectories(parent);
+        return Files.createTempFile(parent,
+                absoluteTarget.getFileName().toString() + ".", ".tmp");
+    }
+
+    private static void promoteTempFile(final Path tempFile, final Path target)
+            throws Exception {
+        final Path absoluteTarget = target.toAbsolutePath().normalize();
+        try {
+            Files.move(tempFile, absoluteTarget,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(tempFile, absoluteTarget,
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static void deleteTempFile(final Path tempFile) {
+        if (tempFile == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(tempFile);
+        } catch (Exception e) {
+            LOGGER.warn("Cannot delete temporary result file " + tempFile, e);
+        }
+    }
+
+    public static void writeAsJson(final Object results, final Path fileName) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.writerWithDefaultPrettyPrinter()
-                    .writeValue(new File(fileName), results);
+                    .writeValue(fileName.toFile(), results);
         } catch (Exception e) {
             throw new RuntimeException("Cannot write results as JSON", e);
         }
