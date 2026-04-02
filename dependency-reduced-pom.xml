@@ -84,7 +84,7 @@
                   </manifestEntries>
                 </transformer>
                 <transformer>
-                  <mainClass>com.coroptis.index.benchmark.MainBenchmarkClass</mainClass>
+                  <mainClass>org.hestiastore.index.benchmark.runner.BenchmarkMain</mainClass>
                 </transformer>
               </transformers>
             </configuration>

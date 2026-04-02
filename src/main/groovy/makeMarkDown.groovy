@@ -130,16 +130,16 @@ def normalizeNumber = { Object value ->
 
 def reportNameForScenario = { String scenario ->
     switch (scenario) {
-        case 'Write':
-            return 'out-write'
-        case 'Read':
-            return 'out-read'
-        case 'Sequential':
-            return 'out-sequential'
-        case 'MultithreadRead':
-            return 'out-multithread-read'
-        case 'MultithreadWrite':
-            return 'out-multithread-write'
+        case 'WriteSingleThread':
+            return 'out-write-single-thread'
+        case 'ReadSingleThread':
+            return 'out-read-single-thread'
+        case 'SequentialRead':
+            return 'out-sequential-read'
+        case 'ReadMultiThread':
+            return 'out-read-multi-thread'
+        case 'WriteMultiThread':
+            return 'out-write-multi-thread'
         default:
             return null
     }
@@ -153,38 +153,57 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    String engineBase = rawEngine
-    String scenario = 'Write'
-
-    if (rawEngine.startsWith('multithread-read-')) {
-        scenario = 'MultithreadRead'
-        engineBase = rawEngine.substring('multithread-read-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('multithread-write-')) {
-        scenario = 'MultithreadWrite'
-        engineBase = rawEngine.substring('multithread-write-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('read-')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring('read-'.length())
-    } else if (rawEngine.endsWith('Read')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
-    } else if (rawEngine.startsWith('sequential-')) {
-        scenario = 'Sequential'
-        engineBase = rawEngine.substring('sequential-'.length())
-    } else if (rawEngine.startsWith('write-')) {
-        scenario = 'Write'
-        engineBase = rawEngine.substring('write-'.length())
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?(?:-(latency|throughput))?$/
+    if (!matcher.matches()) {
+        return null
     }
 
-    [scenario: scenario, engine: engineBase]
+    Map<String, String> scenarioNames = [
+            'write-single-thread': 'WriteSingleThread',
+            'read-single-thread' : 'ReadSingleThread',
+            'sequential-read'    : 'SequentialRead',
+            'write-multi-thread' : 'WriteMultiThread',
+            'read-multi-thread'  : 'ReadMultiThread'
+    ]
+    String scenarioToken = matcher.group(1)
+    String threads = matcher.group(3) ?: ''
+    String metric = matcher.group(4) ?: 'combined'
+    [
+            scenario: scenarioNames[scenarioToken],
+            engine  : matcher.group(2),
+            threads : threads,
+            metric  : metric,
+            key     : "${scenarioToken}|${matcher.group(2)}|${threads}".toString()
+    ]
+}
+
+def selectLatencyResultFiles = { Path targetResultsDir ->
+    Map<String, Map<String, Object>> grouped = [:]
+
+    Files.newDirectoryStream(targetResultsDir, 'results-*.json').each { Path file ->
+        if (file.fileName.toString().endsWith('-my.json')) {
+            return
+        }
+
+        Map description = describeResultFile(file) as Map
+        if (description == null) {
+            return
+        }
+
+        Map<String, Object> group = grouped[description.key as String]
+                ?: [latencyFile: null, combinedFile: null]
+        if ((description.metric ?: '').toString() == 'latency') {
+            group.latencyFile = file
+        } else if ((description.metric ?: '').toString() == 'combined') {
+            group.combinedFile = file
+        }
+        grouped[description.key as String] = group
+    }
+
+    grouped.values()
+            .collect { (it.latencyFile ?: it.combinedFile) as Path }
+            .findAll { it != null }
+            .sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
 }
 
 def collectHistogramBins
@@ -250,11 +269,7 @@ def percentileMetricValue = { Map scorePercentiles, List<Map<String, Object>> bi
 def collectPercentileRowsByReport = { Path targetResultsDir ->
     Map<String, List<Map<String, Object>>> rowsByReport = [:].withDefault { [] }
 
-    Files.newDirectoryStream(targetResultsDir, 'results-*.json').each { Path file ->
-        if (file.fileName.toString().endsWith('-my.json')) {
-            return
-        }
-
+    selectLatencyResultFiles(targetResultsDir).each { Path file ->
         Map description = describeResultFile(file) as Map
         String reportName = reportNameForScenario(description?.scenario as String)
         if (description == null || reportName == null) {
@@ -395,7 +410,7 @@ String buildPercentileTableMarkdown(List<Map<String, Object>> rows, List<Map<Str
 }
 
 boolean isMultithreadReport(List<Map<String, Object>> rows, String reportName) {
-    return reportName.startsWith('out-multithread-') ||
+    return reportName in ['out-read-multi-thread', 'out-write-multi-thread'] ||
             (!rows.isEmpty() &&
                     rows[0].containsKey('Threads') &&
                     rows[0].containsKey('Throughput [ops/s]'))

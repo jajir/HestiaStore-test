@@ -2,14 +2,18 @@
 
 This repository contains JMH-based storage benchmarks plus helper scripts that turn raw benchmark JSON files into final Markdown, JSON, and SVG reports published into a target HestiaStore project.
 
-The plain-load write, read, and sequential suites emit both `SampleTime`
-latency and `Throughput` results in the same raw JMH JSON files so reports can
-combine sustained ops/s with percentile latency data.
+Each benchmark class is executed twice: once for latency (`us/op`) and once for
+throughput (`ops/s`). Raw JMH JSON files therefore use `-latency` and
+`-throughput` suffixes so every benchmark method also gets its own matching
+`-my.json` metadata file.
+
+Low-level `diskio` benchmarks now live in `../HestiaStore/benchmarks`.
+The legacy `load` benchmark suite has been removed from this repository.
 
 Raw benchmark files are written into `./results/` with names like:
 
-- `results-*.json` for the JMH output
-- `results-*-my.json` for extra local metadata such as disk usage and CPU usage
+- `results-*-latency.json` and `results-*-throughput.json` for the JMH output
+- `results-*-latency-my.json` and `results-*-throughput-my.json` for extra local metadata such as disk usage and CPU usage
 
 ## Prerequisites
 
@@ -110,13 +114,13 @@ After the copy step, the published files are also available in the target Hestia
 
 Typical detailed report files are:
 
-- `out-write.md`
-- `out-read.md`
-- `out-sequential.md`
-- `out-multithread-read.md`
-- `out-multithread-write.md`
+- `out-write-single-thread.md`
+- `out-read-single-thread.md`
+- `out-sequential-read.md`
+- `out-read-multi-thread.md`
+- `out-write-multi-thread.md`
 
-Detailed Markdown reports are rendered from matching templates such as `results/out-write-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `target/benchmark-report-build/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `target/benchmark-report-build/out-*-table2.md`.
+Detailed Markdown reports are rendered from matching templates such as `results/out-write-single-thread-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `target/benchmark-report-build/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `target/benchmark-report-build/out-*-table2.md`.
 
 ## Typical Workflow
 

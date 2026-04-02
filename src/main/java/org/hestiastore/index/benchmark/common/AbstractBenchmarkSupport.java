@@ -1,0 +1,83 @@
+package org.hestiastore.index.benchmark.common;
+
+import java.io.File;
+import java.util.Random;
+
+import org.hestiastore.index.segmentindex.IndexConfigurationBuilder;
+import org.hestiastore.index.utils.FileUtils;
+import org.hestiastore.index.utils.HashDataProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Shared support for benchmark implementations across single-thread and
+ * multithread suites.
+ */
+public abstract class AbstractBenchmarkSupport {
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    /**
+     * Warmup processs definition.
+     */
+    protected static final int WARM_UP_ITERACTIONS = 10;
+    protected static final int WARM_UP_TIME = 20;
+
+    /**
+     * Measurement processs definition.
+     */
+    protected static final int MEASUREMENT_ITERACTIONS = 25;
+    protected static final int MEASUREMENT_TIME = 20;
+
+    public static final String PROPERTY_DIRECTORY = "dir";
+    protected static final String VALUE = "opice skace po stromech";
+    protected static final HashDataProvider HASH_DATA_PROVIDER = new HashDataProvider();
+    protected static final long RANDOM_SEED = 324432L;
+    protected static final Random RANDOM = new Random(RANDOM_SEED);
+
+    protected String directoryFileName;
+
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT = 500_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE = 100_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE = 100_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE_DURING_MAINTENANCE = 200_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CHUNK = 1_000;
+    protected static final int INDEX_MAX_NUMBER_OF_KEYS_IN_CACHE = 500_000;
+    protected static final int INDEX_BLOOM_FILTER_INDEX_SIZE_IN_BYTES = 500_000;
+    protected static final int INDEX_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS = 3;
+
+    /**
+     * Prepare target directory based on system property and return it.
+     */
+    protected File prepareDirectory() {
+        directoryFileName = System.getProperty(PROPERTY_DIRECTORY);
+        logger.debug("Property 'dir' is '" + directoryFileName + "'");
+        if (directoryFileName == null || directoryFileName.isEmpty()) {
+            throw new IllegalStateException("Property 'dir' is not set");
+        }
+        final File dirFile = new File(directoryFileName);
+        FileUtils.deleteFileRecursively(dirFile);
+        dirFile.mkdirs();
+        return dirFile;
+    }
+
+    protected <K, V> IndexConfigurationBuilder<K, V> applySegmentIndexTuning(
+            final IndexConfigurationBuilder<K, V> builder) {
+        return builder.withContextLoggingEnabled(false)
+                .withMaxNumberOfKeysInSegment(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT)
+                .withMaxNumberOfKeysInSegmentCache(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CACHE)
+                .withMaxNumberOfKeysInActivePartition(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE)
+                .withMaxNumberOfKeysInPartitionBuffer(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_WRITE_CACHE_DURING_MAINTENANCE)
+                .withMaxNumberOfKeysInSegmentChunk(
+                        INDEX_MAX_NUMBER_OF_KEYS_IN_SEGMENT_CHUNK)
+                .withMaxNumberOfSegmentsInCache(INDEX_MAX_NUMBER_OF_KEYS_IN_CACHE)
+                .withBloomFilterIndexSizeInBytes(
+                        INDEX_BLOOM_FILTER_INDEX_SIZE_IN_BYTES)
+                .withBloomFilterNumberOfHashFunctions(
+                        INDEX_BLOOM_FILTER_NUMBER_OF_HASH_FUNCTIONS);
+    }
+}

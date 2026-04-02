@@ -1,0 +1,78 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "org.hestiastore.index.benchmark.storage.singlethread.write.HestiaStoreCompressWriteSingleThreadBenchmark.write",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.10/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "-Ddir=/Volumes/ponrava/test-index",
+            "-agentpath:/Applications/YourKit-Java-Profiler.app/Contents/Resources/bin/mac/libyjpagent.dylib=exceptions=disable,delay=10000,listen=all",
+            "-Dengine=writeSingleThreadHestiaStoreCompress"
+        ],
+        "jdkVersion" : "21.0.10",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.10",
+        "warmupIterations" : 10,
+        "warmupTime" : "20 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 25,
+        "measurementTime" : "20 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 55268.12429909487,
+            "scoreError" : 82762.89620237252,
+            "scoreConfidence" : [
+                -27494.77190327765,
+                138031.0205014674
+            ],
+            "scorePercentiles" : {
+                "0.0" : 17.692804937309564,
+                "50.0" : 47.02435948830555,
+                "90.0" : 247349.5654215896,
+                "95.0" : 369356.44910133164,
+                "99.0" : 404185.94694196177,
+                "99.9" : 404185.94694196177,
+                "99.99" : 404185.94694196177,
+                "99.999" : 404185.94694196177,
+                "99.9999" : 404185.94694196177,
+                "100.0" : 404185.94694196177
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    404185.94694196177,
+                    178775.15666042452,
+                    288087.6208065283,
+                    220190.8618316302,
+                    127726.91284697612,
+                    161916.2690208252,
+                    42.905172386970314,
+                    39.07389763462302,
+                    59.86680150787792,
+                    39.642747646329106,
+                    30.55935704374916,
+                    43.57366725406304,
+                    40.496565950594814,
+                    57.65020436197213,
+                    20.768164099415806,
+                    47.02435948830555,
+                    39.3958069289469,
+                    48.495125524060164,
+                    45.58611417756563,
+                    42.82937673499087,
+                    20.570756597306428,
+                    60.168016224281885,
+                    62.94163184586348,
+                    17.692804937309564,
+                    61.098798681761515
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
