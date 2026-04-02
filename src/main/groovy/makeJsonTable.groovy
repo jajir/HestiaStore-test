@@ -164,49 +164,31 @@ files.each { Path file ->
             .replace('results-', '')
             .replace('.json', '')
 
-    boolean isReadVariant = false
-    boolean isSequentialVariant = false
-    boolean isMultithreadReadVariant = false
-    boolean isMultithreadWriteVariant = false
-    String engineBase = rawEngine
-    String threads = ''
-
-    if (rawEngine.startsWith('multithread-read-')) {
-        isMultithreadReadVariant = true
-        engineBase = rawEngine.substring('multithread-read-'.length())
-        def matcher = engineBase =~ /^(.*)-threads(\d+)$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-            threads = matcher.group(2)
-        }
-    } else if (rawEngine.startsWith('multithread-write-')) {
-        isMultithreadWriteVariant = true
-        engineBase = rawEngine.substring('multithread-write-'.length())
-        def matcher = engineBase =~ /^(.*)-threads(\d+)$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-            threads = matcher.group(2)
-        }
-    } else if (rawEngine.startsWith('read-')) {
-        isReadVariant = true
-        engineBase = rawEngine.substring('read-'.length())
-    } else if (rawEngine.endsWith('Read')) {
-        isReadVariant = true
-        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
-    } else if (rawEngine.startsWith('sequential-')) {
-        isSequentialVariant = true
-        engineBase = rawEngine.substring('sequential-'.length())
-    } else if (rawEngine.startsWith('write-')) {
-        engineBase = rawEngine.substring('write-'.length())
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?$/
+    if (!matcher.matches()) {
+        System.err.println("Skipping result file with unsupported name: ${file.fileName}")
+        return
     }
 
-    boolean isMultithreadVariant = isMultithreadReadVariant || isMultithreadWriteVariant
-    String scenario = isMultithreadReadVariant ? 'MultithreadRead'
-            : (isMultithreadWriteVariant ? 'MultithreadWrite'
-                    : (isReadVariant ? 'Read'
-                            : (isSequentialVariant ? 'Sequential'
-                                    : 'Write')))
-    String engine = engineBase
+    String scenarioToken = matcher.group(1)
+    String engine = matcher.group(2)
+    String threads = matcher.group(3) ?: ''
+    boolean isMultithreadVariant = scenarioToken in [
+            'write-multi-thread',
+            'read-multi-thread'
+    ]
+    Map<String, String> scenarioNames = [
+            'write-single-thread': 'WriteSingleThread',
+            'read-single-thread' : 'ReadSingleThread',
+            'sequential-read'    : 'SequentialRead',
+            'write-multi-thread' : 'WriteMultiThread',
+            'read-multi-thread'  : 'ReadMultiThread'
+    ]
+    String scenario = scenarioNames[scenarioToken]
+    if (scenario == null) {
+        throw new IllegalStateException(
+                "Unsupported scenario token ${scenarioToken}")
+    }
 
     byte[] rawBytes = Files.readAllBytes(file)
     if (rawBytes.length == 0) {
@@ -339,22 +321,32 @@ files.each { Path file ->
     }
 }
 
-def writeRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Write' }
-def readRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Read' }
-def sequentialRows = rows.findAll { (it['Variant'] ?: 'Write') == 'Sequential' }
-def multithreadReadRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadRead' }
-def multithreadWriteRows = rows.findAll { (it['Variant'] ?: '') == 'MultithreadWrite' }
+def writeSingleThreadRows = rows.findAll {
+    (it['Variant'] ?: '') == 'WriteSingleThread'
+}
+def readSingleThreadRows = rows.findAll {
+    (it['Variant'] ?: '') == 'ReadSingleThread'
+}
+def sequentialReadRows = rows.findAll {
+    (it['Variant'] ?: '') == 'SequentialRead'
+}
+def readMultiThreadRows = rows.findAll {
+    (it['Variant'] ?: '') == 'ReadMultiThread'
+}
+def writeMultiThreadRows = rows.findAll {
+    (it['Variant'] ?: '') == 'WriteMultiThread'
+}
 
-Path writeOutput = outputDir.resolve('out-write-table.json')
-Path readOutput = outputDir.resolve('out-read-table.json')
-Path sequentialOutput = outputDir.resolve('out-sequential-table.json')
-Path multithreadReadOutput = outputDir.resolve('out-multithread-read-table.json')
-Path multithreadWriteOutput = outputDir.resolve('out-multithread-write-table.json')
+Path writeOutput = outputDir.resolve('out-write-single-thread-table.json')
+Path readOutput = outputDir.resolve('out-read-single-thread-table.json')
+Path sequentialOutput = outputDir.resolve('out-sequential-read-table.json')
+Path readMultiThreadOutput = outputDir.resolve('out-read-multi-thread-table.json')
+Path writeMultiThreadOutput = outputDir.resolve('out-write-multi-thread-table.json')
 
-mapper.writeValue(writeOutput.toFile(), writeRows)
-mapper.writeValue(readOutput.toFile(), readRows)
-mapper.writeValue(sequentialOutput.toFile(), sequentialRows)
-mapper.writeValue(multithreadReadOutput.toFile(), multithreadReadRows)
-mapper.writeValue(multithreadWriteOutput.toFile(), multithreadWriteRows)
+mapper.writeValue(writeOutput.toFile(), writeSingleThreadRows)
+mapper.writeValue(readOutput.toFile(), readSingleThreadRows)
+mapper.writeValue(sequentialOutput.toFile(), sequentialReadRows)
+mapper.writeValue(readMultiThreadOutput.toFile(), readMultiThreadRows)
+mapper.writeValue(writeMultiThreadOutput.toFile(), writeMultiThreadRows)
 
-println "Written summaries to ${writeOutput}, ${readOutput}, ${sequentialOutput}, ${multithreadReadOutput} and ${multithreadWriteOutput}"
+println "Written summaries to ${writeOutput}, ${readOutput}, ${sequentialOutput}, ${readMultiThreadOutput} and ${writeMultiThreadOutput}"

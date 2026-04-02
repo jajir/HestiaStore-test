@@ -130,16 +130,16 @@ def normalizeNumber = { Object value ->
 
 def reportNameForScenario = { String scenario ->
     switch (scenario) {
-        case 'Write':
-            return 'out-write'
-        case 'Read':
-            return 'out-read'
-        case 'Sequential':
-            return 'out-sequential'
-        case 'MultithreadRead':
-            return 'out-multithread-read'
-        case 'MultithreadWrite':
-            return 'out-multithread-write'
+        case 'WriteSingleThread':
+            return 'out-write-single-thread'
+        case 'ReadSingleThread':
+            return 'out-read-single-thread'
+        case 'SequentialRead':
+            return 'out-sequential-read'
+        case 'ReadMultiThread':
+            return 'out-read-multi-thread'
+        case 'WriteMultiThread':
+            return 'out-write-multi-thread'
         default:
             return null
     }
@@ -153,38 +153,19 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    String engineBase = rawEngine
-    String scenario = 'Write'
-
-    if (rawEngine.startsWith('multithread-read-')) {
-        scenario = 'MultithreadRead'
-        engineBase = rawEngine.substring('multithread-read-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('multithread-write-')) {
-        scenario = 'MultithreadWrite'
-        engineBase = rawEngine.substring('multithread-write-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('read-')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring('read-'.length())
-    } else if (rawEngine.endsWith('Read')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
-    } else if (rawEngine.startsWith('sequential-')) {
-        scenario = 'Sequential'
-        engineBase = rawEngine.substring('sequential-'.length())
-    } else if (rawEngine.startsWith('write-')) {
-        scenario = 'Write'
-        engineBase = rawEngine.substring('write-'.length())
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads\d+)?$/
+    if (!matcher.matches()) {
+        return null
     }
 
-    [scenario: scenario, engine: engineBase]
+    Map<String, String> scenarioNames = [
+            'write-single-thread': 'WriteSingleThread',
+            'read-single-thread' : 'ReadSingleThread',
+            'sequential-read'    : 'SequentialRead',
+            'write-multi-thread' : 'WriteMultiThread',
+            'read-multi-thread'  : 'ReadMultiThread'
+    ]
+    [scenario: scenarioNames[matcher.group(1)], engine: matcher.group(2)]
 }
 
 def collectHistogramBins
@@ -395,7 +376,7 @@ String buildPercentileTableMarkdown(List<Map<String, Object>> rows, List<Map<Str
 }
 
 boolean isMultithreadReport(List<Map<String, Object>> rows, String reportName) {
-    return reportName.startsWith('out-multithread-') ||
+    return reportName in ['out-read-multi-thread', 'out-write-multi-thread'] ||
             (!rows.isEmpty() &&
                     rows[0].containsKey('Threads') &&
                     rows[0].containsKey('Throughput [ops/s]'))

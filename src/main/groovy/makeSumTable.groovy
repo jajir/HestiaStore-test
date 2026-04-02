@@ -42,11 +42,11 @@ if (!Files.isDirectory(rawResultsDir)) {
 }
 Files.createDirectories(outputDir)
 
-Path writeTable = outputDir.resolve("out-write-table.json")
-Path readTable = outputDir.resolve("out-read-table.json")
-Path sequentialTable = outputDir.resolve("out-sequential-table.json")
-Path multithreadReadTable = outputDir.resolve("out-multithread-read-table.json")
-Path multithreadWriteTable = outputDir.resolve("out-multithread-write-table.json")
+Path writeTable = outputDir.resolve("out-write-single-thread-table.json")
+Path readTable = outputDir.resolve("out-read-single-thread-table.json")
+Path sequentialTable = outputDir.resolve("out-sequential-read-table.json")
+Path readMultiThreadTable = outputDir.resolve("out-read-multi-thread-table.json")
+Path writeMultiThreadTable = outputDir.resolve("out-write-multi-thread-table.json")
 
 ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
 
@@ -112,16 +112,16 @@ def stringifyCellValue = { Object value ->
 
 def reportNameForScenario = { String scenario ->
     switch (scenario) {
-        case 'Write':
-            return 'out-write'
-        case 'Read':
-            return 'out-read'
-        case 'Sequential':
-            return 'out-sequential'
-        case 'MultithreadRead':
-            return 'out-multithread-read'
-        case 'MultithreadWrite':
-            return 'out-multithread-write'
+        case 'WriteSingleThread':
+            return 'out-write-single-thread'
+        case 'ReadSingleThread':
+            return 'out-read-single-thread'
+        case 'SequentialRead':
+            return 'out-sequential-read'
+        case 'ReadMultiThread':
+            return 'out-read-multi-thread'
+        case 'WriteMultiThread':
+            return 'out-write-multi-thread'
         default:
             return null
     }
@@ -135,38 +135,19 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    String engineBase = rawEngine
-    String scenario = 'Write'
-
-    if (rawEngine.startsWith('multithread-read-')) {
-        scenario = 'MultithreadRead'
-        engineBase = rawEngine.substring('multithread-read-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('multithread-write-')) {
-        scenario = 'MultithreadWrite'
-        engineBase = rawEngine.substring('multithread-write-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('read-')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring('read-'.length())
-    } else if (rawEngine.endsWith('Read')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
-    } else if (rawEngine.startsWith('sequential-')) {
-        scenario = 'Sequential'
-        engineBase = rawEngine.substring('sequential-'.length())
-    } else if (rawEngine.startsWith('write-')) {
-        scenario = 'Write'
-        engineBase = rawEngine.substring('write-'.length())
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads\d+)?$/
+    if (!matcher.matches()) {
+        return null
     }
 
-    [scenario: scenario, engine: engineBase]
+    Map<String, String> scenarioNames = [
+            'write-single-thread': 'WriteSingleThread',
+            'read-single-thread' : 'ReadSingleThread',
+            'sequential-read'    : 'SequentialRead',
+            'write-multi-thread' : 'WriteMultiThread',
+            'read-multi-thread'  : 'ReadMultiThread'
+    ]
+    [scenario: scenarioNames[matcher.group(1)], engine: matcher.group(2)]
 }
 
 def collectHistogramBins
@@ -238,15 +219,15 @@ List<Map<String, Object>> readRows = Files.exists(readTable)
 List<Map<String, Object>> sequentialRows = Files.exists(sequentialTable)
         ? mapper.readValue(sequentialTable.toFile(), List)
         : []
-List<Map<String, Object>> multithreadReadRows = Files.exists(multithreadReadTable)
-        ? mapper.readValue(multithreadReadTable.toFile(), List)
+List<Map<String, Object>> readMultiThreadRows = Files.exists(readMultiThreadTable)
+        ? mapper.readValue(readMultiThreadTable.toFile(), List)
         : []
-List<Map<String, Object>> multithreadWriteRows = Files.exists(multithreadWriteTable)
-        ? mapper.readValue(multithreadWriteTable.toFile(), List)
+List<Map<String, Object>> writeMultiThreadRows = Files.exists(writeMultiThreadTable)
+        ? mapper.readValue(writeMultiThreadTable.toFile(), List)
         : []
 
 if (writeRows.isEmpty() && readRows.isEmpty() && sequentialRows.isEmpty()
-        && multithreadReadRows.isEmpty() && multithreadWriteRows.isEmpty()) {
+        && readMultiThreadRows.isEmpty() && writeMultiThreadRows.isEmpty()) {
     System.err.println("No summary JSON files found in ${outputDir}")
     System.exit(1)
 }
@@ -393,16 +374,16 @@ def buildDetailedMultithreadMarkdown = { List<Map<String, Object>> rows ->
 
 Map<String, List<Map<String, Object>>> percentileRowsByReport = collectPercentileRowsByReport()
 
-Path writeOutput = outputDir.resolve("out-write-table.md")
-Path readOutput = outputDir.resolve("out-read-table.md")
-Path sequentialOutput = outputDir.resolve("out-sequential-table.md")
-Path multithreadReadOutput = outputDir.resolve("out-multithread-read-table.md")
-Path multithreadWriteOutput = outputDir.resolve("out-multithread-write-table.md")
-Path writeOutput2 = outputDir.resolve("out-write-table2.md")
-Path readOutput2 = outputDir.resolve("out-read-table2.md")
-Path sequentialOutput2 = outputDir.resolve("out-sequential-table2.md")
-Path multithreadReadOutput2 = outputDir.resolve("out-multithread-read-table2.md")
-Path multithreadWriteOutput2 = outputDir.resolve("out-multithread-write-table2.md")
+Path writeOutput = outputDir.resolve("out-write-single-thread-table.md")
+Path readOutput = outputDir.resolve("out-read-single-thread-table.md")
+Path sequentialOutput = outputDir.resolve("out-sequential-read-table.md")
+Path readMultiThreadOutput = outputDir.resolve("out-read-multi-thread-table.md")
+Path writeMultiThreadOutput = outputDir.resolve("out-write-multi-thread-table.md")
+Path writeOutput2 = outputDir.resolve("out-write-single-thread-table2.md")
+Path readOutput2 = outputDir.resolve("out-read-single-thread-table2.md")
+Path sequentialOutput2 = outputDir.resolve("out-sequential-read-table2.md")
+Path readMultiThreadOutput2 = outputDir.resolve("out-read-multi-thread-table2.md")
+Path writeMultiThreadOutput2 = outputDir.resolve("out-write-multi-thread-table2.md")
 
 def deleteIfExists = { Path output ->
     if (Files.exists(output)) {
@@ -414,7 +395,7 @@ if (!writeRows.isEmpty()) {
     Files.writeString(writeOutput, buildDetailedThroughputMarkdown(writeRows))
     println("Wrote ${writeOutput}")
     Files.writeString(writeOutput2,
-            buildPercentileMarkdown(percentileRowsByReport['out-write'] ?: []))
+            buildPercentileMarkdown(percentileRowsByReport['out-write-single-thread'] ?: []))
     println("Wrote ${writeOutput2}")
 } else {
     deleteIfExists(writeOutput)
@@ -425,7 +406,7 @@ if (!readRows.isEmpty()) {
     Files.writeString(readOutput, buildDetailedThroughputMarkdown(readRows))
     println("Wrote ${readOutput}")
     Files.writeString(readOutput2,
-            buildPercentileMarkdown(percentileRowsByReport['out-read'] ?: []))
+            buildPercentileMarkdown(percentileRowsByReport['out-read-single-thread'] ?: []))
     println("Wrote ${readOutput2}")
 } else {
     deleteIfExists(readOutput)
@@ -436,33 +417,33 @@ if (!sequentialRows.isEmpty()) {
     Files.writeString(sequentialOutput, buildDetailedThroughputMarkdown(sequentialRows))
     println("Wrote ${sequentialOutput}")
     Files.writeString(sequentialOutput2,
-            buildPercentileMarkdown(percentileRowsByReport['out-sequential'] ?: []))
+            buildPercentileMarkdown(percentileRowsByReport['out-sequential-read'] ?: []))
     println("Wrote ${sequentialOutput2}")
 } else {
     deleteIfExists(sequentialOutput)
     deleteIfExists(sequentialOutput2)
 }
 
-if (!multithreadReadRows.isEmpty()) {
-    Files.writeString(multithreadReadOutput,
-            buildDetailedMultithreadMarkdown(multithreadReadRows))
-    println("Wrote ${multithreadReadOutput}")
-    Files.writeString(multithreadReadOutput2,
-            buildPercentileMarkdown(percentileRowsByReport['out-multithread-read'] ?: []))
-    println("Wrote ${multithreadReadOutput2}")
+if (!readMultiThreadRows.isEmpty()) {
+    Files.writeString(readMultiThreadOutput,
+            buildDetailedMultithreadMarkdown(readMultiThreadRows))
+    println("Wrote ${readMultiThreadOutput}")
+    Files.writeString(readMultiThreadOutput2,
+            buildPercentileMarkdown(percentileRowsByReport['out-read-multi-thread'] ?: []))
+    println("Wrote ${readMultiThreadOutput2}")
 } else {
-    deleteIfExists(multithreadReadOutput)
-    deleteIfExists(multithreadReadOutput2)
+    deleteIfExists(readMultiThreadOutput)
+    deleteIfExists(readMultiThreadOutput2)
 }
 
-if (!multithreadWriteRows.isEmpty()) {
-    Files.writeString(multithreadWriteOutput,
-            buildDetailedMultithreadMarkdown(multithreadWriteRows))
-    println("Wrote ${multithreadWriteOutput}")
-    Files.writeString(multithreadWriteOutput2,
-            buildPercentileMarkdown(percentileRowsByReport['out-multithread-write'] ?: []))
-    println("Wrote ${multithreadWriteOutput2}")
+if (!writeMultiThreadRows.isEmpty()) {
+    Files.writeString(writeMultiThreadOutput,
+            buildDetailedMultithreadMarkdown(writeMultiThreadRows))
+    println("Wrote ${writeMultiThreadOutput}")
+    Files.writeString(writeMultiThreadOutput2,
+            buildPercentileMarkdown(percentileRowsByReport['out-write-multi-thread'] ?: []))
+    println("Wrote ${writeMultiThreadOutput2}")
 } else {
-    deleteIfExists(multithreadWriteOutput)
-    deleteIfExists(multithreadWriteOutput2)
+    deleteIfExists(writeMultiThreadOutput)
+    deleteIfExists(writeMultiThreadOutput2)
 }

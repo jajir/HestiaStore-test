@@ -40,32 +40,32 @@ def graphShared = new GroovyShell().evaluate(
 
 def datasetConfigs = [
         [
-                input: buildDir.resolve('out-write-table.json').toFile(),
-                output: imagesDir.resolve('out-write.svg').toFile(),
+                input: buildDir.resolve('out-write-single-thread-table.json').toFile(),
+                output: imagesDir.resolve('out-write-single-thread.svg').toFile(),
                 valueKey: 'Score [ops/s]',
                 labelSuffix: ''
         ],
         [
-                input: buildDir.resolve('out-read-table.json').toFile(),
-                output: imagesDir.resolve('out-read.svg').toFile(),
+                input: buildDir.resolve('out-read-single-thread-table.json').toFile(),
+                output: imagesDir.resolve('out-read-single-thread.svg').toFile(),
                 valueKey: 'Score [ops/s]',
                 labelSuffix: ''
         ],
         [
-                input: buildDir.resolve('out-sequential-table.json').toFile(),
-                output: imagesDir.resolve('out-sequential.svg').toFile(),
+                input: buildDir.resolve('out-sequential-read-table.json').toFile(),
+                output: imagesDir.resolve('out-sequential-read.svg').toFile(),
                 valueKey: 'Score [ops/s]',
                 labelSuffix: ''
         ],
         [
-                input: buildDir.resolve('out-multithread-read-table.json').toFile(),
-                output: imagesDir.resolve('out-multithread-read.svg').toFile(),
+                input: buildDir.resolve('out-read-multi-thread-table.json').toFile(),
+                output: imagesDir.resolve('out-read-multi-thread.svg').toFile(),
                 valueKey: 'Throughput [ops/s]',
                 labelSuffix: ' ops/s'
         ],
         [
-                input: buildDir.resolve('out-multithread-write-table.json').toFile(),
-                output: imagesDir.resolve('out-multithread-write.svg').toFile(),
+                input: buildDir.resolve('out-write-multi-thread-table.json').toFile(),
+                output: imagesDir.resolve('out-write-multi-thread.svg').toFile(),
                 valueKey: 'Throughput [ops/s]',
                 labelSuffix: ' ops/s'
         ]

@@ -2,9 +2,12 @@
 
 This repository contains JMH-based storage benchmarks plus helper scripts that turn raw benchmark JSON files into final Markdown, JSON, and SVG reports published into a target HestiaStore project.
 
-The plain-load write, read, and sequential suites emit both `SampleTime`
+The single-thread write, read, and sequential-read suites emit both `SampleTime`
 latency and `Throughput` results in the same raw JMH JSON files so reports can
 combine sustained ops/s with percentile latency data.
+
+Low-level `diskio` benchmarks now live in `../HestiaStore/benchmarks`.
+The legacy `load` benchmark suite has been removed from this repository.
 
 Raw benchmark files are written into `./results/` with names like:
 
@@ -110,13 +113,13 @@ After the copy step, the published files are also available in the target Hestia
 
 Typical detailed report files are:
 
-- `out-write.md`
-- `out-read.md`
-- `out-sequential.md`
-- `out-multithread-read.md`
-- `out-multithread-write.md`
+- `out-write-single-thread.md`
+- `out-read-single-thread.md`
+- `out-sequential-read.md`
+- `out-read-multi-thread.md`
+- `out-write-multi-thread.md`
 
-Detailed Markdown reports are rendered from matching templates such as `results/out-write-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `target/benchmark-report-build/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `target/benchmark-report-build/out-*-table2.md`.
+Detailed Markdown reports are rendered from matching templates such as `results/out-write-single-thread-test-template.md`. The template must contain `{{TABLE}}`, which is filled from `target/benchmark-report-build/out-*-table.md`, and may also contain `{{TABLE1}}`, which is filled from `target/benchmark-report-build/out-*-table2.md`.
 
 ## Typical Workflow
 

@@ -80,16 +80,16 @@ def percentileSpecs = [
 ]
 
 def scenarioMeta = [
-        Write            : [stem: 'out-write-percentiles.svg',
-                            title: 'Write Latency Percentiles'],
-        Read             : [stem: 'out-read-percentiles.svg',
-                            title: 'Read Latency Percentiles'],
-        Sequential       : [stem: 'out-sequential-percentiles.svg',
+        WriteSingleThread: [stem: 'out-write-single-thread-percentiles.svg',
+                            title: 'Single-thread Write Latency Percentiles'],
+        ReadSingleThread : [stem: 'out-read-single-thread-percentiles.svg',
+                            title: 'Single-thread Read Latency Percentiles'],
+        SequentialRead   : [stem: 'out-sequential-read-percentiles.svg',
                             title: 'Sequential Read Latency Percentiles'],
-        MultithreadRead  : [stem: 'out-multithread-read-percentiles.svg',
-                            title: 'Multithread Read Latency Percentiles'],
-        MultithreadWrite : [stem: 'out-multithread-write-percentiles.svg',
-                            title: 'Multithread Write Latency Percentiles']
+        ReadMultiThread  : [stem: 'out-read-multi-thread-percentiles.svg',
+                            title: 'Multi-thread Read Latency Percentiles'],
+        WriteMultiThread : [stem: 'out-write-multi-thread-percentiles.svg',
+                            title: 'Multi-thread Write Latency Percentiles']
 ]
 
 def colorForEngine = { String engine ->
@@ -106,38 +106,19 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    String engineBase = rawEngine
-    String scenario = 'Write'
-
-    if (rawEngine.startsWith('multithread-read-')) {
-        scenario = 'MultithreadRead'
-        engineBase = rawEngine.substring('multithread-read-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('multithread-write-')) {
-        scenario = 'MultithreadWrite'
-        engineBase = rawEngine.substring('multithread-write-'.length())
-        def matcher = engineBase =~ /^(.*)-threads\d+$/
-        if (matcher.matches()) {
-            engineBase = matcher.group(1)
-        }
-    } else if (rawEngine.startsWith('read-')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring('read-'.length())
-    } else if (rawEngine.endsWith('Read')) {
-        scenario = 'Read'
-        engineBase = rawEngine.substring(0, rawEngine.length() - 'Read'.length())
-    } else if (rawEngine.startsWith('sequential-')) {
-        scenario = 'Sequential'
-        engineBase = rawEngine.substring('sequential-'.length())
-    } else if (rawEngine.startsWith('write-')) {
-        scenario = 'Write'
-        engineBase = rawEngine.substring('write-'.length())
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads\d+)?$/
+    if (!matcher.matches()) {
+        return null
     }
 
-    [scenario: scenario, engine: engineBase]
+    Map<String, String> scenarioNames = [
+            'write-single-thread': 'WriteSingleThread',
+            'read-single-thread' : 'ReadSingleThread',
+            'sequential-read'    : 'SequentialRead',
+            'write-multi-thread' : 'WriteMultiThread',
+            'read-multi-thread'  : 'ReadMultiThread'
+    ]
+    [scenario: scenarioNames[matcher.group(1)], engine: matcher.group(2)]
 }
 
 def collectHistogramBins
