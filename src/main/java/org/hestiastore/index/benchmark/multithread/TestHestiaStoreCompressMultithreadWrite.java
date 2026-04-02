@@ -36,11 +36,11 @@ public class TestHestiaStoreCompressMultithreadWrite
                 .addDecodingFilter(new ChunkFilterCrc32Validation())
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())
                 .withIndexWorkerThreadCount(10)
-                .withNumberOfSegmentIndexMaintenanceThreads(10)
+                .withNumberOfStableSegmentMaintenanceThreads(10)
                 .withMaxNumberOfKeysInSegment(10_000_000)
                 .withMaxNumberOfKeysInSegmentCache(1_000_000)
-                .withMaxNumberOfKeysInSegmentWriteCache(300_000)
-                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                .withMaxNumberOfKeysInActivePartition(300_000)
+                .withMaxNumberOfKeysInPartitionBuffer(
                         600_000)
                 .withMaxNumberOfSegmentsInCache(10)
                 .build();

@@ -88,8 +88,8 @@ public class IndexWritingBenchmark {
                 .withContextLoggingEnabled(false)//
                 .withMaxNumberOfKeysInSegment(500_000)//
                 .withMaxNumberOfKeysInSegmentCache(100_000)//
-                .withMaxNumberOfKeysInSegmentWriteCache(100_000)//
-                .withMaxNumberOfKeysInSegmentWriteCacheDuringMaintenance(
+                .withMaxNumberOfKeysInActivePartition(100_000)//
+                .withMaxNumberOfKeysInPartitionBuffer(
                         200_000)//
                 .withMaxNumberOfKeysInSegmentChunk(1_000)//
                 .withMaxNumberOfSegmentsInCache(500_000)//

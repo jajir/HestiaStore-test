@@ -260,8 +260,21 @@ multithread_write_benchmarks(){
     run LevelDBMultithreadWrite 4
 }
 
-write_benchmarks
-read_benchmarks
-sequential_benchmarks
-#multithread_read_benchmarks
-#multithread_write_benchmarks
+    run HestiaStoreBasic
+    run HestiaStoreCompressWrite
+    run HestiaStoreBasicRead
+    run HestiaStoreCompressRead
+    run HestiaStoreBasicSequential
+    run HestiaStoreCompressSequential
+    run HestiaStoreCompressSequential2
+#    run HestiaStoreBasicMultithreadRead 4
+#    run HestiaStoreCompressMultithreadRead 4
+#    run HestiaStoreBasicMultithreadWrite 4
+#    run HestiaStoreCompressMultithreadWrite 4
+
+
+#write_benchmarks
+#read_benchmarks
+#sequential_benchmarks
+multithread_read_benchmarks
+multithread_write_benchmarks
