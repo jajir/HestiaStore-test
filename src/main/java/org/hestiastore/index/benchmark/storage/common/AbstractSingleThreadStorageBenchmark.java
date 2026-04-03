@@ -1,5 +1,7 @@
 package org.hestiastore.index.benchmark.storage.common;
 
+import org.hestiastore.index.benchmark.common.AbstractBenchmarkSupport;
+
 /**
  * Common single-thread benchmark parent that centralizes the shared operation
  * implementation while allowing specialized parents to expose scenario-specific

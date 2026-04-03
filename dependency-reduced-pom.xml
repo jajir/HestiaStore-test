@@ -24,7 +24,6 @@
           <release>${java.version}</release>
           <fork>false</fork>
           <encoding>UTF-8</encoding>
-          <useIncrementalCompilation>false</useIncrementalCompilation>
           <annotationProcessorPaths>
             <path>
               <groupId>org.openjdk.jmh</groupId>

@@ -1,0 +1,95 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "org.hestiastore.index.benchmark.storage.singlethread.write.HestiaStoreBasicWriteSingleThreadBenchmark.writeThroughput",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/opt/homebrew/Cellar/openjdk@21/21.0.10/libexec/openjdk.jdk/Contents/Home/bin/java",
+        "jvmArgs" : [
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.io=ALL-UNNAMED",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED",
+            "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "-Xmx10000m",
+            "-Ddir=/Volumes/ponrava/test-index",
+            "-Dengine=writeSingleThreadHestiaStoreBasic",
+            "-DbenchmarkThreads=1",
+            "-DbenchmarkPreloadEntryCount=10000000",
+            "-DbenchmarkMissProbability=0.2"
+        ],
+        "jdkVersion" : "21.0.10",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.10",
+        "warmupIterations" : 10,
+        "warmupTime" : "20 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 25,
+        "measurementTime" : "20 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 6177.644320037948,
+            "scoreError" : 962.1678199899189,
+            "scoreConfidence" : [
+                5215.476500048029,
+                7139.812140027867
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3332.3262534660216,
+                "50.0" : 6209.659665770874,
+                "90.0" : 7669.053437011793,
+                "95.0" : 8092.4434943449105,
+                "99.0" : 8221.50075470037,
+                "99.9" : 8221.50075470037,
+                "99.99" : 8221.50075470037,
+                "99.999" : 8221.50075470037,
+                "99.9999" : 8221.50075470037,
+                "100.0" : 8221.50075470037
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    8221.50075470037,
+                    7608.944728043525,
+                    7705.271713278534,
+                    7153.037639811597,
+                    7092.324405431257,
+                    4761.7695428420575,
+                    5841.225182533181,
+                    7124.648333311802,
+                    4876.300854509328,
+                    7291.489357431255,
+                    6392.843365280809,
+                    5811.473680013055,
+                    6420.2519742077875,
+                    6026.4759662609395,
+                    5719.076816312247,
+                    4618.517382512575,
+                    7632.835160745052,
+                    5310.818360782868,
+                    7243.174462450071,
+                    3332.3262534660216,
+                    5747.009714518876,
+                    4770.702462590992,
+                    4727.092916178571,
+                    6834.3526536980135
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
