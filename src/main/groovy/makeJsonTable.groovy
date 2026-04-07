@@ -164,7 +164,7 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?(?:-(latency|throughput))?$/
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?-(latency|throughput)$/
     if (!matcher.matches()) {
         return null
     }
@@ -176,7 +176,7 @@ def describeResultFile = { Path file ->
     }
     String engine = matcher.group(2)
     String threads = matcher.group(3) ?: ''
-    String metric = matcher.group(4) ?: 'combined'
+    String metric = matcher.group(4)
     [
             scenarioToken: scenarioToken,
             scenario     : scenario,
@@ -302,7 +302,6 @@ Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
 
     Map group = groupedFiles[description.key] ?: [
             description   : description,
-            combinedFile  : null,
             latencyFile   : null,
             throughputFile: null
     ]
@@ -312,9 +311,6 @@ Files.newDirectoryStream(rawResultsDir, 'results-*.json').each { Path file ->
             break
         case 'throughput':
             group.throughputFile = file
-            break
-        default:
-            group.combinedFile = file
             break
     }
     groupedFiles[description.key] = group
@@ -347,9 +343,8 @@ groups.each { Map group ->
     ]
     String scenario = description.scenario as String
 
-    Path combinedFile = group.combinedFile as Path
-    Path latencyFile = group.latencyFile as Path ?: combinedFile
-    Path throughputFile = group.throughputFile as Path ?: combinedFile
+    Path latencyFile = group.latencyFile as Path
+    Path throughputFile = group.throughputFile as Path
 
     List latencyData = loadResultEntries(latencyFile)
     List throughputData = throughputFile == latencyFile
@@ -368,7 +363,7 @@ groups.each { Map group ->
     Map latencyPrimary = latencyEntry?.get('primaryMetric') as Map ?: [:]
     Map throughputPrimary = throughputEntry?.get('primaryMetric') as Map ?: [:]
     Map percentiles = latencyPrimary?.get('scorePercentiles') as Map ?: [:]
-    Map metadata = mergeMetadata([latencyFile, throughputFile, combinedFile])
+    Map metadata = mergeMetadata([latencyFile, throughputFile])
     String occupied = metadata.occupied as String
     String usedMemoryStr = metadata.usedMemoryStr as String
     String cpuUsageStr = metadata.cpuUsageStr as String

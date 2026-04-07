@@ -153,7 +153,7 @@ def describeResultFile = { Path file ->
         return null
     }
 
-    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?(?:-(latency|throughput))?$/
+    def matcher = rawEngine =~ /^(write-single-thread|read-single-thread|sequential-read|write-multi-thread|read-multi-thread)-(.+?)(?:-threads(\d+))?-(latency|throughput)$/
     if (!matcher.matches()) {
         return null
     }
@@ -167,7 +167,7 @@ def describeResultFile = { Path file ->
     ]
     String scenarioToken = matcher.group(1)
     String threads = matcher.group(3) ?: ''
-    String metric = matcher.group(4) ?: 'combined'
+    String metric = matcher.group(4)
     [
             scenario: scenarioNames[scenarioToken],
             engine  : matcher.group(2),
@@ -191,17 +191,15 @@ def selectLatencyResultFiles = { Path targetResultsDir ->
         }
 
         Map<String, Object> group = grouped[description.key as String]
-                ?: [latencyFile: null, combinedFile: null]
+                ?: [latencyFile: null]
         if ((description.metric ?: '').toString() == 'latency') {
             group.latencyFile = file
-        } else if ((description.metric ?: '').toString() == 'combined') {
-            group.combinedFile = file
         }
         grouped[description.key as String] = group
     }
 
     grouped.values()
-            .collect { (it.latencyFile ?: it.combinedFile) as Path }
+            .collect { it.latencyFile as Path }
             .findAll { it != null }
             .sort { a, b -> a.fileName.toString() <=> b.fileName.toString() }
 }
