@@ -1,12 +1,12 @@
 def fixedEngineColors = [
-        ChronicleMap       : '#4b81ba',
-        H2                 : '#12b548',
-        HestiaStoreBasic   : '#e64d4f',
-        HestiaStoreCompress: '#e64d4f',
-        HestiaStoreStream  : '#e64d4f',
-        LevelDB            : '#EDC948',
-        MapDB              : '#ea54c0',
-        RocksDB            : '#607c65',
+        ChronicleMap       : '#1F77B4',
+        H2                 : '#2CA02C',
+        HestiaStoreBasic   : '#E53935',
+        HestiaStoreCompress: '#E53935',
+        HestiaStoreStream  : '#E53935',
+        LevelDB            : '#ebeb49',
+        MapDB              : '#9467BD',
+        RocksDB            : '#17BECF',
         Unknown            : '#9C755F'
 ].asImmutable()
 

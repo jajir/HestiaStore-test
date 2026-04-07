@@ -49,7 +49,7 @@ run_step 3 "makeGraph.sh" \
 run_step 4 "makeMarkDown.sh" \
   "final Markdown benchmark reports in ${REPORT_DOCS_DIR}"
 run_step 5 "copyReportsToHestiaStore.sh" \
-  "copied Markdown reports into ${PUBLISH_DOCS_DIR} and charts into ${PUBLISH_IMAGES_DIR}" \
+  "synchronized canonical Markdown reports into ${PUBLISH_DOCS_DIR} and charts into ${PUBLISH_IMAGES_DIR}" \
   "publish-only"
 
 echo
