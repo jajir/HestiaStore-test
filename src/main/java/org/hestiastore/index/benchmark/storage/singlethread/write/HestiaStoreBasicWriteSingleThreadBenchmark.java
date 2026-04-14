@@ -27,7 +27,8 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class HestiaStoreBasicWriteSingleThreadBenchmark extends AbstractWriteSingleThreadBenchmark {
+public class HestiaStoreBasicWriteSingleThreadBenchmark
+        extends AbstractWriteSingleThreadBenchmark {
     private SegmentIndex<String, String> index;
 
     @Override
@@ -46,11 +47,13 @@ public class HestiaStoreBasicWriteSingleThreadBenchmark extends AbstractWriteSin
 
         final IndexConfiguration<String, String> conf = applySegmentIndexTuning(
                 IndexConfiguration.<String, String>builder()//
-                .withName("test-index")//
-                .withKeyClass(String.class)//
-                .withValueClass(String.class))//
+                        .withName("test-index")//
+                        .withKeyClass(String.class)//
+                        .withValueClass(String.class))//
                 .addEncodingFilter(new ChunkFilterMagicNumberWriting())//
                 .addEncodingFilter(new ChunkFilterCrc32Writing())//
+                .withIndexBusyBackoffMillis(100)//
+                .withIndexBusyTimeoutMillis(920_000)//
                 // .addEncodingFilter(new ChunkFilterSnappyCompress())//
                 // .addEncodingFilter(new ChunkFilterXorEncrypt())//
                 // .addDecodingFilter(new ChunkFilterXorDecrypt())//

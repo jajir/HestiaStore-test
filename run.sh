@@ -261,10 +261,27 @@ write_multi_thread_benchmarks(){
     run writeMultiThreadLevelDB 4
 }
 
-write_single_thread_benchmarks
-read_single_thread_benchmarks
-sequential_read_benchmarks
-read_multi_thread_benchmarks
-write_multi_thread_benchmarks
+HestiaStore_benchmarks(){
+    #run readMultiThreadHestiaStoreBasic 4
+    #run readMultiThreadHestiaStoreCompress 4
 
+    #run writeMultiThreadHestiaStoreBasic 4
+    #run writeMultiThreadHestiaStoreCompress 4
 
+    #run sequentialReadHestiaStoreBasic
+    #run sequentialReadHestiaStoreCompress
+    #run sequentialReadHestiaStoreStream
+    #run readSingleThreadHestiaStoreBasic
+    #run readSingleThreadHestiaStoreCompress
+
+    run writeSingleThreadHestiaStoreBasic
+    #run writeSingleThreadHestiaStoreCompress
+}
+
+#write_single_thread_benchmarks
+#ead_single_thread_benchmarks
+#sequential_read_benchmarks
+#read_multi_thread_benchmarks
+#write_multi_thread_benchmarks
+
+HestiaStore_benchmarks
