@@ -31,6 +31,8 @@ public class HestiaStoreBasicWriteMultiThreadBenchmark
                 .addEncodingFilter(new ChunkFilterCrc32Writing())
                 .addDecodingFilter(new ChunkFilterCrc32Validation())
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())
+                .withIndexBusyBackoffMillis(100)//
+                .withIndexBusyTimeoutMillis(920_000)//
                 .build();
         index = SegmentIndex.create(directory, conf);
     }

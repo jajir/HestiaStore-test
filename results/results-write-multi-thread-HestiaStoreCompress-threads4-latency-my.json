@@ -1,10 +1,10 @@
 {
-  "totalDirectorySize" : 553161266,
-  "fileCount" : 17,
-  "usedMemoryBytes" : 39885448,
-  "cpuBefore" : 571604000,
-  "cpuAfter" : 1161089000,
-  "startTime" : 2677659169732500,
-  "endTime" : 2677920805532041,
-  "cpuUsage" : 0.22530746978592428
+  "totalDirectorySize" : 14550269849,
+  "fileCount" : 358,
+  "usedMemoryBytes" : 188221848,
+  "cpuBefore" : 2892223000,
+  "cpuAfter" : 7877702000,
+  "startTime" : 93373669308791,
+  "endTime" : 94840955319375,
+  "cpuUsage" : 0.3397755423304084
 }

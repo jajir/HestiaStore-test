@@ -29,7 +29,8 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
-public class HestiaStoreCompressWriteSingleThreadBenchmark extends AbstractWriteSingleThreadBenchmark {
+public class HestiaStoreCompressWriteSingleThreadBenchmark
+        extends AbstractWriteSingleThreadBenchmark {
     private SegmentIndex<String, String> index;
 
     @Override
@@ -59,13 +60,13 @@ public class HestiaStoreCompressWriteSingleThreadBenchmark extends AbstractWrite
                 .addDecodingFilter(new ChunkFilterSnappyDecompress())//
                 .addDecodingFilter(new ChunkFilterCrc32Validation())//
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())//
-                .withIndexWorkerThreadCount(10)//
-                .withNumberOfStableSegmentMaintenanceThreads(10)//
+                // .withIndexWorkerThreadCount(10)//
+                // .withNumberOfStableSegmentMaintenanceThreads(10)//
+                .withNumberOfSegmentMaintenanceThreads(10)
                 .withMaxNumberOfKeysInSegment(10_000_000)//
                 .withMaxNumberOfKeysInSegmentCache(1_000_000)//
                 .withMaxNumberOfKeysInActivePartition(300_000)//
-                .withMaxNumberOfKeysInPartitionBuffer(
-                        600_000) //
+                .withMaxNumberOfKeysInPartitionBuffer(600_000) //
                 // .withIndexBusyTimeoutMillis(1000 * 60)//
                 .withMaxNumberOfSegmentsInCache(10)//
                 .build();

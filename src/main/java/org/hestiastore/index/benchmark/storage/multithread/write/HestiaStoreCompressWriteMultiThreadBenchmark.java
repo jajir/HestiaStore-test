@@ -35,15 +35,15 @@ public class HestiaStoreCompressWriteMultiThreadBenchmark
                 .addDecodingFilter(new ChunkFilterSnappyDecompress())
                 .addDecodingFilter(new ChunkFilterCrc32Validation())
                 .addDecodingFilter(new ChunkFilterMagicNumberValidation())
-                .withIndexWorkerThreadCount(10)
-                .withNumberOfStableSegmentMaintenanceThreads(10)
+                .withIndexBusyBackoffMillis(100)//
+                .withIndexBusyTimeoutMillis(920_000)//
+                .withNumberOfIndexMaintenanceThreads(10)
+                .withNumberOfSegmentMaintenanceThreads(10)
                 .withMaxNumberOfKeysInSegment(10_000_000)
                 .withMaxNumberOfKeysInSegmentCache(1_000_000)
                 .withMaxNumberOfKeysInActivePartition(300_000)
-                .withMaxNumberOfKeysInPartitionBuffer(
-                        600_000)
-                .withMaxNumberOfSegmentsInCache(10)
-                .build();
+                .withMaxNumberOfKeysInPartitionBuffer(600_000)
+                .withMaxNumberOfSegmentsInCache(10).build();
         index = SegmentIndex.create(directory, conf);
     }
 
