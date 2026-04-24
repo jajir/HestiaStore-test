@@ -22,6 +22,7 @@
         <junit.platform.version>1.4.0</junit.platform.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <jmh.version>1.37</jmh.version>
+        <hestiastore.version>0.0.7-SNAPSHOT</hestiastore.version>
     </properties>
 
     <!-- mvn jdeps:jdkinternals -->
@@ -30,7 +31,7 @@
             <dependency>
                 <groupId>org.hestiastore</groupId>
                 <artifactId>engine</artifactId>
-                <version>0.0.7-SNAPSHOT</version>
+                <version>${hestiastore.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -87,7 +88,7 @@
         <dependency>
             <groupId>org.hestiastore</groupId>
             <artifactId>monitoring-rest-json</artifactId>
-            <version>0.0.6-SNAPSHOT</version>
+            <version>${hestiastore.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mapdb</groupId>
